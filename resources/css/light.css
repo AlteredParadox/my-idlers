@@ -356,21 +356,21 @@
     background-color: #f9fafb;
     border-bottom: 1px solid #e5e7eb;
     border-top: none;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
     color: #6b7280;
-    padding: 0.875rem 1rem;
+    padding: 0.4rem 0.5rem;
     white-space: nowrap;
 }
 
 .content-card .table tbody td {
-    padding: 0.875rem 1rem;
+    padding: 0.35rem 0.5rem;
     vertical-align: middle;
     border-bottom: 1px solid #f3f4f6;
     color: #374151;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
 }
 
 .content-card .table tbody tr:hover {

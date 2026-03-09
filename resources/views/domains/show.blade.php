@@ -50,7 +50,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Next Due</span>
-                                    <span class="detail-value">{{ Carbon\Carbon::parse($domain_info->price->next_due_date)->diffForHumans() }}</span>
+                                    <span class="detail-value">{{ $domain_info->price->next_due_date ? Carbon\Carbon::parse($domain_info->price->next_due_date)->diffForHumans() : '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">

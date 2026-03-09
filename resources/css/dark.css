@@ -400,21 +400,21 @@ body {
     background-color: #0f172a;
     border-bottom: 1px solid #334155;
     border-top: none;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
     color: #94a3b8;
-    padding: 0.875rem 1rem;
+    padding: 0.4rem 0.5rem;
     white-space: nowrap;
 }
 
 .content-card .table tbody td {
-    padding: 0.875rem 1rem;
+    padding: 0.35rem 0.5rem;
     vertical-align: middle;
     border-bottom: 1px solid #334155;
     color: #cbd5e1;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
 }
 
 .content-card .table tbody tr:hover {

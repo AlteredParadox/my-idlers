@@ -94,6 +94,10 @@ class Home extends Model
         $count = $altered_due_soon = 0;
         $server_due_date_changed = false;
         foreach ($due_soon as $service) {
+            if (is_null($service->next_due_date)) {
+                $count++;
+                continue;
+            }
             if (Carbon::createFromFormat('Y-m-d', $service->next_due_date)->isPast()) {
                 $months = $pricing->termAsMonths($service->term);//Get months for term to update the next due date to
                 if ($months === 0) {//one-time payment, don't auto-advance due date

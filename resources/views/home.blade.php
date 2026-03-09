@@ -203,7 +203,7 @@
                                         @endif
                                         </span>
                                     </td>
-                                    <td>{{ Carbon\Carbon::parse($due_soon->next_due_date)->diffForHumans() }}</td>
+                                    <td>{{ $due_soon->next_due_date ? Carbon\Carbon::parse($due_soon->next_due_date)->diffForHumans() : '-' }}</td>
                                     <td>{{ $due_soon->price }} {{ $due_soon->currency }} {{ \App\Process::paymentTermIntToString($due_soon->term) }}</td>
                                     <td class="text-center">
                                         @php

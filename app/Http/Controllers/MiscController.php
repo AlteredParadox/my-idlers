@@ -36,7 +36,7 @@ class MiscController extends Controller
             'payment_term' => 'required|integer',
             'currency' => 'required|string|size:3',
             'owned_since' => 'sometimes|nullable|date',
-            'next_due_date' => 'required|date'
+            'next_due_date' => 'sometimes|nullable|date'
         ]);
 
         $misc_id = Str::random(8);
@@ -71,7 +71,7 @@ class MiscController extends Controller
             'payment_term' => 'required|integer',
             'currency' => 'required|string|size:3',
             'owned_since' => 'sometimes|nullable|date',
-            'next_due_date' => 'required|date'
+            'next_due_date' => 'sometimes|nullable|date'
         ]);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;

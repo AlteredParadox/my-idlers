@@ -42,6 +42,7 @@
                                     <th class="text-center">CPU</th>
                                     <th class="text-center">RAM</th>
                                     <th class="text-center">Disk</th>
+                                    <th class="text-center">BW</th>
                                     <th>Location</th>
                                     <th>Provider</th>
                                     <th>Price</th>
@@ -70,6 +71,9 @@
                                     <td class="text-center text-nowrap">
                                         {{ $server->disk }}<small class="text-muted">{{ $server->disk_type }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap">
+                                        @if($server->bandwidth == 0) <span title="Unlimited">&infin;</span> @else {{ $server->bandwidth }}<small class="text-muted">GB</small> @endif
+                                    </td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
                                     <td class="text-nowrap">
@@ -77,7 +81,7 @@
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d
+                                        @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->owned_since }}</td>
                                     <td class="text-center text-nowrap">
@@ -102,7 +106,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="12" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -121,6 +125,7 @@
                                     <th class="text-center">CPU</th>
                                     <th class="text-center">RAM</th>
                                     <th class="text-center">Disk</th>
+                                    <th class="text-center">BW</th>
                                     <th>Location</th>
                                     <th>Provider</th>
                                     <th>Price</th>
@@ -156,6 +161,9 @@
                                             {{ $server->disk }}<small class="text-muted">GB</small>
                                         @endif
                                     </td>
+                                    <td class="text-center text-nowrap">
+                                        @if($server->bandwidth == 0) <span title="Unlimited">&infin;</span> @else {{ $server->bandwidth }}<small class="text-muted">GB</small> @endif
+                                    </td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
                                     <td class="text-nowrap">
@@ -185,7 +193,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="12" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -252,7 +260,7 @@
                 pageLength: 15,
                 lengthMenu: [5, 10, 15, 25, 50, 100],
                 columnDefs: [
-                    {orderable: false, targets: [2, 11]}
+                    {orderable: false, targets: [2, 12]}
                 ],
                 language: {
                     search: "",
