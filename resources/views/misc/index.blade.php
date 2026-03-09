@@ -32,7 +32,9 @@
                                 {{ $m->price->price }} {{ $m->price->currency }}
                                 <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                             </td>
-                            <td class="text-center text-nowrap">{{ now()->diffInDays($m->price->next_due_date) }}d</td>
+                            <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
+                                @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
+                            </td>
                             <td class="text-center text-nowrap">
                                 @if(!is_null($m->owned_since))
                                     {{ $m->owned_since }}

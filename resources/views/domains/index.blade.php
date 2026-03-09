@@ -38,8 +38,8 @@
                                 {{ $domain->price->price }}
                                 <small class="text-muted">{{ $domain->price->currency }}</small>
                             </td>
-                            <td class="text-center text-nowrap">
-                                {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d
+                            <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
+                                @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                             </td>
                             <td class="text-center text-nowrap">{{ $domain->owned_since }}</td>
                             <td class="text-center text-nowrap">
