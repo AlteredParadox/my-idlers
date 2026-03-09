@@ -1,0 +1,55 @@
+Description,COMPANY,LOCATION,HOSTNAME,CPU TYPE,OS,VCPU,RAM,SSD DISK,HDD DISK,NETWORK TYPE,BANDWIDTH,LINK SPEED,COST/MO (USD),COST/YR (USD),COST,PERIOD,CURRENCY,Renews,Cancelled
+VPS 2TB,LowEndRack,"USA (Houston, TX)",us-tx-lr01,Intel(R) Core(TM) Ultra 7 265K,Debian 13,1,2GB,15GB,2TB,,UNLIMITED,1G,$3.99,$47.88,3.99,1M,USD,03/20/26,x
+CustomThing,TierHive,"USA (Kansas City, MO)",us-mo-th01,AMD EPYC 7B13,Debian 13,1,1GB,11GB,,,UNLIMITED,1G,$0.89,$10.68,0.89,1M,USD,03/20/26,x
+VPS-1,Dartnode,USA (HOUSTON),us-tx-dn01,Intel(R) Xeon(R) CPU E5-2697A,Debian 13,1,1GB,10GB,,,UNLIMITED,1G,$0.58,$7.00,7.00,1Y,USD,06/01/26,x
+Especial Virtfusion,GeorgeVM,"USA (Dallas, TX)",us-tx-gdc01,AMD EPYC 7443,Debian 13,4,8GB,180GB,,,UNLIMITED,10G,$2.08,$24.95,24.95,1Y,USD,07/04/26,x
+GeorgeEdge 8G,GeorgeVM,"USA (Dallas, TX)",us-tx-gdc02,AMD Ryzen 9 3950X,Debian 13,4,8GB,180GB,,,UNLIMITED,10G,$2.08,$24.95,24.95,1Y,USD,07/04/26,x
+WDC-USA Cloud VPS #1 (Annually-Special),HostDZire,USA (Washington DC),us-dc-hz03,AMD EPYC Processor,Debian 13,4,6GB,100GB,,,25TB OUT (UNLIMITED IN),10G,$2.34,$28.10,28.10,1Y,USD,07/05/26,x
+LAX-USA Cloud VPS #1 (Annually-Special),HostDZire,"USA (Los Angeles, CA)",us-ca-hz02,AMD EPYC Processor,Debian 13,4,6GB,100GB,,,25TB OUT (UNLIMITED IN),10G,$2.34,$28.10,28.10,1Y,USD,07/12/26,x
+LET $7 KVM Super Sale LA,Dedirock,"USA (Los Angeles, CA)",us-ca-dr01,Intel(R) Xeon(R) CPU E5-2660 v2,Debian 13,1,1GB,30GB,,,2TB,1G,$0.58,$7.00,7.00,1Y,USD,08/26/26,x
+LET $7 KVM Super Sale NY,Dedirock,USA (New York),us-ny-dr02,Intel(R) Xeon(R) CPU E5-2660 v2,Debian 13,1,1GB,30GB,,,2TB,1G,$0.58,$7.00,7.00,1Y,USD,08/26/26,x
+Pro VPS,RareCloud,"USA (Phoenix, AZ)",us-az-rc01,AMD EPYC 7443P,Debian 13,4,8GB,100GB,,,8TB,1G,$3.11,$37.35,37.35,1Y,USD,09/28/26,x
+Xeon Yearly Deal 3 @ LET,Chunkserve,NL (Amsterdam),nl-nh-cks01,Intel(R) Xeon(R) CPU E5-2690 v4,Debian 13,5,8GB,50GB,,,40TB,2G,$1.75,$20.99,20.99,1Y,USD,11/18/26,x
+16 GB Bolt Deal of Month (SEA),Purevoltage,"USA (Seattle, WA)",us-wa-pv01,AMD EPYC 7742,Debian 13,4,16GB,200GB,,,20TB,3G,$4.17,$50.00,50.00,1Y,USD,11/22/26,x
+16 GB Bolt (Black Friday 2024),Purevoltage,USA (New York),us-ny-pv02,AMD EPYC 7742,Debian 13,4,16GB,200GB,,,20TB,3G,$6.25,$75.00,75.00,1Y,USD,11/25/26,x
+FLASH-3,Deluxhost,NL (Amsterdam),nl-nh-dh01,Intel Xeon Platinum 8173M,Debian 13,2,4GB,40GB,,,UNLIMITED,10G,$0.00,$0.00,7.00,1Y,EUR,11/30/26,x
+Offer K – K-3,Deluxhost,NL (Amsterdam),nl-nh-dh02,Intel Xeon Platinum 8173M,Debian 13,2,4GB,60GB,,,UNLIMITED,10G,$0.00,$0.00,7.00,1Y,EUR,11/30/26,x
+Offer W – W-1,Deluxhost,NL (Amsterdam),nl-nh-dh03,AMD Ryzen 9 9950X,Debian 13,1,1GB,10GB,,,UNLIMITED,10G,$0.00,$0.00,5.00,1Y,EUR,11/30/26,x
+Special - Black Friday 2025 - Standard 16GB,CometVPS,"USA (Chicago, IL)",us-il-cmt01,Intel(R) Xeon(R) CPU E5-2690 v3,Debian 13,8,16GB,160GB,,,10TB,1G,$4.58,$54.90,54.90,1Y,USD,12/01/26,x
+Special - Black Friday 2025 – Storage 250GB,CometVPS,"USA (Denver, CO)",us-il-cmt04,Intel(R) Xeon(R) CPU E5-2690 v4,Debian 13,1,1GB,250GB,,,4TB,1G,$1.11,$13.37,13.37,1Y,USD,12/01/26,x
+Special - Black Friday 2025 - Standard 1GB,CometVPS,"USA (Chicago, IL)",us-il-cmt03,Intel(R) Xeon(R) CPU E5-2690 v3,Debian 13,1,1GB,20GB,,,4TB,1G,$0.65,$7.77,7.77,1Y,USD,12/01/26,x
+Micro KVM,RareCloud,"USA (Silicon Valley, CA)",us-ca-rc02,Intel(R) Xeon(R) CPU E5-2683 v4,Debian 13,1,768MB,15GB,,,1TB,1G,$1.88,$22.55,22.55,1Y,USD,12/01/26,x
+Hybrid KVM - Hybrid-16,TNAHosting,"USA (Chicago, IL)",us-il-tna03,Intel / Qemu,Debian 13,4,16GB,,650GB,,60TB,1G,$2.67,$32.00,32.00,1Y,USD,12/01/26,x
+SSD KVM 1GB,TNAHosting,"USA (Chicago, IL)",us-il-tna02,Intel / Qemu,Debian 13,1,1GB,30GB,,,15TB,1G,$0.50,$6.00,6.00,1Y,USD,12/01/26,x
+SSD KVM 1GB,TNAHosting,"USA (Chicago, IL)",us-il-tna01,Intel / Qemu,Debian 13,1,1GB,30GB,,,15TB,1G,$0.50,$6.00,6.00,1Y,USD,12/01/26,x
+BF2025 - Platypus Pro,HostBilby,CA (Ontario),ca-on-hb01,AMD EPYC 7713P,Debian 13,12,24GB,160GB,,,8TB,10G,$5.00,$60.00,60.00,1Y,USD,12/02/26,x
+Promo VPS Saver NY FAT32 2025,Dedirock,USA (New York),us-ny-dr03,Intel(R) Xeon(R) CPU E5-2697 v2,Debian 13,1,2GB,15GB,,,2TB,1G,$0.55,$6.59,6.59,1Y,USD,12/04/26,x
+Promo VPS Saver NY FAT32 2025,Dedirock,USA (New York),us-ny-dr04,Intel(R) Xeon(R) CPU E5-2697 v2,Debian 13,1,2GB,15GB,,,2TB,1G,$0.55,$6.59,6.59,1Y,USD,12/04/26,x
+Special – Sale – Standard 512MB,CometVPS,"USA (Chicago, IL)",us-il-cmt05,Intel(R) Xeon(R) CPU E5-2690 v3,Debian 13,1,512MB,10GB,,,1TB,1G,$0.50,$6.00,6.00,1Y,USD,12/10/26,x
+EclipseDrift405 VDS Node Slice,Dartnode,USA (HOUSTON),us-tx-dn02,AMD Ryzen 9950X,Debian 13,1,6GB,62GB,1TB,,UNLIMITED,1G,$5.36,$64.37,64.37,1Y,USD,12/15/26,x
+IPv6 only Mini VPS,SmokyHosts,USA (Kansas City),us-mo-sh02,Intel(R) Xeon(R) CPU E3-1240,Debian 13,1,1GB,10GB,,,500GB,1G,$0.58,$7.00,7.00,1Y,USD,12/30/26,x
+Value VPS – BilbyCore,HostBilby,USA (Washington),us-wa-hb02,Intel(R) Xeon(R) Gold 6130,Debian 13,1,4GB,20GB,,,5TB,2G,$1.82,$21.87,21.87,1Y,USD,02/04/27,x
+RYZEN: Killer-1C,HostCram,USA (Utah),us-ut-hcr01,AMD Ryzen 7 7700,Debian 13,1,3GB,30GB,,,10TB,10G,$2.08,$25.00,50.00,2Y,USD,12/03/27,x
+IPv6 only Size S VPS,SmokyHosts,USA (Kansas City),us-mo-sh01,Intel(R) Xeon(R) CPU E3-1240,Debian 13,2,2GB,40GB,,,2TB,1G,$0.83,$9.98,29.95,3Y,USD,12/08/28,x
+IPv6 only Mini VPS,SmokyHosts,USA (Kansas City),us-mo-sh03,Intel(R) Xeon(R) CPU E3-1240,Debian 13,1,1GB,10GB,,,500GB,1G,$0.83,$9.98,29.95,3Y,USD,02/19/29,x
+Special 2024 LET Offer H/A Cloud VPS,MassiveGrid,USA (New York),us-ny-mg01,Intel(R) Xeon(R) Gold 6130,Debian 13,1,4GB,32GB,,IPV4,20TB,1G,$1.02,$12.29,36.88,3Y,USD,11/11/28,x
+IPv6 - VPS 2,Baboon Hosting,NL (Amsterdam),nl-nh-bh01,Intel(R) Xeon(R) CPU E5-2690 v4,Debian 13,2,4GB,50GB,,IPV6,8TB,1G,$0.00,$0.00,8.00,1Y,EUR,11/04/26,
+DynamicVPS – Performance,C-Servers,Germany (Falkenstein),de-sn-cs03,Intel(R) Xeon(R) CPU E5-2695 v4,Debian 13,4,4GB,90GB,,IPV6 + NATV4,UNLIMITED,1G,$0.00,$0.00,139.99,1 Time,USD,N/A,
+LES Affaires d'Eté 2025,C-Servers,Finland (Uusimaa),fl-uu-cs01,AMD EPYC-Rome Processor,Debian 13,2,2GB,20GB,,IPV6 + NATV4,8TB,1G,$0.42,$5.00,5.00,1Y,USD,08/06/26,
+The C-Servers Legendary,C-Servers,USA (New York),us-ny-cs02,AMD Ryzen 9 7950X3D,Debian 13,1,2GB,50GB,,IPV6 + NATV4,10TB,1G,$0.53,$6.42,19.25,3Y,USD,11/28/28,
+Special - Black Friday 2025 - Standard 16GB,CometVPS,"USA (Chicago, IL)",us-il-cmt02,Intel(R) Xeon(R) CPU E5-2690 v3,Debian 13,8,16GB,160GB,,IPV4 + IPV6,10TB,1G,$2.67,$32.00,32.00,1Y,USD,01/01/27,
+Page 404 Special - $7/yr VPS-1,Dartnode,"USA (Los Angeles, CA)",us-ca-dn03,Intel(R) Xeon(R) Gold 6148,Debian 13,1,1GB,10GB,,IPV4,UNLIMITED,1G,$0.58,$7.00,7.00,1Y,USD,02/01/27,
+Page 404 Special - $7/yr VPS-1,Dartnode,"USA (Los Angeles, CA)",us-ca-dn04,Intel(R) Xeon(R) Gold 6148,Debian 13,1,1GB,10GB,,IPV4 + IPV6,UNLIMITED,1G,$0.58,$7.00,7.00,1Y,USD,02/01/27,
+FLASH-1,Deluxhost,NL (Amsterdam),nl-nh-dh04,Intel Xeon Platinum 8173M,Debian 13,1,1GB,10GB,,IPV4,UNLIMITED,10G,$0.00,$0.00,1.00,1Y,EUR,12/02/26,
+FAT32 Day - Piko KVM IPV6 Only,HOST-C,Romania (Oradea),ro-bh-hc09,Intel(R) Xeon(R) Gold 6240,Debian 13,1,1GB,32GB,,IPV6 (NAT V4 via HC02),1TB,1G,$0.27,$3.20,3.20,1Y,USD,03/01/27,
+FAT32 Day - Piko KVM IPV6 Only,HOST-C,Romania (Oradea),ro-bh-hc08,Intel(R) Xeon(R) Gold 6240,Debian 13,1,1GB,32GB,,IPV6 (NAT V4 via HC02),1TB,1G,$0.27,$3.20,3.20,1Y,USD,03/01/27,
+Revuelto,HOST-C,Romania (Oradea),ro-bh-hc01,Intel(R) Xeon(R) Gold 6248,Debian 13,2,4GB,80GB,,IPV4 + IPV6,2TB,1G,$0.61,$7.37,7.37,1Y,USD,12/26/25,
+LET 15th Anniversary IPV6 NVME VPS,HOST-C,Romania (Oradea),ro-bh-hc03,Intel(R) Xeon(R) Gold 6248,Debian 13,2,4GB,80GB,,IPV6 (NAT V4 via HC02),4TB,1G,$0.62,$7.38,7.38,1Y,USD,07/15/26,
+LET 15th Anniversary IPV4+IPV6 NVME VPS,HOST-C,Romania (Oradea),ro-bh-hc02,Intel(R) Xeon(R) Gold 6248,Debian 13,1,2GB,40GB,,IPV4 + IPV6,2TB,1G,$0.64,$7.69,7.69,1Y,USD,07/14/26,
+Sirius B - NVME VPS - IPV6 Only – G2,HOST-C,Romania (Oradea),ro-bh-hc07, Intel(R) Xeon(R) Gold 6240,Debian 13,1,4GB,40GB,,IPV6 (NAT V4 via HC02),1TB,1G,$1.00,$12.00,12.00,1Y,USD,02/28/27,
+Atlas XR-500 - Storage 1 TB FAT32 Edition 2025,HOST-C,Romania (Oradea),ro-bh-hc06,Intel(R) Xeon(R) Gold 6240,Debian 13,2,4GB,,1TB,IPV4 + IPV6,3TB,1G,$1.83,$22.00,22.00,1Y,USD,05/03/26,
+LET 15th Anniversary 3TB Storage VPS,HOST-C,Romania (Oradea),ro-bh-hc04,Intel(R) Xeon(R) Gold 6248,Debian 13,4,8GB,50GB,6TB,IPV4 + IPV6,18TB,1G,$2.50,$30.00,30.00,1Y,USD,07/13/26,
+HOST-C Pioneer,HOST-C,Romania (Oradea),ro-bh-hc05,Intel(R) Xeon(R) Gold 6226,Debian 13,4,8GB,40GB,10TB,IPV4 + IPV6,36TB,1G,$9.17,$110.00,110.00,1Y,USD,06/30/26,
+IN CloudVPS #5 (FAT32 Special),HostDZire,INDIA (Mumbai),in-mh-hz01,AMD EPYC 7K62,Debian 13,16,32GB,240GB,,IPV4,8TB,10G,$2.67,$32.09,32.09,1Y,USD,07/05/26,
+V3 KVM Slim Slice 4,Servarica,CA (Montreal),ca-qc-sr01,AMD EPYC 7663,Debian 13,4,4GB,120GB,,IPV4 + IPV6,12TB,10G,$6.00,$72.00,6.00,1M,USD,04/02/26,
+ON-1 Mini,Onidel,USA (New York),us-ny-od01,AMD EPYC 7713,Debian 13,1,2GB,20GB,,IPV4 + IPV6,2TB,1G,$3.20,$38.40,38.40,1Y,USD,03/01/27,
