@@ -39,6 +39,7 @@
     {{ $slot }}
 </div>
 <script src="{{ asset('js/app.js') }}" defer></script>
+<script>window.addEventListener('pageshow', function(e) { if (e.persisted) window.location.reload(); });</script>
 @yield('scripts')
 </body>
 </html>
