@@ -6,7 +6,6 @@ use App\Models\DNS;
 use App\Models\Home;
 use App\Models\Labels;
 use App\Models\Pricing;
-use App\Models\Settings;
 use App\Process;
 use Illuminate\Support\Facades\Session;
 
@@ -22,10 +21,6 @@ class HomeController extends Controller
     {
         $p = new Process();
         $p->startTimer();
-
-        //Get & set the settings, 1 minute cache
-        $settings = Settings::getSettings();
-        Settings::setSettingsToSession($settings);
 
         //Check for past due date and refresh the due date if so:
         $due_soon = Home::doDueSoon(Home::dueSoonData());

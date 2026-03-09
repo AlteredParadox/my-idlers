@@ -26,9 +26,6 @@ class ServerController extends Controller
 
     public function showServersPublic()
     {
-        $settings = Settings::getSettings();
-        Settings::setSettingsToSession($settings);
-
         if ((Session::get('show_servers_public') === 1)) {
             $servers = Server::allPublicServers();
             return view('servers.public-index', compact('servers'));
