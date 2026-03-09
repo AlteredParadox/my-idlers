@@ -84,6 +84,7 @@
                                 <option value="4">Annual</option>
                                 <option value="5">Biennial</option>
                                 <option value="6">Triennial</option>
+                                <option value="7">One time</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
@@ -140,7 +141,11 @@
                         </div>
                         <div class="col-6 col-md-4 col-lg-2">
                             <label class="form-label">Bandwidth (GB)</label>
-                            <input type="number" class="form-control" name="bandwidth" value="500" min="0" max="999999">
+                            <input type="number" class="form-control" name="bandwidth" id="bandwidth" value="500" min="0" max="999999">
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" id="bandwidth_unlimited" onchange="var el=document.getElementById('bandwidth');if(this.checked){el.value=0;el.readOnly=true;}else{el.readOnly=false;el.value=500;}">
+                                <label class="form-check-label small" for="bandwidth_unlimited">Unlimited</label>
+                            </div>
                         </div>
                         <div class="col-6 col-md-4 col-lg-2">
                             <label class="form-label">FTP</label>

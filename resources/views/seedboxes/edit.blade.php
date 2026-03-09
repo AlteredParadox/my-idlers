@@ -77,6 +77,7 @@
                                 <option value="4" {{ $seedbox_data->price->term == 4 ? 'selected' : '' }}>Annual</option>
                                 <option value="5" {{ $seedbox_data->price->term == 5 ? 'selected' : '' }}>Biennial</option>
                                 <option value="6" {{ $seedbox_data->price->term == 6 ? 'selected' : '' }}>Triennial</option>
+                                <option value="7" {{ $seedbox_data->price->term == 7 ? 'selected' : '' }}>One time</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
@@ -121,7 +122,11 @@
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label">Bandwidth (GB)</label>
-                            <input type="number" class="form-control" name="bandwidth" value="{{ $seedbox_data->bandwidth }}" min="0" max="999999">
+                            <input type="number" class="form-control" name="bandwidth" id="bandwidth" value="{{ $seedbox_data->bandwidth }}" min="0" max="999999" {{ $seedbox_data->bandwidth == 0 ? 'readonly' : '' }}>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" id="bandwidth_unlimited" {{ $seedbox_data->bandwidth == 0 ? 'checked' : '' }} onchange="var el=document.getElementById('bandwidth');if(this.checked){el.value=0;el.readOnly=true;}else{el.readOnly=false;el.value=1000;}">
+                                <label class="form-check-label small" for="bandwidth_unlimited">Unlimited</label>
+                            </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label">Port Speed (Mbps)</label>
