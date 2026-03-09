@@ -92,14 +92,14 @@
    ========================================== */
 
 .dashboard-container {
-    padding-top: 1.5rem;
+    padding-top: 0.75rem;
 }
 
 .stat-card {
     background-color: #1e293b;
     border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 1.25rem;
+    border-radius: 8px;
+    padding: 0.75rem;
     text-align: center;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -110,22 +110,22 @@
 }
 
 .stat-value {
-    font-size: 1.75rem;
+    font-size: 1.375rem;
     font-weight: 700;
     color: #f1f5f9;
     line-height: 1.2;
 }
 
 .stat-label {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: #94a3b8;
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
 }
 
 .dashboard-card {
     background-color: #1e293b;
     border: 1px solid #334155;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
 }
 
@@ -133,20 +133,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 1px solid #334155;
     background-color: #0f172a;
 }
 
 .card-title-custom {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: #f1f5f9;
     margin: 0;
 }
 
 .card-body-custom {
-    padding: 1.25rem;
+    padding: 0.75rem;
 }
 
 .cost-item,
@@ -156,18 +156,18 @@
 
 .cost-value,
 .resource-value {
-    font-size: 1.25rem;
+    font-size: 1.0625rem;
     font-weight: 700;
     color: #f1f5f9;
 }
 
 .cost-label,
 .resource-label {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.025em;
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
 }
 
 .dashboard-card .table {
@@ -177,16 +177,16 @@
 .dashboard-card .table thead th {
     background-color: #0f172a;
     border-bottom: 1px solid #334155;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
     color: #94a3b8;
-    padding: 0.75rem 1rem;
+    padding: 0.375rem 0.5rem;
 }
 
 .dashboard-card .table tbody td {
-    padding: 0.75rem 1rem;
+    padding: 0.375rem 0.5rem;
     vertical-align: middle;
     border-bottom: 1px solid #334155;
     color: #cbd5e1;
@@ -207,12 +207,12 @@ body {
 .main-navbar {
     background-color: #1e293b;
     border-bottom: 1px solid #334155;
-    padding: 0.75rem 0;
+    padding: 0.25rem 0;
 }
 
 .main-navbar .navbar-brand {
     color: #f1f5f9;
-    font-size: 1.125rem;
+    font-size: 1rem;
 }
 
 .main-navbar .navbar-toggler {
@@ -225,9 +225,9 @@ body {
 
 .main-navbar .nav-link {
     color: #94a3b8;
-    font-size: 0.9375rem;
-    padding: 0.5rem 0.875rem;
-    border-radius: 6px;
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.625rem;
+    border-radius: 4px;
     transition: color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -244,15 +244,15 @@ body {
 .main-navbar .dropdown-menu {
     background-color: #1e293b;
     border: 1px solid #334155;
-    border-radius: 8px;
+    border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    padding: 0.5rem;
+    padding: 0.25rem;
 }
 
 .main-navbar .dropdown-item {
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9375rem;
+    border-radius: 4px;
+    padding: 0.3rem 0.625rem;
+    font-size: 0.8125rem;
     color: #cbd5e1;
 }
 
@@ -283,13 +283,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem 0 1rem;
+    padding: 0.625rem 0 0.5rem;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .page-title {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
     font-weight: 600;
     color: #f1f5f9;
     margin: 0;
@@ -297,7 +297,7 @@ body {
 
 .page-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.375rem;
     flex-wrap: wrap;
 }
 
@@ -325,6 +325,11 @@ body {
     }
 }
 
+.btn {
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.625rem;
+}
+
 .btn-outline-secondary {
     border-color: #475569;
     color: #cbd5e1;
@@ -339,7 +344,7 @@ body {
 .content-card {
     background-color: #1e293b;
     border: 1px solid #334155;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -363,17 +368,17 @@ body {
 
 .card-tabs .nav-tabs {
     border: none;
-    padding: 0 1rem;
+    padding: 0 0.5rem;
 }
 
 .card-tabs .nav-link {
     border: none;
     border-bottom: 2px solid transparent;
     border-radius: 0;
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     color: #94a3b8;
     font-weight: 500;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
 }
 
 .card-tabs .nav-link:hover {
@@ -458,14 +463,14 @@ body {
 }
 
 .dataTables_wrapper .row:first-child {
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     margin: 0;
     border-bottom: 1px solid #334155;
     background-color: #0f172a;
 }
 
 .dataTables_wrapper .row:last-child {
-    padding: 0.75rem 1.25rem;
+    padding: 0.375rem 0.75rem;
     margin: 0;
     border-top: 1px solid #334155;
     align-items: center;
@@ -661,36 +666,36 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 1px solid #334155;
     background-color: #0f172a;
 }
 
 .card-section-title {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: #f1f5f9;
     margin: 0;
 }
 
 .card.content-card .card-body {
-    padding: 1.25rem;
+    padding: 0.75rem;
 }
 
 .form-label {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: #cbd5e1;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.25rem;
 }
 
 .form-control,
 .form-select {
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
     background-color: #0f172a;
     border-color: #334155;
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
     color: #f1f5f9;
 }
 
@@ -766,7 +771,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 
 .form-check-label {
     color: #cbd5e1;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
 }
 
 
@@ -777,13 +782,13 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 .detail-card {
     background-color: #1e293b;
     border: 1px solid #334155;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .detail-section {
-    padding: 1.25rem;
+    padding: 0.75rem;
 }
 
 .detail-section + .detail-section {
@@ -793,8 +798,8 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 .detail-section-header {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.375rem;
     border-bottom: 1px solid #334155;
 }
 
@@ -810,7 +815,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 @media (max-width: 991.98px) {
@@ -822,9 +827,9 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 .detail-item {
     display: flex;
     flex-direction: column;
-    padding: 0.75rem 1rem;
+    padding: 0.4rem 0.625rem;
     background-color: #0f172a;
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 .detail-label {
@@ -837,7 +842,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 }
 
 .detail-value {
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: #f1f5f9;
 }
@@ -865,7 +870,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 }
 
 .detail-note {
-    padding: 1rem;
+    padding: 0.625rem;
     background-color: #422006;
     border: 1px solid #854d0e;
     border-radius: 8px;
@@ -873,7 +878,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 }
 
 .detail-footer {
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     background-color: #0f172a;
     border-top: 1px solid #334155;
     font-size: 0.8125rem;
@@ -889,7 +894,7 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 }
 
 .yabs-command {
-    padding: 1rem;
+    padding: 0.5rem;
     background-color: #0f172a;
     border-radius: 8px;
     border: 1px solid #334155;
