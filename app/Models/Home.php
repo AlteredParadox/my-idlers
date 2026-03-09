@@ -56,7 +56,10 @@ class Home extends Model
         return Cache::remember('servers_summary', now()->addHours(6), function () {
             $cpu_sum = DB::table('servers')->get()->where('active', 1)->sum('cpu');
             $ram_mb = DB::table('servers')->get()->where('active', 1)->sum('ram_as_mb');
-            $disk_gb = DB::table('servers')->get()->where('active', 1)->sum('disk_as_gb');
+            $disk_gb = DB::table('server_disks')
+                ->join('servers', 'server_disks.server_id', '=', 'servers.id')
+                ->where('servers.active', 1)
+                ->sum('server_disks.disk_as_gb');
             $bandwidth = DB::table('servers')->get()->where('active', 1)->sum('bandwidth');
             $locations_sum = DB::table('servers')->get()->where('active', 1)->groupBy('location_id')->count();
             $providers_sum = DB::table('servers')->get()->where('active', 1)->groupBy('provider_id')->count();

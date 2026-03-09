@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Disk;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -52,7 +53,12 @@ class ServerController extends Controller
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',
             'ram' => 'required|numeric',
-            'disk' => 'required|integer',
+            'disk' => 'required|array',
+            'disk.*' => 'required|integer',
+            'disk_type' => 'required|array',
+            'disk_type.*' => 'required|string',
+            'disk_media' => 'required|array',
+            'disk_media.*' => 'required|string',
             'os_id' => 'required|integer',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -80,6 +86,13 @@ class ServerController extends Controller
             IPs::insertIP($server_id, $request->ip2);
         }
 
+        // Calculate total disk for backward compat columns
+        $total_disk_gb = 0;
+        foreach ($request->disk as $i => $disk_size) {
+            $unit = $request->disk_type[$i];
+            $total_disk_gb += ($unit === 'TB') ? ($disk_size * 1024) : $disk_size;
+        }
+
         Server::create([
             'id' => $server_id,
             'hostname' => $request->hostname,
@@ -91,9 +104,9 @@ class ServerController extends Controller
             'ram' => $request->ram,
             'ram_type' => $request->ram_type,
             'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
-            'disk' => $request->disk,
-            'disk_type' => $request->disk_type,
-            'disk_as_gb' => ($request->disk_type === 'GB') ? $request->disk : ($request->disk * 1024),
+            'disk' => $request->disk[0],
+            'disk_type' => $request->disk_type[0],
+            'disk_as_gb' => $total_disk_gb,
             'owned_since' => $request->owned_since,
             'ns1' => $request->ns1,
             'ns2' => $request->ns2,
@@ -102,6 +115,10 @@ class ServerController extends Controller
             'was_promo' => $request->was_promo,
             'show_public' => (isset($request->show_public)) ? 1 : 0
         ]);
+
+        foreach ($request->disk as $i => $disk_size) {
+            Disk::insertDisk($server_id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
+        }
 
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server_id);
 
@@ -137,7 +154,12 @@ class ServerController extends Controller
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',
             'ram' => 'required|numeric',
-            'disk' => 'required|integer',
+            'disk' => 'required|array',
+            'disk.*' => 'required|integer',
+            'disk_type' => 'required|array',
+            'disk_type.*' => 'required|string',
+            'disk_media' => 'required|array',
+            'disk_media.*' => 'required|string',
             'os_id' => 'required|integer',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -154,6 +176,13 @@ class ServerController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
+        // Calculate total disk for backward compat columns
+        $total_disk_gb = 0;
+        foreach ($request->disk as $i => $disk_size) {
+            $unit = $request->disk_type[$i];
+            $total_disk_gb += ($unit === 'TB') ? ($disk_size * 1024) : $disk_size;
+        }
+
         $server->update([
             'hostname' => $request->hostname,
             'server_type' => $request->server_type,
@@ -164,9 +193,9 @@ class ServerController extends Controller
             'ram' => $request->ram,
             'ram_type' => $request->ram_type,
             'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
-            'disk' => $request->disk,
-            'disk_type' => $request->disk_type,
-            'disk_as_gb' => ($request->disk_type === 'GB') ? $request->disk : ($request->disk * 1024),
+            'disk' => $request->disk[0],
+            'disk_type' => $request->disk_type[0],
+            'disk_as_gb' => $total_disk_gb,
             'owned_since' => $request->owned_since,
             'ns1' => $request->ns1,
             'ns2' => $request->ns2,
@@ -183,6 +212,11 @@ class ServerController extends Controller
         Labels::deleteLabelsAssignedTo($server->id);
 
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server->id);
+
+        Disk::deleteDisksForServer($server->id);
+        foreach ($request->disk as $i => $disk_size) {
+            Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
+        }
 
         IPs::deleteIPsAssignedTo($server->id);
 
@@ -209,6 +243,8 @@ class ServerController extends Controller
             Labels::deleteLabelsAssignedTo($server->id);
 
             IPs::deleteIPsAssignedTo($server->id);
+
+            Disk::deleteDisksForServer($server->id);
 
             Server::serverRelatedCacheForget();
 

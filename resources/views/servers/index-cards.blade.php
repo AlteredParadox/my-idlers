@@ -83,7 +83,7 @@
                                             </div>
                                             <div class="spec-item">
                                                 <div class="spec-details">
-                                                    <span class="spec-value">{{ $server->disk }} {{ $server->disk_type }}</span>
+                                                    <span class="spec-value">@if($server->disks->count() > 0)@php $total_gb = $server->disks->sum('disk_as_gb'); @endphp{{ $total_gb >= 1024 ? number_format($total_gb / 1024, 1) . ' TB' : $total_gb . ' GB' }}@else{{ $server->disk }} {{ $server->disk_type }}@endif</span>
                                                     <span class="spec-label">Disk</span>
                                                 </div>
                                             </div>
@@ -194,7 +194,7 @@
                                             </div>
                                             <div class="spec-item">
                                                 <div class="spec-details">
-                                                    <span class="spec-value">{{ $server->disk }} {{ $server->disk_type }}</span>
+                                                    <span class="spec-value">@if($server->disks->count() > 0)@php $total_gb = $server->disks->sum('disk_as_gb'); @endphp{{ $total_gb >= 1024 ? number_format($total_gb / 1024, 1) . ' TB' : $total_gb . ' GB' }}@else{{ $server->disk }} {{ $server->disk_type }}@endif</span>
                                                     <span class="spec-label">Disk</span>
                                                 </div>
                                             </div>

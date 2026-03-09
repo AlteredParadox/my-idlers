@@ -105,12 +105,23 @@
                                     <span class="detail-value">@if(isset($server_data->yabs[0]->ram)){{ $server_data->yabs[0]->ram }} {{ $server_data->yabs[0]->ram_type }}@else{{ $server_data->ram }} {{ $server_data->ram_type }}@endif</span>
                                 </div>
                             </div>
+                            @if($server_data->disks->count() > 0)
+                                @foreach($server_data->disks as $d)
+                                <div class="col-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Disk ({{ $d->disk_media }})</span>
+                                        <span class="detail-value">{{ $d->disk_size }} {{ $d->disk_unit }}</span>
+                                    </div>
+                                </div>
+                                @endforeach
+                            @else
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Disk</span>
                                     <span class="detail-value">@if(isset($server_data->yabs[0]->disk)){{ $server_data->yabs[0]->disk }} {{ $server_data->yabs[0]->disk_type }}@else{{ $server_data->disk }} {{ $server_data->disk_type }}@endif</span>
                                 </div>
                             </div>
+                            @endif
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Bandwidth</span>

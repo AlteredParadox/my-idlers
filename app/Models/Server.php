@@ -41,7 +41,7 @@ class Server extends Model
     public static function allServers()
     {//All servers and relationships (no using joins)
         return Cache::remember("all_servers", now()->addMonth(1), function () {
-            $query = Server::with(['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels']);
+            $query = Server::with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels']);
             if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
                 $options = Settings::orderByProcess(Session::get('sort_on'));
                 $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "servers.id"), $options[1]);
@@ -54,7 +54,7 @@ class Server extends Model
     {//Single server and relationships (no using joins)
         return Cache::remember("server.$server_id", now()->addMonth(1), function () use ($server_id) {
             return Server::where('id', $server_id)
-                ->with(['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])->first();
+                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])->first();
         });
     }
 
@@ -62,7 +62,7 @@ class Server extends Model
     {//All ACTIVE servers and relationships replaces activeServersDataIndexPage()
         return Cache::remember("all_active_servers", now()->addMonth(1), function () {
             $query = Server::where('active', 1)
-                ->with(['location', 'provider', 'os', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels', 'price']);
+                ->with(['location', 'provider', 'os', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels', 'price']);
             if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
                 $options = Settings::orderByProcess(Session::get('sort_on'));
                 $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "servers.id"), $options[1]);
@@ -75,7 +75,7 @@ class Server extends Model
     {//All NON ACTIVE servers and relationships replaces nonActiveServersDataIndexPage()
         return Cache::remember("non_active_servers", now()->addMonth(1), function () {
             return Server::where('active', 0)
-                ->with(['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])
+                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])
                 ->get();
         });
     }
@@ -84,7 +84,7 @@ class Server extends Model
     {//server data that will be publicly viewable (values in settings)
         return Cache::remember("public_server_data", now()->addMonth(1), function () {
             return Server::where('show_public', 1)
-                ->with(['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])
+                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])
                 ->get();
         });
     }
@@ -231,6 +231,11 @@ class Server extends Model
     public function price(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Pricing::class, 'service_id', 'id');
+    }
+
+    public function disks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Disk::class, 'server_id', 'id');
     }
 
     public function labels(): \Illuminate\Database\Eloquent\Relations\HasMany

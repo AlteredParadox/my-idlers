@@ -122,17 +122,6 @@
                                 <option value="GB">GB</option>
                             </select>
                         </div>
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label">Disk</label>
-                            <input type="number" class="form-control" name="disk" value="20" min="0" max="999999" step="0.1">
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label">Disk Type</label>
-                            <select class="form-select" name="disk_type">
-                                <option value="GB" selected>GB</option>
-                                <option value="TB">TB</option>
-                            </select>
-                        </div>
                         <div class="col-12 col-md-4 col-lg-2">
                             <label class="form-label">Location</label>
                             <select class="form-select" name="location_id">
@@ -141,6 +130,33 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Disks</label>
+                        <div id="disks-container">
+                            <div class="disk-row row g-2 mb-2 align-items-end">
+                                <div class="col-3">
+                                    <input type="number" class="form-control" name="disk[]" value="20" min="0" max="999999" placeholder="Size">
+                                </div>
+                                <div class="col-3">
+                                    <select class="form-select" name="disk_type[]">
+                                        <option value="GB" selected>GB</option>
+                                        <option value="TB">TB</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <select class="form-select" name="disk_media[]">
+                                        <option value="SSD" selected>SSD</option>
+                                        <option value="NVMe">NVMe</option>
+                                        <option value="HDD">HDD</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-disk" style="display:none" onclick="this.closest('.disk-row').remove();toggleRemoveButtons();">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addDiskRow()">+ Add Disk</button>
                     </div>
                 </div>
             </div>
@@ -269,6 +285,24 @@
 
     @section('scripts')
     <script>
+        function addDiskRow() {
+            var container = document.getElementById('disks-container');
+            var row = container.querySelector('.disk-row').cloneNode(true);
+            row.querySelector('input[name="disk[]"]').value = '20';
+            row.querySelector('select[name="disk_type[]"]').value = 'GB';
+            row.querySelector('select[name="disk_media[]"]').value = 'SSD';
+            row.querySelector('.remove-disk').style.display = '';
+            container.appendChild(row);
+            toggleRemoveButtons();
+        }
+        function toggleRemoveButtons() {
+            var rows = document.querySelectorAll('#disks-container .disk-row');
+            rows.forEach(function(row, i) {
+                var btn = row.querySelector('.remove-disk');
+                btn.style.display = rows.length > 1 ? '' : 'none';
+            });
+        }
+
         window.addEventListener('load', function () {
             axios.defaults.headers.common = {
                 'Content-Type': 'application/json',

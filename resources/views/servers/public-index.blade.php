@@ -57,10 +57,19 @@
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if($s->disk > 1000)
-                                            {{ number_format($s->disk / 1024, 1) }}<small class="text-muted">TB</small>
+                                        @if($s->disks->count() > 0)
+                                            @php $total_gb = $s->disks->sum('disk_as_gb'); @endphp
+                                            @if($total_gb >= 1024)
+                                                {{ number_format($total_gb / 1024, 1) }}<small class="text-muted">TB</small>
+                                            @else
+                                                {{ $total_gb }}<small class="text-muted">GB</small>
+                                            @endif
                                         @else
-                                            {{ $s->disk }}<small class="text-muted">GB</small>
+                                            @if($s->disk > 1000)
+                                                {{ number_format($s->disk / 1024, 1) }}<small class="text-muted">TB</small>
+                                            @else
+                                                {{ $s->disk }}<small class="text-muted">GB</small>
+                                            @endif
                                         @endif
                                     </td>
                                     <td class="text-nowrap">

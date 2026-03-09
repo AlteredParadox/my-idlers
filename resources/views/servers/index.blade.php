@@ -69,7 +69,16 @@
                                         {{ $server->ram }}<small class="text-muted">{{ $server->ram_type }}</small>
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        {{ $server->disk }}<small class="text-muted">{{ $server->disk_type }}</small>
+                                        @if($server->disks->count() > 0)
+                                            @php $total_gb = $server->disks->sum('disk_as_gb'); @endphp
+                                            @if($total_gb >= 1024)
+                                                {{ number_format($total_gb / 1024, 1) }}<small class="text-muted">TB</small>
+                                            @else
+                                                {{ $total_gb }}<small class="text-muted">GB</small>
+                                            @endif
+                                        @else
+                                            {{ $server->disk }}<small class="text-muted">{{ $server->disk_type }}</small>
+                                        @endif
                                     </td>
                                     <td class="text-center text-nowrap">
                                         @if($server->bandwidth == 0) <span title="Unlimited">&infin;</span> @else {{ $server->bandwidth }}<small class="text-muted">GB</small> @endif
@@ -155,10 +164,19 @@
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if($server->disk > 1000)
-                                            {{ number_format($server->disk / 1024, 1) }}<small class="text-muted">TB</small>
+                                        @if($server->disks->count() > 0)
+                                            @php $total_gb = $server->disks->sum('disk_as_gb'); @endphp
+                                            @if($total_gb >= 1024)
+                                                {{ number_format($total_gb / 1024, 1) }}<small class="text-muted">TB</small>
+                                            @else
+                                                {{ $total_gb }}<small class="text-muted">GB</small>
+                                            @endif
                                         @else
-                                            {{ $server->disk }}<small class="text-muted">GB</small>
+                                            @if($server->disk > 1000)
+                                                {{ number_format($server->disk / 1024, 1) }}<small class="text-muted">TB</small>
+                                            @else
+                                                {{ $server->disk }}<small class="text-muted">GB</small>
+                                            @endif
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
