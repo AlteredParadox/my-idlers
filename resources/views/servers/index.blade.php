@@ -275,8 +275,8 @@
 
             $.fn.dataTable.ext.errMode = 'none';
             $('#servers-table').DataTable({
-                pageLength: 15,
-                lengthMenu: [5, 10, 15, 25, 50, 100],
+                pageLength: {{ session('default_per_page', 100) }},
+                lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
                     {orderable: false, targets: [2, 12]}
                 ],
