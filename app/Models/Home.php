@@ -51,6 +51,14 @@ class Home extends Model
                 ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
                 ->where('p.active', 1)
                 ->where('p.term', '!=', 7)
+                ->where(function ($query) {
+                    $query->whereIn('p.service_id', DB::table('servers')->where('active', 1)->select('id'))
+                        ->orWhereIn('p.service_id', DB::table('shared_hosting')->where('active', 1)->select('id'))
+                        ->orWhereIn('p.service_id', DB::table('reseller_hosting')->where('active', 1)->select('id'))
+                        ->orWhereIn('p.service_id', DB::table('domains')->where('active', 1)->select('id'))
+                        ->orWhereIn('p.service_id', DB::table('misc_services')->where('active', 1)->select('id'))
+                        ->orWhereIn('p.service_id', DB::table('seedboxes')->where('active', 1)->select('id'));
+                })
                 ->orderBy('next_due_date', 'ASC')
                 ->limit(Session::get('due_soon_amount'))
                 ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title']);
