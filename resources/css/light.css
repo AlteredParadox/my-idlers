@@ -809,3 +809,13 @@
 .network-table tr:last-child td {
     border-bottom: none;
 }
+
+tr.expired-row td {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+tr.expired-row td .action-buttons {
+    text-decoration: none;
+    opacity: 1;
+}

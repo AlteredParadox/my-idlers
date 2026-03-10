@@ -106,6 +106,7 @@
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
                                     <th>Price</th>
+                                    <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -113,7 +114,8 @@
                             <tbody>
                             @if(!empty($non_active_resellers))
                                 @foreach($non_active_resellers as $row)
-                                <tr>
+                                @php $expired = $row->price->next_due_date && Carbon\Carbon::parse($row->price->next_due_date)->isPast(); @endphp
+                                <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">{{ $row->main_domain }}</td>
                                     <td><span class="badge badge-type">{{ $row->reseller_type }}</span></td>
                                     <td class="text-center">{{ $row->accounts }}</td>
@@ -124,6 +126,9 @@
                                     <td class="text-nowrap">
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
+                                    </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
+                                        @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $row->owned_since }}</td>
                                     <td class="text-center text-nowrap">
@@ -144,7 +149,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">No inactive reseller hosting found</td>
+                                    <td colspan="11" class="text-center text-muted py-4">No inactive reseller hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -182,9 +187,7 @@
                 }
             };
             $('#reseller-table').DataTable(dtConfig);
-            $('#inactive-reseller-table').DataTable(Object.assign({}, dtConfig, {
-                columnDefs: [{orderable: false, targets: [9]}]
-            }));
+            $('#inactive-reseller-table').DataTable(dtConfig);
         });
     </script>
     @endsection

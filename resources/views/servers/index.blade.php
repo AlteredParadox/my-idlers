@@ -144,6 +144,7 @@
                                     <th>Location</th>
                                     <th>Provider</th>
                                     <th>Price</th>
+                                    <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -151,7 +152,8 @@
                             <tbody>
                             @if(!empty($non_active_servers))
                                 @foreach($non_active_servers as $server)
-                                <tr>
+                                @php $expired = $server->price->next_due_date && Carbon\Carbon::parse($server->price->next_due_date)->isPast(); @endphp
+                                <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">{{ $server->hostname }}</td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
@@ -192,6 +194,9 @@
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $server->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false) : -99999 }}">
+                                        @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
+                                    </td>
                                     <td class="text-center text-nowrap">{{ $server->owned_since }}</td>
                                     <td class="text-center text-nowrap">
                                         <div class="action-buttons">
@@ -215,7 +220,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="12" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -282,7 +287,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, 11]}
+                    {orderable: false, targets: [2, 12]}
                 ],
                 language: {
                     search: "",
@@ -296,9 +301,7 @@
                     emptyTable: "No servers found"
                 }
             };
-            $('#servers-table').DataTable(Object.assign({}, dtConfig, {
-                columnDefs: [{orderable: false, targets: [2, 12]}]
-            }));
+            $('#servers-table').DataTable(dtConfig);
             $('#inactive-servers-table').DataTable(dtConfig);
         });
     </script>

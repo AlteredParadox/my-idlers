@@ -95,6 +95,7 @@
                                     <th>Domain</th>
                                     <th>Provider</th>
                                     <th>Price</th>
+                                    <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -102,7 +103,8 @@
                             <tbody>
                             @if(!empty($non_active_domains))
                                 @foreach($non_active_domains as $domain)
-                                <tr>
+                                @php $expired = $domain->price->next_due_date && Carbon\Carbon::parse($domain->price->next_due_date)->isPast(); @endphp
+                                <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">
                                         {{ $domain->domain }}.{{ $domain->extension }}
                                     </td>
@@ -110,6 +112,9 @@
                                     <td class="text-nowrap">
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
+                                    </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
+                                        @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $domain->owned_since }}</td>
                                     <td class="text-center text-nowrap">
@@ -130,7 +135,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No inactive domains found</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No inactive domains found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -168,9 +173,7 @@
                 }
             };
             $('#domain-table').DataTable(dtConfig);
-            $('#inactive-domain-table').DataTable(Object.assign({}, dtConfig, {
-                columnDefs: [{orderable: false, targets: [4]}]
-            }));
+            $('#inactive-domain-table').DataTable(dtConfig);
         });
     </script>
     @endsection
