@@ -131,7 +131,7 @@
 
                 <div class="tab-pane fade" id="inactive-servers" role="tabpanel">
                     <div class="table-responsive">
-                        <table class="table data-table">
+                        <table class="table data-table" id="inactive-servers-table">
                             <thead>
                                 <tr>
                                     <th>Hostname</th>
@@ -278,11 +278,11 @@
             });
 
             $.fn.dataTable.ext.errMode = 'none';
-            $('#servers-table').DataTable({
+            var dtConfig = {
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, 12]}
+                    {orderable: false, targets: [2, 11]}
                 ],
                 language: {
                     search: "",
@@ -295,7 +295,11 @@
                     },
                     emptyTable: "No servers found"
                 }
-            });
+            };
+            $('#servers-table').DataTable(Object.assign({}, dtConfig, {
+                columnDefs: [{orderable: false, targets: [2, 12]}]
+            }));
+            $('#inactive-servers-table').DataTable(dtConfig);
         });
     </script>
     @endsection
