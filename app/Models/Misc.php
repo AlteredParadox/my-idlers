@@ -18,7 +18,7 @@ class Misc extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name', 'owned_since'];
+    protected $fillable = ['id', 'active', 'name', 'owned_since'];
 
     protected static function boot()
     {
@@ -41,6 +41,25 @@ class Misc extends Model
                 $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "misc_services.id"), $options[1]);
             }
             return $query->get();
+        });
+    }
+
+    public static function allActiveMisc()
+    {
+        return Cache::remember("all_active_misc", now()->addMonth(1), function () {
+            $query = Misc::where('active', 1)->with(['price']);
+            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
+                $options = Settings::orderByProcess(Session::get('sort_on'));
+                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "misc_services.id"), $options[1]);
+            }
+            return $query->get();
+        });
+    }
+
+    public static function allNonActiveMisc()
+    {
+        return Cache::remember("non_active_misc", now()->addMonth(1), function () {
+            return Misc::where('active', 0)->with(['price'])->get();
         });
     }
 

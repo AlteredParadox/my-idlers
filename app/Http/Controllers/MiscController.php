@@ -13,8 +13,9 @@ class MiscController extends Controller
 {
     public function index()
     {
-        $misc = Misc::allMisc();
-        return view('misc.index', compact(['misc']));
+        $misc = Misc::allActiveMisc();
+        $non_active_misc = Misc::allNonActiveMisc();
+        return view('misc.index', compact(['misc', 'non_active_misc']));
     }
 
     public function create()
@@ -51,6 +52,8 @@ class MiscController extends Controller
         ]);
 
         Cache::forget("all_misc");
+        Cache::forget("all_active_misc");
+        Cache::forget("non_active_misc");
         Home::homePageCacheForget();
 
         return redirect()->route('misc.index')
@@ -86,6 +89,8 @@ class MiscController extends Controller
         $pricing->updatePricing($misc->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
 
         Cache::forget("all_misc");
+        Cache::forget("all_active_misc");
+        Cache::forget("non_active_misc");
         Cache::forget("misc.{$misc->id}");
         Home::homePageCacheForget();
 
@@ -100,6 +105,8 @@ class MiscController extends Controller
             $p->deletePricing($misc->id);
 
             Cache::forget("all_misc");
+        Cache::forget("all_active_misc");
+        Cache::forget("non_active_misc");
             Cache::forget("misc.{$misc->id}");
             Home::homePageCacheForget();
 
