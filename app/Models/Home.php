@@ -141,49 +141,24 @@ class Home extends Model
 
     public static function breakdownPricing($all_pricing): array
     {
-        $pricing = json_decode($all_pricing, true);
+        return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($all_pricing) {
+            $total_cost_pm = 0;
+            $currency = Session::get('dashboard_currency', 'USD');
 
-        return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($pricing) {
-            $total_cost_weekly = $total_cost_pm = $inactive_count = 0;
-            foreach ($pricing as $price) {
-                if ($price['active'] === 1) {
-                    if (Session::get('dashboard_currency') !== 'USD') {
-                        $the_price = Pricing::convertFromUSD($price['as_usd'], Session::get('dashboard_currency'));
-                    } else {
-                        $the_price = $price['as_usd'];
-                    }
-                    if ($price['term'] === 7) {//one-time payment, skip recurring totals
-                    } elseif ($price['term'] === 1) {//1 month
-                        $total_cost_weekly += ($the_price / 4);
-                        $total_cost_pm += $the_price;
-                    } elseif ($price['term'] === 2) {//3 months
-                        $total_cost_weekly += ($the_price / 12);
-                        $total_cost_pm += ($the_price / 3);
-                    } elseif ($price['term'] === 3) {// 6 month
-                        $total_cost_weekly += ($the_price / 24);
-                        $total_cost_pm += ($the_price / 6);
-                    } elseif ($price['term'] === 4) {// 1 year
-                        $total_cost_weekly += ($the_price / 48);
-                        $total_cost_pm += ($the_price / 12);
-                    } elseif ($price['term'] === 5) {//2 years
-                        $total_cost_weekly += ($the_price / 96);
-                        $total_cost_pm += ($the_price / 24);
-                    } elseif ($price['term'] === 6) {//3 years
-                        $total_cost_weekly += ($the_price / 144);
-                        $total_cost_pm += ($the_price / 36);
-                    }
+            foreach ($all_pricing as $price) {
+                if ($currency !== 'USD') {
+                    $total_cost_pm += Pricing::convertFromUSD($price->usd_per_month, $currency);
                 } else {
-                    $inactive_count++;
+                    $total_cost_pm += $price->usd_per_month;
                 }
             }
-            $total_cost_yearly = ($total_cost_pm * 12);
 
-            return array(
-                'total_cost_weekly' => $total_cost_weekly,
+            return [
+                'total_cost_weekly' => $total_cost_pm / 4,
                 'total_cost_monthly' => $total_cost_pm,
-                'total_cost_yearly' => $total_cost_yearly,
-                'inactive_count' => $inactive_count,
-            );
+                'total_cost_yearly' => $total_cost_pm * 12,
+                'inactive_count' => 0,
+            ];
         });
     }
 

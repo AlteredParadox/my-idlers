@@ -148,7 +148,17 @@ class Pricing extends Model
     public static function allPricing()
     {
         return Cache::remember('all_active_pricing', now()->addWeek(1), function () {
-            return Pricing::where('active', 1)->get();
+            $serviceIds = collect()
+                ->merge(DB::table('servers')->where('active', 1)->pluck('id'))
+                ->merge(DB::table('shared_hosting')->where('active', 1)->pluck('id'))
+                ->merge(DB::table('reseller_hosting')->where('active', 1)->pluck('id'))
+                ->merge(DB::table('domains')->where('active', 1)->pluck('id'))
+                ->merge(DB::table('misc_services')->where('active', 1)->pluck('id'))
+                ->merge(DB::table('seedboxes')->where('active', 1)->pluck('id'));
+
+            return Pricing::where('active', 1)
+                ->whereIn('service_id', $serviceIds)
+                ->get();
         });
     }
 
