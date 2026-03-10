@@ -65,10 +65,10 @@
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
                                         {{ $server->ram }}<small class="text-muted">{{ $server->ram_type }}</small>
                                     </td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb }}">
                                         @if($server->disks->count() > 0)
                                             @php $total_gb = $server->disks->sum('disk_as_gb'); @endphp
                                             @if($total_gb >= 1024)
@@ -80,12 +80,12 @@
                                             {{ $server->disk }}<small class="text-muted">{{ $server->disk_type }}</small>
                                         @endif
                                     </td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->bandwidth == 0 ? 999999 : $server->bandwidth }}">
                                         @if($server->bandwidth == 0) <span title="Unlimited">&infin;</span> @else {{ $server->bandwidth }}<small class="text-muted">GB</small> @endif
                                     </td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
@@ -156,14 +156,14 @@
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
                                         @if($server->ram_as_mb > 1024)
                                             {{ number_format($server->ram_as_mb / 1024, 0) }}<small class="text-muted">GB</small>
                                         @else
                                             {{ $server->ram_as_mb }}<small class="text-muted">MB</small>
                                         @endif
                                     </td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb }}">
                                         @if($server->disks->count() > 0)
                                             @php $total_gb = $server->disks->sum('disk_as_gb'); @endphp
                                             @if($total_gb >= 1024)
@@ -179,12 +179,12 @@
                                             @endif
                                         @endif
                                     </td>
-                                    <td class="text-center text-nowrap">
+                                    <td class="text-center text-nowrap" data-order="{{ $server->bandwidth == 0 ? 999999 : $server->bandwidth }}">
                                         @if($server->bandwidth == 0) <span title="Unlimited">&infin;</span> @else {{ $server->bandwidth }}<small class="text-muted">GB</small> @endif
                                     </td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
