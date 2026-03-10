@@ -37,4 +37,8 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     php artisan migrate --force
 fi
 
-php artisan serve --host=0.0.0.0 --port=8000 --env=production
+# Start php-fpm in the background
+php-fpm -D
+
+# Start nginx in the foreground
+nginx -g 'daemon off;'
