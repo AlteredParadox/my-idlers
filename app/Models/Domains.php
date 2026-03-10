@@ -17,7 +17,7 @@ class Domains extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'domain', 'extension', 'ns1', 'ns2', 'ns3', 'price', 'currency', 'payment_term', 'owned_since', 'provider_id', 'next_due_date'];
+    protected $fillable = ['id', 'active', 'domain', 'extension', 'ns1', 'ns2', 'ns3', 'price', 'currency', 'payment_term', 'owned_since', 'provider_id', 'next_due_date'];
 
 
     public static function allDomains()
@@ -29,6 +29,25 @@ class Domains extends Model
                 $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "domains.id"), $options[1]);
             }
             return $query->get();
+        });
+    }
+
+    public static function allActiveDomains()
+    {
+        return Cache::remember("all_active_domains", now()->addMonth(1), function () {
+            $query = Domains::where('active', 1)->with(['provider', 'price', 'labels']);
+            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
+                $options = Settings::orderByProcess(Session::get('sort_on'));
+                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "domains.id"), $options[1]);
+            }
+            return $query->get();
+        });
+    }
+
+    public static function allNonActiveDomains()
+    {
+        return Cache::remember("non_active_domains", now()->addMonth(1), function () {
+            return Domains::where('active', 0)->with(['provider', 'price', 'labels'])->get();
         });
     }
 
