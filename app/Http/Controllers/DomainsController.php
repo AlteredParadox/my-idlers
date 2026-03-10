@@ -16,8 +16,9 @@ class DomainsController extends Controller
 {
     public function index()
     {
-        $domains = Domains::allDomains();
-        return view('domains.index', compact(['domains']));
+        $domains = Domains::allActiveDomains();
+        $non_active_domains = Domains::allNonActiveDomains();
+        return view('domains.index', compact(['domains', 'non_active_domains']));
     }
 
     public function show(Domains $domain)
@@ -68,6 +69,8 @@ class DomainsController extends Controller
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain_id);
 
         Cache::forget("all_domains");
+        Cache::forget("all_active_domains");
+        Cache::forget("non_active_domains");
         Home::homePageCacheForget();
 
         return redirect()->route('domains.index')
@@ -119,6 +122,8 @@ class DomainsController extends Controller
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain->id);
 
         Cache::forget("all_domains");
+        Cache::forget("all_active_domains");
+        Cache::forget("non_active_domains");
         Cache::forget("domain.{$domain->id}");
         Cache::forget("labels_for_service.{$domain->id}");
         Home::homePageCacheForget();
@@ -136,6 +141,8 @@ class DomainsController extends Controller
             Labels::deleteLabelsAssignedTo($domain->id);
 
             Cache::forget("all_domains");
+        Cache::forget("all_active_domains");
+        Cache::forget("non_active_domains");
             Cache::forget("domain.{$domain->id}");
             Home::homePageCacheForget();
 

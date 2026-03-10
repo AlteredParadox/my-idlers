@@ -15,8 +15,9 @@ class SharedController extends Controller
 {
     public function index()
     {
-        $shared = Shared::allSharedHosting();
-        return view('shared.index', compact(['shared']));
+        $shared = Shared::allActiveSharedHosting();
+        $non_active_shared = Shared::allNonActiveSharedHosting();
+        return view('shared.index', compact(['shared', 'non_active_shared']));
     }
 
     public function create()
@@ -83,6 +84,8 @@ class SharedController extends Controller
         ]);
 
         Cache::forget('all_shared');
+        Cache::forget('all_active_shared');
+        Cache::forget('non_active_shared');
         Home::homePageCacheForget();
 
         return redirect()->route('shared.index')
@@ -162,6 +165,8 @@ class SharedController extends Controller
 
         Cache::forget("shared_hosting.{$shared->id}");
         Cache::forget('all_shared');
+        Cache::forget('all_active_shared');
+        Cache::forget('non_active_shared');
         Home::homePageCacheForget();
 
         return redirect()->route('shared.index')
@@ -180,6 +185,8 @@ class SharedController extends Controller
 
             Cache::forget("shared_hosting.$shared->id");
             Cache::forget('all_shared');
+        Cache::forget('all_active_shared');
+        Cache::forget('non_active_shared');
             Home::homePageCacheForget();
 
             return redirect()->route('shared.index')

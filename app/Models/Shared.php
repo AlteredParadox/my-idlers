@@ -44,6 +44,25 @@ class Shared extends Model
         });
     }
 
+    public static function allActiveSharedHosting()
+    {
+        return Cache::remember("all_active_shared", now()->addMonth(1), function () {
+            $query = Shared::where('active', 1)->with(['location', 'provider', 'price', 'ips', 'labels']);
+            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
+                $options = Settings::orderByProcess(Session::get('sort_on'));
+                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "shared_hosting.id"), $options[1]);
+            }
+            return $query->get();
+        });
+    }
+
+    public static function allNonActiveSharedHosting()
+    {
+        return Cache::remember("non_active_shared", now()->addMonth(1), function () {
+            return Shared::where('active', 0)->with(['location', 'provider', 'price', 'ips', 'labels'])->get();
+        });
+    }
+
     public static function sharedHosting(string $shared_id)
     {//Single shared hosting and relationships (no using joins)
         return Cache::remember("shared_hosting.$shared_id", now()->addMonth(1), function () use ($shared_id) {
