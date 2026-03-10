@@ -50,6 +50,7 @@ class Home extends Model
                 ->leftJoin('misc_services as ms', 'p.service_id', 'ms.id')
                 ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
                 ->where('p.active', 1)
+                ->where('p.term', '!=', 7)
                 ->orderBy('next_due_date', 'ASC')
                 ->limit(Session::get('due_soon_amount'))
                 ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title']);
