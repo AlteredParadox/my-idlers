@@ -15,8 +15,9 @@ class ResellerController extends Controller
 {
     public function index()
     {
-        $resellers = Reseller::allResellerHosting();
-        return view('reseller.index', compact(['resellers']));
+        $resellers = Reseller::allActiveResellerHosting();
+        $non_active_resellers = Reseller::allNonActiveResellerHosting();
+        return view('reseller.index', compact(['resellers', 'non_active_resellers']));
     }
 
     public function create()
@@ -83,6 +84,8 @@ class ResellerController extends Controller
         ]);
 
         Cache::forget("all_reseller");
+        Cache::forget("all_active_reseller");
+        Cache::forget("non_active_reseller");
         Home::homePageCacheForget();
 
         return redirect()->route('reseller.index')
@@ -163,6 +166,8 @@ class ResellerController extends Controller
         }
 
         Cache::forget("all_reseller");
+        Cache::forget("all_active_reseller");
+        Cache::forget("non_active_reseller");
         Cache::forget("reseller_hosting.{$reseller->id}");
         Cache::forget("labels_for_service.{$reseller->id}");
 
@@ -183,6 +188,8 @@ class ResellerController extends Controller
             IPs::deleteIPsAssignedTo($reseller->id);
 
             Cache::forget("all_reseller");
+        Cache::forget("all_active_reseller");
+        Cache::forget("non_active_reseller");
             Cache::forget("reseller_hosting.$reseller->id");
             Home::homePageCacheForget();
 

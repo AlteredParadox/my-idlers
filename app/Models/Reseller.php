@@ -45,6 +45,25 @@ class Reseller extends Model
         });
     }
 
+    public static function allActiveResellerHosting()
+    {
+        return Cache::remember("all_active_reseller", now()->addMonth(1), function () {
+            $query = Reseller::where('active', 1)->with(['location', 'provider', 'price', 'ips', 'labels']);
+            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
+                $options = Settings::orderByProcess(Session::get('sort_on'));
+                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "reseller_hosting.id"), $options[1]);
+            }
+            return $query->get();
+        });
+    }
+
+    public static function allNonActiveResellerHosting()
+    {
+        return Cache::remember("non_active_reseller", now()->addMonth(1), function () {
+            return Reseller::where('active', 0)->with(['location', 'provider', 'price', 'ips', 'labels'])->get();
+        });
+    }
+
     public static function resellerHosting(string $reseller_id)
     {//Single reseller hosting and relationships (no using joins)
         return Cache::remember("reseller_hosting.$reseller_id", now()->addMonth(1), function () use ($reseller_id) {
