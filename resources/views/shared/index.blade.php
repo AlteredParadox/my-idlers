@@ -103,6 +103,7 @@
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
                                     <th>Price</th>
+                                    <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -110,7 +111,8 @@
                             <tbody>
                             @if(!empty($non_active_shared))
                                 @foreach($non_active_shared as $row)
-                                <tr>
+                                @php $expired = $row->price->next_due_date && Carbon\Carbon::parse($row->price->next_due_date)->isPast(); @endphp
+                                <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">{{ $row->main_domain }}</td>
                                     <td><span class="badge badge-type">{{ $row->shared_type }}</span></td>
                                     <td class="text-nowrap">{{ $row->location->name }}</td>
@@ -120,6 +122,9 @@
                                     <td class="text-nowrap">
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
+                                    </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
+                                        @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $row->owned_since }}</td>
                                     <td class="text-center text-nowrap">
@@ -140,7 +145,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">No inactive shared hosting found</td>
+                                    <td colspan="10" class="text-center text-muted py-4">No inactive shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -178,9 +183,7 @@
                 }
             };
             $('#shared-table').DataTable(dtConfig);
-            $('#inactive-shared-table').DataTable(Object.assign({}, dtConfig, {
-                columnDefs: [{orderable: false, targets: [8]}]
-            }));
+            $('#inactive-shared-table').DataTable(dtConfig);
         });
     </script>
     @endsection

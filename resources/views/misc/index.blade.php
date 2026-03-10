@@ -92,6 +92,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Price</th>
+                                    <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -99,11 +100,15 @@
                             <tbody>
                             @if(!empty($non_active_misc))
                                 @foreach($non_active_misc as $m)
-                                <tr>
+                                @php $expired = $m->price->next_due_date && Carbon\Carbon::parse($m->price->next_due_date)->isPast(); @endphp
+                                <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">{{ $m->name }}</td>
                                     <td class="text-nowrap">
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
+                                    </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
+                                        @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">
                                         @if(!is_null($m->owned_since))
@@ -128,7 +133,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">No inactive misc services found</td>
+                                    <td colspan="5" class="text-center text-muted py-4">No inactive misc services found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -166,9 +171,7 @@
                 }
             };
             $('#misc-table').DataTable(dtConfig);
-            $('#inactive-misc-table').DataTable(Object.assign({}, dtConfig, {
-                columnDefs: [{orderable: false, targets: [3]}]
-            }));
+            $('#inactive-misc-table').DataTable(dtConfig);
         });
     </script>
     @endsection

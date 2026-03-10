@@ -1005,3 +1005,13 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
 .price-amount {
     color: #4ade80 !important;
 }
+
+tr.expired-row td {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+tr.expired-row td .action-buttons {
+    text-decoration: none;
+    opacity: 1;
+}
