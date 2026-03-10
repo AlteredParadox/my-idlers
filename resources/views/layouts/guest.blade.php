@@ -14,8 +14,6 @@
         <link rel="stylesheet" href="{{ asset('css/light.css') }}">
     @endif
 
-    <link rel="preload" href="{{ asset('webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="{{ asset('webfonts/fa-regular-400.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     @yield('css_links')
