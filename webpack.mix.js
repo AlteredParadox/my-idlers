@@ -14,6 +14,9 @@ const mix = require('laravel-mix');
 mix.js('resources/js/app.js', 'public/js')
     .postCss('resources/css/app.css', 'public/css')
     .postCss('resources/css/light.css', 'public/css')
+    .postCss('resources/css/neutral-dark.css', 'public/css', [
+        require('autoprefixer')({ overrideBrowserslist: ['last 2 versions'], grid: true })
+    ])
     .postCss('resources/css/dark.css', 'public/css', [
         require('autoprefixer')({ overrideBrowserslist: ['last 2 versions'], grid: true })
     ])

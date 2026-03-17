@@ -22,10 +22,11 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-6 col-lg-4">
-                            <label class="form-label">Dark Mode</label>
+                            <label class="form-label">Theme</label>
                             <select class="form-select" name="dark_mode">
-                                <option value="1" {{ $setting->dark_mode === 1 ? 'selected' : '' }}>Yes</option>
-                                <option value="0" {{ $setting->dark_mode === 0 ? 'selected' : '' }}>No</option>
+                                <option value="0" {{ (int)$setting->dark_mode === 0 ? 'selected' : '' }}>Default Theme (Light)</option>
+                                <option value="1" {{ (int)$setting->dark_mode === 1 ? 'selected' : '' }}>Default Theme (Dark)</option>
+                                <option value="2" {{ (int)$setting->dark_mode === 2 ? 'selected' : '' }}>Neutral Theme (Dark)</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-6 col-lg-4">

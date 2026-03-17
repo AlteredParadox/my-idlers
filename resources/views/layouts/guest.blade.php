@@ -8,7 +8,9 @@
     <title>@yield('title') - @if (config()->has('app.name')) {{ config('app.name') }} @else My idlers @endif</title>
     <link rel="icon" type="image" href="{{asset(Session::get('favicon') ?? 'favicon.ico')}}"/>
 
-    @if(Session::get('dark_mode'))
+    @if(Session::get('dark_mode') == 2)
+        <link rel="stylesheet" href="{{ asset('css/neutral-dark.css') }}">
+    @elseif(Session::get('dark_mode') == 1)
         <link rel="stylesheet" href="{{ asset('css/dark.css') }}">
     @else
         <link rel="stylesheet" href="{{ asset('css/light.css') }}">
