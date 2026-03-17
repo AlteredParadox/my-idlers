@@ -17,7 +17,7 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'dark_mode' => 'required|integer|min:0|max:1',
+            'dark_mode' => 'required|integer|min:0|max:2',
             'show_versions_footer' => 'required|integer|min:0|max:1',
             'show_server_value_ip' => 'required|integer|min:0|max:1',
             'show_server_value_hostname' => 'required|integer|min:0|max:1',
