@@ -41,6 +41,8 @@ class SharedController extends Controller
             'domains' => 'integer',
             'sub_domains' => 'integer',
             'bandwidth' => 'integer',
+            'link_speed' => 'sometimes|nullable|numeric',
+            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
@@ -50,6 +52,8 @@ class SharedController extends Controller
             'label3' => 'sometimes|nullable|string',
             'label4' => 'sometimes|nullable|string',
         ]);
+
+        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $shared_id = Str::random(8);
 
@@ -75,6 +79,7 @@ class SharedController extends Controller
             'disk_as_gb' => $request->disk,
             'owned_since' => $request->owned_since,
             'bandwidth' => $request->bandwidth,
+            'link_speed' => $link_speed_mbps,
             'was_promo' => $request->was_promo,
             'domains_limit' => $request->domains,
             'subdomains_limit' => $request->sub_domains,
@@ -120,6 +125,8 @@ class SharedController extends Controller
             'domains' => 'integer',
             'sub_domains' => 'integer',
             'bandwidth' => 'integer',
+            'link_speed' => 'sometimes|nullable|numeric',
+            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
@@ -129,6 +136,8 @@ class SharedController extends Controller
             'label3' => 'sometimes|nullable|string',
             'label4' => 'sometimes|nullable|string',
         ]);
+
+        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -142,6 +151,7 @@ class SharedController extends Controller
             'disk_as_gb' => $request->disk,
             'owned_since' => $request->owned_since,
             'bandwidth' => $request->bandwidth,
+            'link_speed' => $link_speed_mbps,
             'was_promo' => $request->was_promo,
             'domains_limit' => $request->domains,
             'subdomains_limit' => $request->sub_domains,

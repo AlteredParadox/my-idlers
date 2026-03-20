@@ -76,6 +76,16 @@
                                 <label class="form-check-label small" for="bandwidth_unlimited">Unlimited</label>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Link Speed</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="link_speed" value="{{ $server_data->link_speed ? ($server_data->link_speed >= 1000 ? $server_data->link_speed / 1000 : $server_data->link_speed) : '' }}" min="0" step="any">
+                                <select class="form-select" name="link_speed_type" style="max-width: 90px;">
+                                    <option value="Mbps" {{ $server_data->link_speed && $server_data->link_speed < 1000 ? 'selected' : '' }}>Mbps</option>
+                                    <option value="Gbps" {{ !$server_data->link_speed || $server_data->link_speed >= 1000 ? 'selected' : '' }}>Gbps</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     @if(count($server_data->ips) > 0)
                     <div class="row g-3 mt-1">
