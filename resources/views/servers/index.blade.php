@@ -40,6 +40,7 @@
                                     <th class="text-center">Type</th>
                                     <th class="text-center">OS</th>
                                     <th class="text-center">CPU</th>
+                                    <th>CPU Model</th>
                                     <th class="text-center">RAM</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">BW</th>
@@ -65,6 +66,7 @@
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
+                                    <td class="text-nowrap">{{ $server->cpu_model }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
                                         @if($server->ram_as_mb >= 1024)
                                             {{ number_format($server->ram_as_mb / 1024, $server->ram_as_mb % 1024 === 0 ? 0 : 1) }}<small class="text-muted">GB</small>
@@ -121,7 +123,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="13" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="14" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -138,6 +140,7 @@
                                     <th class="text-center">Type</th>
                                     <th class="text-center">OS</th>
                                     <th class="text-center">CPU</th>
+                                    <th>CPU Model</th>
                                     <th class="text-center">RAM</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">BW</th>
@@ -164,6 +167,7 @@
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
+                                    <td class="text-nowrap">{{ $server->cpu_model }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
                                         @if($server->ram_as_mb >= 1024)
                                             {{ number_format($server->ram_as_mb / 1024, $server->ram_as_mb % 1024 === 0 ? 0 : 1) }}<small class="text-muted">GB</small>
@@ -220,7 +224,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="13" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="14" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -287,7 +291,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, 12]}
+                    {orderable: false, targets: [2, 13]}
                 ],
                 language: {
                     search: "",

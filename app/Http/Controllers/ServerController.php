@@ -61,6 +61,7 @@ class ServerController extends Controller
             'location_id' => 'required|integer',
             'price' => 'required|numeric',
             'cpu' => 'required|integer',
+            'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
@@ -109,6 +110,7 @@ class ServerController extends Controller
             'ns2' => $request->ns2,
             'bandwidth' => $request->bandwidth,
             'cpu' => $request->cpu,
+            'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
             'show_public' => (isset($request->show_public)) ? 1 : 0
         ]);
@@ -162,6 +164,7 @@ class ServerController extends Controller
             'location_id' => 'required|integer',
             'price' => 'required|numeric',
             'cpu' => 'required|integer',
+            'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
@@ -198,6 +201,7 @@ class ServerController extends Controller
             'ns2' => $request->ns2,
             'bandwidth' => $request->bandwidth,
             'cpu' => $request->cpu,
+            'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
             'active' => $is_active,
             'show_public' => (isset($request->show_public)) ? 1 : 0

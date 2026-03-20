@@ -99,6 +99,14 @@
                                     <span class="detail-value">{{ $server_data->cpu }} @if($server_data->has_yabs)<span class="text-muted">@ {{ $server_data->yabs[0]->cpu_freq }} MHz</span>@endif</span>
                                 </div>
                             </div>
+                            @if($server_data->cpu_model)
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">CPU Model</span>
+                                    <span class="detail-value">{{ $server_data->cpu_model }}</span>
+                                </div>
+                            </div>
+                            @endif
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">RAM</span>
