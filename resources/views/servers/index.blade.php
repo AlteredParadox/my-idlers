@@ -56,7 +56,7 @@
                             @if(!empty($servers))
                                 @foreach($servers as $server)
                                 <tr>
-                                    <td class="fw-medium">{{ $server->hostname }}</td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}">{{ $server->hostname }}</td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>
@@ -157,7 +157,7 @@
                                 @foreach($non_active_servers as $server)
                                 @php $expired = $server->price->next_due_date && Carbon\Carbon::parse($server->price->next_due_date)->isPast(); @endphp
                                 <tr class="{{ $expired ? 'expired-row' : '' }}">
-                                    <td class="fw-medium">{{ $server->hostname }}</td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}">{{ $server->hostname }}</td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>
@@ -307,6 +307,28 @@
             };
             $('#servers-table').DataTable(dtConfig);
             $('#inactive-servers-table').DataTable(dtConfig);
+
+            // Add "Hide Domains" toggle next to each table's "Show" dropdown
+            var domainHidden = false;
+            document.querySelectorAll('.dataTables_length').forEach(function(el) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-domains-btn';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Domains';
+                btn.addEventListener('click', function() {
+                    domainHidden = !domainHidden;
+                    document.querySelectorAll('.toggle-domains-btn').forEach(function(b) {
+                        b.innerHTML = domainHidden
+                            ? '<i class="fas fa-eye"></i> Show Domains'
+                            : '<i class="fas fa-eye-slash"></i> Hide Domains';
+                    });
+                    document.querySelectorAll('.hostname-cell').forEach(function(cell) {
+                        var full = cell.getAttribute('data-full');
+                        cell.textContent = domainHidden ? full.split('.')[0] : full;
+                    });
+                });
+                el.appendChild(btn);
+            });
         });
     </script>
     @endsection
