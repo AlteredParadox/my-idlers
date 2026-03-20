@@ -41,6 +41,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
+                                    <th class="text-center">Link</th>
                                     <th>Price</th>
                                     <th class="text-center">Due</th>
                                     <th class="text-center">Since</th>
@@ -57,6 +58,15 @@
                                     <td class="text-nowrap">{{ $row->provider->name }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->link_speed ?? 0 }}">
+                                        @if($row->link_speed)
+                                            @if($row->link_speed >= 1000)
+                                                {{ rtrim(rtrim(number_format($row->link_speed / 1000, 1), '0'), '.') }}<small class="text-muted">Gbps</small>
+                                            @else
+                                                {{ $row->link_speed }}<small class="text-muted">Mbps</small>
+                                            @endif
+                                        @else - @endif
+                                    </td>
                                     <td class="text-nowrap">
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
@@ -83,7 +93,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">No active shared hosting found</td>
+                                    <td colspan="11" class="text-center text-muted py-4">No active shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -102,6 +112,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
+                                    <th class="text-center">Link</th>
                                     <th>Price</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
@@ -119,6 +130,15 @@
                                     <td class="text-nowrap">{{ $row->provider->name }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->link_speed ?? 0 }}">
+                                        @if($row->link_speed)
+                                            @if($row->link_speed >= 1000)
+                                                {{ rtrim(rtrim(number_format($row->link_speed / 1000, 1), '0'), '.') }}<small class="text-muted">Gbps</small>
+                                            @else
+                                                {{ $row->link_speed }}<small class="text-muted">Mbps</small>
+                                            @endif
+                                        @else - @endif
+                                    </td>
                                     <td class="text-nowrap">
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
@@ -145,7 +165,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">No inactive shared hosting found</td>
+                                    <td colspan="11" class="text-center text-muted py-4">No inactive shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -171,7 +191,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [9]}
+                    {orderable: false, targets: [10]}
                 ],
                 language: {
                     search: "",

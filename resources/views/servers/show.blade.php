@@ -136,6 +136,14 @@
                                     <span class="detail-value">@if($server_data->bandwidth == 0) Unlimited @else {{ $server_data->bandwidth }} GB @endif</span>
                                 </div>
                             </div>
+                            @if($server_data->link_speed)
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Link Speed</span>
+                                    <span class="detail-value">@if($server_data->link_speed >= 1000){{ rtrim(rtrim(number_format($server_data->link_speed / 1000, 1), '0'), '.') }} Gbps @else {{ $server_data->link_speed }} Mbps @endif</span>
+                                </div>
+                            </div>
+                            @endif
                             @foreach($server_data->ips as $ip)
                             <div class="col-6">
                                 <div class="detail-item">

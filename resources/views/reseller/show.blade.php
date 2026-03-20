@@ -96,6 +96,14 @@
                                     <span class="detail-value">@if($reseller->bandwidth == 0) Unlimited @else {{ $reseller->bandwidth }} GB @endif</span>
                                 </div>
                             </div>
+                            @if($reseller->link_speed)
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Link Speed</span>
+                                    <span class="detail-value">@if($reseller->link_speed >= 1000){{ rtrim(rtrim(number_format($reseller->link_speed / 1000, 1), '0'), '.') }} Gbps @else {{ $reseller->link_speed }} Mbps @endif</span>
+                                </div>
+                            </div>
+                            @endif
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Accounts</span>

@@ -95,6 +95,16 @@
                                 <label class="form-check-label small" for="bandwidth_unlimited">Unlimited</label>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Link Speed</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="link_speed" min="0" step="any">
+                                <select class="form-select" name="link_speed_type" style="max-width: 90px;">
+                                    <option value="Mbps">Mbps</option>
+                                    <option value="Gbps" selected>Gbps</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

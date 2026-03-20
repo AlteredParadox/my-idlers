@@ -96,6 +96,14 @@
                                     <span class="detail-value">@if($shared->bandwidth == 0) Unlimited @else {{ $shared->bandwidth }} GB @endif</span>
                                 </div>
                             </div>
+                            @if($shared->link_speed)
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Link Speed</span>
+                                    <span class="detail-value">@if($shared->link_speed >= 1000){{ rtrim(rtrim(number_format($shared->link_speed / 1000, 1), '0'), '.') }} Gbps @else {{ $shared->link_speed }} Mbps @endif</span>
+                                </div>
+                            </div>
+                            @endif
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Domains</span>

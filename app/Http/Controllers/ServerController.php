@@ -49,6 +49,8 @@ class ServerController extends Controller
             'server_type' => 'integer',
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',
+            'link_speed' => 'sometimes|nullable|numeric',
+            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'ram' => 'required|numeric',
             'disk' => 'required|array',
             'disk.*' => 'required|integer',
@@ -70,6 +72,8 @@ class ServerController extends Controller
             'label3' => 'sometimes|nullable|string',
             'label4' => 'sometimes|nullable|string',
         ]);
+
+        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $server_id = Str::random(8);
 
@@ -109,6 +113,7 @@ class ServerController extends Controller
             'ns1' => $request->ns1,
             'ns2' => $request->ns2,
             'bandwidth' => $request->bandwidth,
+            'link_speed' => $link_speed_mbps,
             'cpu' => $request->cpu,
             'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
@@ -152,6 +157,8 @@ class ServerController extends Controller
             'server_type' => 'integer',
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',
+            'link_speed' => 'sometimes|nullable|numeric',
+            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'ram' => 'required|numeric',
             'disk' => 'required|array',
             'disk.*' => 'required|integer',
@@ -173,6 +180,8 @@ class ServerController extends Controller
             'label3' => 'sometimes|nullable|string',
             'label4' => 'sometimes|nullable|string',
         ]);
+
+        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -200,6 +209,7 @@ class ServerController extends Controller
             'ns1' => $request->ns1,
             'ns2' => $request->ns2,
             'bandwidth' => $request->bandwidth,
+            'link_speed' => $link_speed_mbps,
             'cpu' => $request->cpu,
             'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,

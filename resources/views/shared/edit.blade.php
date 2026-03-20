@@ -141,6 +141,16 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label">Link Speed</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="link_speed" value="{{ $shared->link_speed ? ($shared->link_speed >= 1000 ? $shared->link_speed / 1000 : $shared->link_speed) : '' }}" min="0" step="any">
+                                <select class="form-select" name="link_speed_type" style="max-width: 80px;">
+                                    <option value="Mbps" {{ $shared->link_speed && $shared->link_speed < 1000 ? 'selected' : '' }}>Mbps</option>
+                                    <option value="Gbps" {{ !$shared->link_speed || $shared->link_speed >= 1000 ? 'selected' : '' }}>Gbps</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
                             <label class="form-label">FTP</label>
                             <input type="number" class="form-control" name="ftp" value="{{ $shared->ftp_limit }}" min="0" max="999999">
                         </div>
