@@ -20,7 +20,7 @@ class Server extends Model
 
     protected $fillable = ['id', 'hostname', 'ipv4', 'ipv6', 'server_type', 'os_id', 'location_id', 'provider_id',
         'ram', 'disk', 'ram_type', 'disk_type', 'ns1', 'ns2', 'label', 'bandwidth', 'ram_as_mb', 'disk_as_gb',
-        'has_yabs', 'was_promo', 'owned_since', 'ssh', 'active', 'show_public', 'cpu'];
+        'has_yabs', 'was_promo', 'owned_since', 'ssh', 'active', 'show_public', 'cpu', 'cpu_model'];
     /**
      * @var mixed
      */

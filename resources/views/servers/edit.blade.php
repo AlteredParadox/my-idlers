@@ -102,6 +102,10 @@
                             <label class="form-label">CPU Cores</label>
                             <input type="number" class="form-control" name="cpu" value="{{ $server_data->cpu }}" min="1" max="128">
                         </div>
+                        <div class="col-12 col-md-4 col-lg-4">
+                            <label class="form-label">CPU Model</label>
+                            <input type="text" class="form-control" name="cpu_model" value="{{ $server_data->cpu_model }}" placeholder="e.g. AMD EPYC 7502">
+                        </div>
                         <div class="col-6 col-md-4 col-lg-2">
                             <label class="form-label">RAM</label>
                             <input type="number" class="form-control" name="ram" value="{{ $server_data->ram }}" min="1" max="999999">
