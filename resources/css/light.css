@@ -432,6 +432,12 @@
     align-items: center;
 }
 
+.dataTables_wrapper .dataTables_length {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .dataTables_wrapper .dataTables_length label {
     display: flex;
     align-items: center;
