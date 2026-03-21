@@ -73,7 +73,7 @@ class ServerController extends Controller
             'label4' => 'sometimes|nullable|string',
         ]);
 
-        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
+        $link_speed_mbps = $request->link_speed ? (int)(($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $server_id = Str::random(8);
 
@@ -181,7 +181,7 @@ class ServerController extends Controller
             'label4' => 'sometimes|nullable|string',
         ]);
 
-        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
+        $link_speed_mbps = $request->link_speed ? (int)(($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
