@@ -45,6 +45,7 @@
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">BW</th>
                                     <th class="text-center">Link</th>
+                                    <th class="text-center">Net</th>
                                     <th>Location</th>
                                     <th>Provider</th>
                                     <th>Price</th>
@@ -101,6 +102,7 @@
                                             @endif
                                         @else - @endif
                                     </td>
+                                    <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
                                     <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
@@ -119,7 +121,7 @@
                                             <a href="{{ route('servers.edit', $server->id) }}" class="btn btn-sm btn-action" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-action" title="Check status" 
+                                            <button type="button" class="btn btn-sm btn-action" title="Check status"
                                                     id="{{ $server->hostname }}" @click="checkIfUp">
                                                 <i class="fas fa-plug" id="{{ $server->hostname }}"></i>
                                             </button>
@@ -133,7 +135,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="15" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="16" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -155,6 +157,7 @@
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">BW</th>
                                     <th class="text-center">Link</th>
+                                    <th class="text-center">Net</th>
                                     <th>Location</th>
                                     <th>Provider</th>
                                     <th>Price</th>
@@ -212,6 +215,7 @@
                                             @endif
                                         @else - @endif
                                     </td>
+                                    <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
                                     <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
@@ -244,7 +248,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="15" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="16" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -311,7 +315,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, 14]}
+                    {orderable: false, targets: [2, 15]}
                 ],
                 language: {
                     search: "",
