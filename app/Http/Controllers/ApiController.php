@@ -252,12 +252,13 @@ class ApiController extends Controller
     }
 
     protected function checkHostIsUp(string $hostname)
-    {//Check if host/ip is "up"
-        ($fp = @fsockopen($hostname, 80, $errCode, $errStr, 1)) ? $result = true : $result = false;
-        if ($fp) {
-            @fclose($fp);
-        }
-        return response(array('is_online' => $result), 200);
+    {//Check if host/ip is "up" via ping
+        $exitCode = 1;
+        $pingCmd = stripos(PHP_OS, 'WIN') === 0
+            ? "ping -n 1 -w 2000 " . escapeshellarg($hostname)
+            : "ping -c 1 -W 2 " . escapeshellarg($hostname);
+        exec($pingCmd . " > /dev/null 2>&1", $output, $exitCode);
+        return response(array('is_online' => $exitCode === 0), 200);
     }
 
     protected function getIpForDomain(string $domainname, string $type)
