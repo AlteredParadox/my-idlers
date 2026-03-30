@@ -86,6 +86,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Network Type</label>
+                            <select class="form-select" name="network_type">
+                                <option value="">None</option>
+                                <option value="IPv4" {{ $server_data->network_type == 'IPv4' ? 'selected' : '' }}>IPv4</option>
+                                <option value="IPv6" {{ $server_data->network_type == 'IPv6' ? 'selected' : '' }}>IPv6</option>
+                                <option value="IPv4+IPv6" {{ $server_data->network_type == 'IPv4+IPv6' ? 'selected' : '' }}>IPv4+IPv6</option>
+                                <option value="IPv4 NAT" {{ $server_data->network_type == 'IPv4 NAT' ? 'selected' : '' }}>IPv4 NAT</option>
+                                <option value="IPv4 NAT + IPv6" {{ $server_data->network_type == 'IPv4 NAT + IPv6' ? 'selected' : '' }}>IPv4 NAT + IPv6</option>
+                            </select>
+                        </div>
                     </div>
                     @if(count($server_data->ips) > 0)
                     <div class="row g-3 mt-1">

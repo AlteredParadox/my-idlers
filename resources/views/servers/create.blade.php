@@ -105,6 +105,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Network Type</label>
+                            <select class="form-select" name="network_type">
+                                <option value="">None</option>
+                                <option value="IPv4" {{ old('network_type') == 'IPv4' ? 'selected' : '' }}>IPv4</option>
+                                <option value="IPv6" {{ old('network_type') == 'IPv6' ? 'selected' : '' }}>IPv6</option>
+                                <option value="IPv4+IPv6" {{ old('network_type') == 'IPv4+IPv6' ? 'selected' : '' }}>IPv4+IPv6</option>
+                                <option value="IPv4 NAT" {{ old('network_type') == 'IPv4 NAT' ? 'selected' : '' }}>IPv4 NAT</option>
+                                <option value="IPv4 NAT + IPv6" {{ old('network_type') == 'IPv4 NAT + IPv6' ? 'selected' : '' }}>IPv4 NAT + IPv6</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
