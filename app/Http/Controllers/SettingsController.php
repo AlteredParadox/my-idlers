@@ -35,6 +35,8 @@ class SettingsController extends Controller
             'favicon' => 'sometimes|nullable|mimes:ico,jpg,png|max:40',
             'servers_index_cards' => 'required|integer|min:0|max:1',
             'default_per_page' => 'required|integer|in:10,25,50,100,250,500',
+            'prometheus_url' => 'nullable|url|max:255',
+            'prometheus_check_interval' => 'required|integer|between:5,300',
         ]);
 
         $settings = Settings::where('id', 1)->first();
@@ -71,7 +73,9 @@ class SettingsController extends Controller
             'sort_on' => $request->sort_on,
             'favicon' => $favicon_filename ?? $settings->favicon,
             'servers_index_cards' => $request->servers_index_cards,
-            'default_per_page' => $request->default_per_page
+            'default_per_page' => $request->default_per_page,
+            'prometheus_url' => $request->prometheus_url,
+            'prometheus_check_interval' => $request->prometheus_check_interval ?? 20
         ]);
 
         Cache::forget('due_soon');//Main page due_soon cache

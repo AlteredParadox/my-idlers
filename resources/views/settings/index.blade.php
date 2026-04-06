@@ -208,6 +208,30 @@
                 </div>
             </div>
 
+            <!-- Prometheus Monitoring -->
+            <div class="card content-card mb-4">
+                <div class="card-header card-section-header">
+                    <h5 class="card-section-title mb-0">Prometheus Monitoring</h5>
+                    <span class="text-muted small">Live server status from Prometheus (node-exporter)</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6 col-lg-6">
+                            <label class="form-label">Prometheus URL</label>
+                            <input type="url" class="form-control" name="prometheus_url"
+                                   value="{{ $setting->prometheus_url }}" placeholder="http://10.11.0.8:9090">
+                            <small class="text-muted">Leave blank to disable live status and use manual ping checks</small>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Check Interval (seconds)</label>
+                            <input type="number" class="form-control" name="prometheus_check_interval"
+                                   value="{{ $setting->prometheus_check_interval ?? 20 }}" min="5" max="300" step="1">
+                            <small class="text-muted">How often to refresh status (5-300s)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-primary mb-4">Update Settings</button>
         </form>
 

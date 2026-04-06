@@ -72,6 +72,8 @@ Route::middleware('auth:api')->get('shared/{id}', 'App\Http\Controllers\ApiContr
 
 Route::middleware('auth:api')->get('online/{hostname}', 'App\Http\Controllers\ApiController@checkHostIsUp');
 
+Route::middleware('auth:api')->get('prometheus/status', 'App\Http\Controllers\ApiController@prometheusStatus');
+
 Route::middleware('auth:api')->get('dns/{domainName}/{type}', 'App\Http\Controllers\ApiController@getIpForDomain');
 
 Route::middleware('throttle:4')->post('yabs/{server}/{key}', 'App\Http\Controllers\ApiController@storeYabs')->name('api.store-yabs');
