@@ -269,34 +269,60 @@ class ApiController extends Controller
             return response()->json(['error' => 'Prometheus URL not configured'], 404);
         }
 
-        $url = rtrim($settings->prometheus_url, '/') . '/api/v1/query';
-        $query = 'up{job="node"}';
+        $baseUrl = rtrim($settings->prometheus_url, '/') . '/api/v1/query';
 
         try {
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => $url . '?' . http_build_query(['query' => $query]),
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 5,
-                CURLOPT_CONNECTTIMEOUT => 3,
-            ]);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // Query both up status and node_uname_info to map instance IPs to hostnames
+            $queries = [
+                'up' => 'up{job="node"}',
+                'uname' => 'node_uname_info{job="node"}',
+            ];
 
-            if ($httpCode !== 200 || $response === false) {
-                return response()->json(['error' => 'Failed to query Prometheus'], 502);
+            $results = [];
+            foreach ($queries as $key => $query) {
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $baseUrl . '?' . http_build_query(['query' => $query]),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 5,
+                    CURLOPT_CONNECTTIMEOUT => 3,
+                ]);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode !== 200 || $response === false) {
+                    return response()->json(['error' => 'Failed to query Prometheus'], 502);
+                }
+                $results[$key] = json_decode($response, true);
             }
 
-            $data = json_decode($response, true);
-            $statuses = [];
-
-            if (isset($data['data']['result'])) {
-                foreach ($data['data']['result'] as $result) {
+            // Build instance -> hostname map from node_uname_info
+            $instanceToHostname = [];
+            if (isset($results['uname']['data']['result'])) {
+                foreach ($results['uname']['data']['result'] as $result) {
                     $instance = $result['metric']['instance'] ?? '';
-                    // Strip port from instance label (e.g. "hostname:9100" -> "hostname")
-                    $host = preg_replace('/:\d+$/', '', $instance);
+                    $nodename = $result['metric']['nodename'] ?? '';
+                    if ($instance && $nodename) {
+                        $instanceToHostname[$instance] = $nodename;
+                    }
+                }
+            }
+
+            // Build statuses keyed by hostname (from uname) and instance IP (stripped of port)
+            $statuses = [];
+            if (isset($results['up']['data']['result'])) {
+                foreach ($results['up']['data']['result'] as $result) {
+                    $instance = $result['metric']['instance'] ?? '';
                     $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
+
+                    // Key by hostname from uname if available
+                    if (isset($instanceToHostname[$instance])) {
+                        $statuses[$instanceToHostname[$instance]] = $isUp;
+                    }
+
+                    // Also key by instance IP (without port) as fallback
+                    $host = preg_replace('/:\d+$/', '', $instance);
                     $statuses[$host] = $isUp;
                 }
             }
