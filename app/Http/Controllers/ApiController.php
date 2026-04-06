@@ -507,7 +507,7 @@ class ApiController extends Controller
         return null;
     }
 
-    protected function prometheusDetail(string $hostname, string $period, int $back)
+    public function prometheusDetail(string $hostname, string $period, int $back)
     {
         $settings = \App\Models\Settings::getSettings();
 
