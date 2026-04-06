@@ -216,11 +216,17 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Enable Prometheus</label>
+                            <select class="form-select" name="prometheus_enabled" id="prometheus_enabled">
+                                <option value="1" {{ ($setting->prometheus_enabled ?? 0) == 1 ? 'selected' : '' }}>Yes</option>
+                                <option value="0" {{ ($setting->prometheus_enabled ?? 0) == 0 ? 'selected' : '' }}>No</option>
+                            </select>
+                        </div>
                         <div class="col-12 col-md-6 col-lg-6">
                             <label class="form-label">Prometheus URL</label>
                             <input type="url" class="form-control" name="prometheus_url"
                                    value="{{ $setting->prometheus_url }}" placeholder="http://10.11.0.8:9090">
-                            <small class="text-muted">Leave blank to disable live status and use manual ping checks</small>
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">Check Interval (seconds)</label>
