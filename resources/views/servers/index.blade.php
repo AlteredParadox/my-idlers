@@ -58,7 +58,7 @@
                             @if(!empty($servers))
                                 @foreach($servers as $server)
                                 <tr>
-                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>
@@ -180,7 +180,7 @@
                                 @foreach($non_active_servers as $server)
                                 @php $expired = $server->price->next_due_date && Carbon\Carbon::parse($server->price->next_due_date)->isPast(); @endphp
                                 <tr class="{{ $expired ? 'expired-row' : '' }}">
-                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>

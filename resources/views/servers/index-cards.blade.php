@@ -43,7 +43,7 @@
                                                 {!! App\Models\Server::osIntToIcon($server->os->id ?? 1, $server->os->name ?? 'Unknown') !!}
                                             </div>
                                             <div class="server-title">
-                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></h5>
+                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
                                                     <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
                                                 </span>
@@ -164,7 +164,7 @@
                                                 {!! App\Models\Server::osIntToIcon($server->os->id ?? 1, $server->os->name ?? 'Unknown') !!}
                                             </div>
                                             <div class="server-title">
-                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></h5>
+                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
                                                     <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
                                                 </span>
