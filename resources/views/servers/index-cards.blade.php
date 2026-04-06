@@ -269,8 +269,8 @@
                         }
                     }
                     if (!matched) {
-                        icon.classList.remove('text-success', 'text-danger', 'text-muted');
-                        icon.classList.add('text-danger');
+                        icon.classList.remove('text-success', 'text-danger', 'text-warning', 'text-muted');
+                        icon.classList.add('text-warning');
                     }
                 });
             }
