@@ -73,6 +73,8 @@ Route::middleware('auth:api')->get('shared/{id}', 'App\Http\Controllers\ApiContr
 Route::middleware('auth:api')->get('online/{hostname}', 'App\Http\Controllers\ApiController@checkHostIsUp');
 
 Route::middleware('auth:api')->get('prometheus/status', 'App\Http\Controllers\ApiController@prometheusStatus');
+Route::middleware('auth:api')->get('prometheus/detail/{hostname}/{period}/{back}', 'App\Http\Controllers\ApiController@prometheusDetail')
+    ->where(['hostname' => '[a-zA-Z0-9._-]+', 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+']);
 
 Route::middleware('auth:api')->get('dns/{domainName}/{type}', 'App\Http\Controllers\ApiController@getIpForDomain');
 
