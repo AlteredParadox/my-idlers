@@ -279,6 +279,7 @@ class ApiController extends Controller
                 'disk_pct' => '100 * (1 - sum by (instance) (node_filesystem_avail_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}) / sum by (instance) (node_filesystem_size_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}))',
                 'net_rx' => 'sum by (instance) (rate(node_network_receive_bytes_total{job="node",device!~"lo|docker.*|veth.*|br.*|cni.*|flannel.*"}[2m]))',
                 'net_tx' => 'sum by (instance) (rate(node_network_transmit_bytes_total{job="node",device!~"lo|docker.*|veth.*|br.*|cni.*|flannel.*"}[2m]))',
+                'uptime' => 'node_time_seconds{job="node"} - node_boot_time_seconds{job="node"}',
             ];
 
             $results = [];
@@ -348,11 +349,63 @@ class ApiController extends Controller
             // Build RAM % map keyed by instance
             // Build per-instance metric maps
             $metricsByInstance = [];
-            foreach (['ram_pct', 'disk_pct', 'net_rx', 'net_tx'] as $metricKey) {
+            foreach (['ram_pct', 'disk_pct', 'net_rx', 'net_tx', 'uptime'] as $metricKey) {
                 if (isset($results[$metricKey]['data']['result'])) {
                     foreach ($results[$metricKey]['data']['result'] as $result) {
                         $instance = $result['metric']['instance'] ?? '';
-                        $metricsByInstance[$instance][$metricKey] = round((float)($result['value'][1] ?? 0), 1);
+                        $val = (float)($result['value'][1] ?? 0);
+                        $metricsByInstance[$instance][$metricKey] = ($metricKey === 'uptime') ? round($val) : round($val, 1);
+                    }
+                }
+            }
+
+            // For offline nodes, find when they went down via tiered range query
+            $rangeUrl = rtrim($settings->prometheus_url, '/') . '/api/v1/query_range';
+            $now = time();
+            $tiers = [
+                [3600, 15],        // 1h at 15s step
+                [86400, 60],       // 24h at 1m step
+                [86400 * 7, 300],  // 7d at 5m step
+                [86400 * 30, 900], // 30d at 15m step
+            ];
+
+            if (isset($results['up']['data']['result'])) {
+                foreach ($results['up']['data']['result'] as $result) {
+                    $instance = $result['metric']['instance'] ?? '';
+                    $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
+
+                    if (!$isUp) {
+                        $offlineSince = null;
+                        foreach ($tiers as [$lookback, $step]) {
+                            $ch = curl_init();
+                            curl_setopt_array($ch, [
+                                CURLOPT_URL => $rangeUrl . '?' . http_build_query([
+                                    'query' => 'up{job="node",instance="' . $instance . '"}',
+                                    'start' => $now - $lookback,
+                                    'end' => $now,
+                                    'step' => $step,
+                                ]),
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_TIMEOUT => 5,
+                                CURLOPT_CONNECTTIMEOUT => 3,
+                            ]);
+                            $response = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            curl_close($ch);
+
+                            if ($httpCode === 200 && $response !== false) {
+                                $data = json_decode($response, true);
+                                if (isset($data['data']['result'][0]['values'])) {
+                                    foreach ($data['data']['result'][0]['values'] as [$ts, $val]) {
+                                        if ($val === '1') {
+                                            $offlineSince = (float)$ts;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($offlineSince !== null) break;
+                        }
+                        $metricsByInstance[$instance]['offline_since'] = $offlineSince;
                     }
                 }
             }

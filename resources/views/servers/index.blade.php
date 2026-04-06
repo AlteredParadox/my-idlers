@@ -51,6 +51,9 @@
                                     <th>Price</th>
                                     <th class="text-center">Due</th>
                                     <th class="text-center">Since</th>
+                                    @if(session('prometheus_enabled') && session('prometheus_url'))
+                                    <th class="text-center">Uptime</th>
+                                    @endif
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -116,6 +119,9 @@
                                         @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->owned_since }}</td>
+                                    @if(session('prometheus_enabled') && session('prometheus_url'))
+                                    <td class="text-center text-nowrap uptime-cell" data-hostname="{{ $server->hostname }}">-</td>
+                                    @endif
                                     <td class="text-center text-nowrap">
                                         <div class="action-buttons">
                                             <a href="{{ route('servers.show', $server->id) }}" class="btn btn-sm btn-action" title="View">
@@ -144,7 +150,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="16" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -172,6 +178,9 @@
                                     <th>Price</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
+                                    @if(session('prometheus_enabled') && session('prometheus_url'))
+                                    <th class="text-center">Uptime</th>
+                                    @endif
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -238,6 +247,9 @@
                                         @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->owned_since }}</td>
+                                    @if(session('prometheus_enabled') && session('prometheus_url'))
+                                    <td class="text-center text-nowrap uptime-cell" data-hostname="{{ $server->hostname }}">-</td>
+                                    @endif
                                     <td class="text-center text-nowrap">
                                         <div class="action-buttons">
                                             <a href="{{ route('servers.show', $server->id) }}" class="btn btn-sm btn-action" title="View">
@@ -266,7 +278,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="16" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -398,6 +410,69 @@
                 });
             }
 
+            function fmtDuration(secs) {
+                var d = Math.floor(secs / 86400);
+                var h = Math.floor((secs % 86400) / 3600);
+                var m = Math.floor((secs % 3600) / 60);
+                var s = Math.floor(secs) % 60;
+                if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+                if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+                if (m > 0) return m + 'm ' + s + 's';
+                return s + 's';
+            }
+
+            // Store per-cell data for live ticking
+            var uptimeData = {};
+
+            function updateUptimeCells(statuses, metrics) {
+                document.querySelectorAll('.uptime-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+
+                    for (var promHost in statuses) {
+                        if (!matchHost(hostname, promHost)) continue;
+
+                        var isUp = statuses[promHost];
+                        var m = metrics[promHost] || {};
+
+                        if (isUp && m.uptime != null) {
+                            uptimeData[hostname] = {type: 'uptime', base: m.uptime, fetched: Date.now()};
+                            cell.textContent = fmtDuration(m.uptime);
+                            cell.style.background = '';
+                            cell.classList.remove('text-white');
+                        } else if (!isUp && m.offline_since != null) {
+                            uptimeData[hostname] = {type: 'downtime', since: m.offline_since};
+                            var elapsed = Date.now() / 1000 - m.offline_since;
+                            cell.textContent = fmtDuration(elapsed);
+                            cell.style.background = 'var(--bs-danger, #dc3545)';
+                            cell.classList.add('text-white');
+                        } else if (!isUp) {
+                            uptimeData[hostname] = {type: 'down_unknown'};
+                            cell.textContent = 'Down';
+                            cell.style.background = 'var(--bs-danger, #dc3545)';
+                            cell.classList.add('text-white');
+                        }
+                        return;
+                    }
+                });
+            }
+
+            // Tick uptime/downtime counters every second
+            setInterval(function() {
+                document.querySelectorAll('.uptime-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var data = uptimeData[hostname];
+                    if (!data) return;
+
+                    if (data.type === 'uptime') {
+                        var elapsed = data.base + (Date.now() - data.fetched) / 1000;
+                        cell.textContent = fmtDuration(elapsed);
+                    } else if (data.type === 'downtime') {
+                        var elapsed = Date.now() / 1000 - data.since;
+                        cell.textContent = fmtDuration(elapsed);
+                    }
+                });
+            }, 1000);
+
             function fetchPrometheusStatus() {
                 axios.get('/api/prometheus/status', {
                     headers: {'Authorization': 'Bearer ' + authToken}
@@ -409,6 +484,9 @@
                         updateRamUsage(response.data.metrics);
                         updateDiskUsage(response.data.metrics);
                         updateLinkUsage(response.data.metrics);
+                    }
+                    if (response.data.statuses && response.data.metrics) {
+                        updateUptimeCells(response.data.statuses, response.data.metrics);
                     }
                 }).catch(function() {});
             }
@@ -462,7 +540,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, 15]}
+                    {orderable: false, targets: [2, {{ (session('prometheus_enabled') && session('prometheus_url')) ? 16 : 15 }}]}
                 ],
                 language: {
                     search: "",
