@@ -1,4 +1,87 @@
 @section("title", "{$server_data->hostname} server")
+@section('css_links')
+    @if(session('prometheus_enabled') && session('prometheus_url'))
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
+    @endif
+@endsection
+@section('style')
+@if(session('prometheus_enabled') && session('prometheus_url'))
+<style>
+.stat-card {
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--bs-body-bg, #fff);
+    border-top: 3px solid var(--stat-color, #6c757d);
+}
+.stat-card .stat-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-bottom: 0.3rem;
+}
+.stat-card .stat-values {
+    display: flex;
+    gap: 0.8rem;
+    font-size: 0.8rem;
+}
+.stat-card .stat-values .stat-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.stat-card .stat-values .stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #6c757d);
+}
+.stat-card .stat-values .stat-val {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.prom-green { color: #4caf50; }
+.prom-orange { color: #ff9800; }
+.prom-red { color: #f44336; }
+.disk-card-prom {
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    background: var(--bs-body-bg, #fff);
+}
+.disk-card-prom .disk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.disk-card-prom .disk-meta {
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color, #6c757d);
+    margin: 0.2rem 0 0.4rem;
+}
+.disk-bar-bg {
+    height: 6px;
+    background: var(--bs-secondary-bg, #e9ecef);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.disk-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+.disk-sizes {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-top: 0.2rem;
+}
+</style>
+@endif
+@endsection
 @section('scripts')
     <script>
         function showYabsCode() {
@@ -6,6 +89,287 @@
             el.classList.toggle("d-none");
         }
     </script>
+
+    @if(session('prometheus_enabled') && session('prometheus_url'))
+    <script>
+    (function() {
+        var authToken = document.querySelector('meta[name="api_token"]').getAttribute('content');
+        var hostname = @json($server_data->hostname);
+        var currentPeriod = '24h';
+        var currentBack = 0;
+        var chartUsage = null, chartNetwork = null, chartDiskIO = null;
+        var refreshTimer = null;
+
+        var STAT_THRESHOLDS = {
+            0: [65, 85],   // CPU
+            1: [10, 30],   // IOwait
+            2: [5, 10],    // Steal
+            3: [65, 85],   // RAM
+            4: [50, 80],   // Swap
+            5: [75, 90],   // Disk
+        };
+
+        var METRIC_NAMES = ['CPU', 'IOwait', 'Steal', 'RAM', 'Swap', 'Disk', 'Net RX', 'Net TX', 'Disk Read', 'Disk Write'];
+        var METRIC_COLORS = ['#1a73e8', '#f9a825', '#e53935', '#43a047', '#00897b', '#8e24aa', '#43a047', '#ff9800', '#43a047', '#ff9800'];
+
+        function colorClass(v, warn, crit) {
+            if (v >= crit) return 'prom-red';
+            if (v >= warn) return 'prom-orange';
+            return 'prom-green';
+        }
+
+        function fmtPct(v) { return v != null ? v.toFixed(1) + '%' : '-'; }
+
+        function fmtBytes(v) {
+            if (v == null || v === 0) return '0 B';
+            var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            var i = 0;
+            while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+            return v.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+        }
+
+        function fmtSpeed(v) {
+            if (v == null || v === 0) return '0 B/s';
+            var units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+            var i = 0;
+            while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+            return v.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+        }
+
+        function fmtBits(v) {
+            if (v == null || v === 0) return '0 bps';
+            v *= 8;
+            var units = ['bps', 'Kbps', 'Mbps', 'Gbps'];
+            var i = 0;
+            while (v >= 1000 && i < units.length - 1) { v /= 1000; i++; }
+            return v.toFixed(1) + ' ' + units[i];
+        }
+
+        function diskBarColor(pct) {
+            if (pct >= 90) return '#e53935';
+            if (pct >= 75) return '#ff9800';
+            return '#43a047';
+        }
+
+        function buildStatCards(stats) {
+            var container = document.getElementById('stat-cards');
+            container.innerHTML = '';
+            METRIC_NAMES.forEach(function(name, i) {
+                var isPct = i <= 5;
+                var cur = stats.current[i];
+                var avg = stats.avg[i];
+                var mx = stats.max[i];
+                var curText = isPct ? fmtPct(cur) : (i <= 7 ? fmtBits(cur) : fmtSpeed(cur));
+                var avgText = isPct ? fmtPct(avg) : (i <= 7 ? fmtBits(avg) : fmtSpeed(avg));
+                var maxText = isPct ? fmtPct(mx) : (i <= 7 ? fmtBits(mx) : fmtSpeed(mx));
+
+                var curClass = '', maxClass = '';
+                if (isPct && STAT_THRESHOLDS[i]) {
+                    curClass = colorClass(cur, STAT_THRESHOLDS[i][0], STAT_THRESHOLDS[i][1]);
+                    maxClass = colorClass(mx, STAT_THRESHOLDS[i][0], STAT_THRESHOLDS[i][1]);
+                }
+
+                var col = document.createElement('div');
+                col.className = 'col-6 col-md-4 col-lg-2';
+                col.innerHTML =
+                    '<div class="stat-card" style="--stat-color:' + METRIC_COLORS[i] + '">' +
+                    '<div class="stat-title">' + name + '</div>' +
+                    '<div class="stat-values">' +
+                    '<div class="stat-entry"><span class="stat-label">Cur</span><span class="stat-val ' + curClass + '">' + curText + '</span></div>' +
+                    '<div class="stat-entry"><span class="stat-label">Avg</span><span class="stat-val">' + avgText + '</span></div>' +
+                    '<div class="stat-entry"><span class="stat-label">Max</span><span class="stat-val ' + maxClass + '">' + maxText + '</span></div>' +
+                    '</div></div>';
+                container.appendChild(col);
+            });
+        }
+
+        function buildDiskCards(disks) {
+            var wrapper = document.getElementById('disk-cards-container');
+            var container = document.getElementById('disk-cards');
+            container.innerHTML = '';
+            if (!disks || disks.length === 0) { wrapper.style.display = 'none'; return; }
+            wrapper.style.display = '';
+
+            disks.forEach(function(d) {
+                var used = d.size - d.avail;
+                var color = diskBarColor(d.used_pct);
+                var col = document.createElement('div');
+                col.className = 'col-12 col-md-6 col-lg-4';
+                col.innerHTML =
+                    '<div class="disk-card-prom">' +
+                    '<div class="disk-header"><span>' + d.mountpoint + '</span><span style="color:' + color + '">' + d.used_pct + '%</span></div>' +
+                    '<div class="disk-meta">' + d.device + ' &middot; ' + d.fstype + '</div>' +
+                    '<div class="disk-bar-bg"><div class="disk-bar-fill" style="width:' + d.used_pct + '%;background:' + color + '"></div></div>' +
+                    '<div class="disk-sizes"><span>' + fmtBytes(used) + ' used</span><span>' + fmtBytes(d.size) + ' total</span></div>' +
+                    '</div>';
+                container.appendChild(col);
+            });
+        }
+
+        function isDark() {
+            return document.querySelector('link[href*="dark"]') !== null;
+        }
+
+        function chartBaseOpts() {
+            var dark = isDark();
+            return {
+                chart: { type: 'line', height: 220, background: 'transparent', toolbar: { show: true, tools: { download: false } }, zoom: { enabled: true }, animations: { enabled: false } },
+                stroke: { width: 1.5, curve: 'straight' },
+                xaxis: { type: 'datetime', labels: { style: { colors: dark ? '#999' : '#666', fontSize: '10px' } }, datetimeUTC: false },
+                grid: { borderColor: dark ? '#333' : '#e0e0e0', strokeDashArray: 3 },
+                legend: { position: 'top', horizontalAlign: 'left', labels: { colors: dark ? '#ccc' : '#333' }, fontSize: '11px' },
+                tooltip: { theme: dark ? 'dark' : 'light', x: { format: 'MMM dd HH:mm' } },
+            };
+        }
+
+        function buildCharts(data, metricOrder) {
+            var timestamps = Object.keys(data).map(Number).sort(function(a, b) { return a - b; });
+
+            // Usage chart (CPU, IOwait, Steal, RAM, Swap, Disk)
+            var usageMetrics = [
+                {idx: 0, name: 'CPU', color: '#1a73e8'},
+                {idx: 1, name: 'IOwait', color: '#f9a825'},
+                {idx: 2, name: 'Steal', color: '#e53935'},
+                {idx: 3, name: 'RAM', color: '#43a047'},
+                {idx: 4, name: 'Swap', color: '#00897b'},
+                {idx: 5, name: 'Disk', color: '#8e24aa'},
+            ];
+
+            var usageSeries = usageMetrics.map(function(m) {
+                return {
+                    name: m.name,
+                    color: m.color,
+                    data: timestamps.map(function(t) { return { x: t * 1000, y: data[String(t)][m.idx] }; })
+                };
+            });
+
+            var usageOpts = Object.assign({}, chartBaseOpts(), {
+                series: usageSeries,
+                yaxis: { min: 0, max: 100, labels: { formatter: function(v) { return v.toFixed(0) + '%'; }, style: { colors: isDark() ? '#999' : '#666', fontSize: '10px' } } },
+            });
+            usageOpts.chart.height = 220;
+
+            if (chartUsage) chartUsage.destroy();
+            chartUsage = new ApexCharts(document.getElementById('chart-usage'), usageOpts);
+            chartUsage.render();
+
+            // Network chart
+            var netMetrics = [
+                {idx: 6, name: 'Download (RX)', color: '#43a047'},
+                {idx: 7, name: 'Upload (TX)', color: '#ff9800'},
+            ];
+
+            var netSeries = netMetrics.map(function(m) {
+                return {
+                    name: m.name,
+                    color: m.color,
+                    data: timestamps.map(function(t) { var v = data[String(t)][m.idx]; return { x: t * 1000, y: v != null ? v * 8 : null }; })
+                };
+            });
+
+            var netOpts = Object.assign({}, chartBaseOpts(), {
+                series: netSeries,
+                yaxis: { min: 0, labels: { formatter: function(v) {
+                    if (v >= 1e9) return (v/1e9).toFixed(1) + ' Gbps';
+                    if (v >= 1e6) return (v/1e6).toFixed(1) + ' Mbps';
+                    if (v >= 1e3) return (v/1e3).toFixed(0) + ' Kbps';
+                    return v.toFixed(0) + ' bps';
+                }, style: { colors: isDark() ? '#999' : '#666', fontSize: '10px' } } },
+            });
+            netOpts.chart.height = 220;
+
+            if (chartNetwork) chartNetwork.destroy();
+            chartNetwork = new ApexCharts(document.getElementById('chart-network'), netOpts);
+            chartNetwork.render();
+
+            // Disk IO chart
+            var ioMetrics = [
+                {idx: 8, name: 'Read', color: '#43a047'},
+                {idx: 9, name: 'Write', color: '#ff9800'},
+            ];
+
+            var ioSeries = ioMetrics.map(function(m) {
+                return {
+                    name: m.name,
+                    color: m.color,
+                    data: timestamps.map(function(t) { return { x: t * 1000, y: data[String(t)][m.idx] }; })
+                };
+            });
+
+            var ioOpts = Object.assign({}, chartBaseOpts(), {
+                series: ioSeries,
+                yaxis: { min: 0, labels: { formatter: function(v) {
+                    if (v >= 1073741824) return (v/1073741824).toFixed(1) + ' GB/s';
+                    if (v >= 1048576) return (v/1048576).toFixed(1) + ' MB/s';
+                    if (v >= 1024) return (v/1024).toFixed(0) + ' KB/s';
+                    return v.toFixed(0) + ' B/s';
+                }, style: { colors: isDark() ? '#999' : '#666', fontSize: '10px' } } },
+            });
+            ioOpts.chart.height = 220;
+
+            if (chartDiskIO) chartDiskIO.destroy();
+            chartDiskIO = new ApexCharts(document.getElementById('chart-diskio'), ioOpts);
+            chartDiskIO.render();
+        }
+
+        function fetchDetail() {
+            var loading = document.getElementById('prom-loading');
+            loading.style.display = '';
+
+            axios.get('/api/prometheus/detail/' + hostname + '/' + currentPeriod + '/' + currentBack, {
+                headers: {'Authorization': 'Bearer ' + authToken}
+            }).then(function(response) {
+                loading.style.display = 'none';
+                var d = response.data;
+                buildStatCards(d.stats);
+                buildDiskCards(d.info.disks);
+                buildCharts(d.data, d.metric_order);
+            }).catch(function() {
+                loading.innerHTML = '<span class="text-danger">Failed to load monitoring data</span>';
+            });
+        }
+
+        // Period buttons
+        document.querySelectorAll('.period-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                currentPeriod = btn.getAttribute('data-period');
+                currentBack = 0;
+                document.getElementById('nav-newer').disabled = true;
+                fetchDetail();
+                resetRefresh();
+            });
+        });
+
+        // Navigation buttons
+        document.getElementById('nav-older').addEventListener('click', function() {
+            currentBack++;
+            document.getElementById('nav-newer').disabled = false;
+            fetchDetail();
+            resetRefresh();
+        });
+        document.getElementById('nav-newer').addEventListener('click', function() {
+            if (currentBack > 0) {
+                currentBack--;
+                if (currentBack === 0) this.disabled = true;
+                fetchDetail();
+                resetRefresh();
+            }
+        });
+
+        function resetRefresh() {
+            if (refreshTimer) clearInterval(refreshTimer);
+            if (currentBack === 0) {
+                refreshTimer = setInterval(fetchDetail, 30000);
+            }
+        }
+
+        fetchDetail();
+        refreshTimer = setInterval(fetchDetail, 30000);
+    })();
+    </script>
+    @endif
 @endsection
 <x-app-layout>
     <div class="container">
@@ -265,6 +629,50 @@
                 <p class="mb-3">Run this command on your server to add YABS benchmark data:</p>
                 <div class="yabs-command">
                     <code>curl -sL yabs.sh | bash -s -- -s "{{ route('api.store-yabs', [$server_data->id, \Illuminate\Support\Facades\Auth::user()->api_token]) }}"</code>
+                </div>
+            </div>
+            @endif
+
+            @if(session('prometheus_enabled') && session('prometheus_url'))
+            <!-- Prometheus Monitoring Section -->
+            <div class="detail-section" id="prom-section">
+                <div class="detail-section-header d-flex justify-content-between align-items-center">
+                    <h6 class="detail-section-title mb-0">Live Monitoring</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm" id="period-buttons">
+                            @foreach(['6h','12h','24h','3d','7d','14d','28d','3m','6m','1y'] as $p)
+                            <button type="button" class="btn btn-outline-secondary period-btn {{ $p === '24h' ? 'active' : '' }}" data-period="{{ $p }}">{{ $p }}</button>
+                            @endforeach
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary" id="nav-older" title="Older">&larr;</button>
+                            <button type="button" class="btn btn-outline-secondary" id="nav-newer" title="Newer" disabled>&rarr;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="row g-2 mt-2" id="stat-cards"></div>
+
+                <!-- Disk Cards -->
+                <div id="disk-cards-container" class="mt-3" style="display:none;">
+                    <h6 class="text-muted mb-2" style="font-size:0.85rem;">Disks</h6>
+                    <div class="row g-2" id="disk-cards"></div>
+                </div>
+
+                <!-- Charts -->
+                <div class="mt-3">
+                    <div id="chart-usage" style="min-height:220px;"></div>
+                </div>
+                <div class="mt-3">
+                    <div id="chart-network" style="min-height:220px;"></div>
+                </div>
+                <div class="mt-3">
+                    <div id="chart-diskio" style="min-height:220px;"></div>
+                </div>
+
+                <div class="text-center text-muted mt-2" id="prom-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading monitoring data...
                 </div>
             </div>
             @endif

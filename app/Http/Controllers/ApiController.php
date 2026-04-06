@@ -447,6 +447,210 @@ class ApiController extends Controller
         }
     }
 
+    private function promQuery(string $baseUrl, string $query)
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $baseUrl . '/api/v1/query?' . http_build_query(['query' => $query]),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 3,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || $response === false) return [];
+        $data = json_decode($response, true);
+        return $data['data']['result'] ?? [];
+    }
+
+    private function promRangeQuery(string $baseUrl, string $query, float $start, float $end, int $step)
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $baseUrl . '/api/v1/query_range?' . http_build_query([
+                'query' => $query, 'start' => $start, 'end' => $end, 'step' => $step,
+            ]),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT => 3,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || $response === false) return [];
+        $data = json_decode($response, true);
+        return $data['data']['result'] ?? [];
+    }
+
+    private function resolveInstance(string $baseUrl, string $hostname)
+    {
+        // Try matching by nodename via node_uname_info
+        $results = $this->promQuery($baseUrl, 'node_uname_info{job="node"}');
+        foreach ($results as $r) {
+            $nodename = $r['metric']['nodename'] ?? '';
+            if ($nodename === $hostname || str_starts_with($hostname, $nodename . '.') || str_starts_with($nodename, explode('.', $hostname)[0])) {
+                return $r['metric']['instance'] ?? null;
+            }
+        }
+        // Try matching by instance directly (hostname might be an IP)
+        $results = $this->promQuery($baseUrl, 'up{job="node"}');
+        foreach ($results as $r) {
+            $instance = $r['metric']['instance'] ?? '';
+            $host = preg_replace('/:\d+$/', '', $instance);
+            if ($host === $hostname) {
+                return $instance;
+            }
+        }
+        return null;
+    }
+
+    protected function prometheusDetail(string $hostname, string $period, int $back)
+    {
+        $settings = \App\Models\Settings::getSettings();
+
+        if (!$settings->prometheus_enabled || empty($settings->prometheus_url)) {
+            return response()->json(['error' => 'Prometheus not enabled'], 404);
+        }
+
+        $baseUrl = rtrim($settings->prometheus_url, '/');
+
+        $periodConfig = [
+            '6h'  => ['seconds' => 21600,    'step' => 60],
+            '12h' => ['seconds' => 43200,    'step' => 120],
+            '24h' => ['seconds' => 86400,    'step' => 240],
+            '3d'  => ['seconds' => 259200,   'step' => 720],
+            '7d'  => ['seconds' => 604800,   'step' => 1680],
+            '14d' => ['seconds' => 1209600,  'step' => 3360],
+            '28d' => ['seconds' => 2419200,  'step' => 6720],
+            '3m'  => ['seconds' => 7776000,  'step' => 21600],
+            '6m'  => ['seconds' => 15552000, 'step' => 43200],
+            '1y'  => ['seconds' => 31536000, 'step' => 86400],
+        ];
+
+        if (!isset($periodConfig[$period]) || $back < 0) {
+            return response()->json(['error' => 'Invalid period'], 400);
+        }
+
+        $cfg = $periodConfig[$period];
+        $step = $cfg['step'];
+        $duration = $cfg['seconds'];
+        $ri = max($step * 2, 120) . 's';
+
+        $now = time();
+        $end = $now - ($back * $duration);
+        $start = $end - $duration;
+
+        $inst = $this->resolveInstance($baseUrl, $hostname);
+        if (!$inst) {
+            return response()->json(['error' => 'Server not found in Prometheus'], 404);
+        }
+
+        // Range queries for time-series data
+        $queries = [
+            'cpu'        => "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"node\",instance=\"{$inst}\",mode=\"idle\"}[{$ri}])))",
+            'iowait'     => "100 * avg(rate(node_cpu_seconds_total{job=\"node\",instance=\"{$inst}\",mode=\"iowait\"}[{$ri}]))",
+            'steal'      => "100 * avg(rate(node_cpu_seconds_total{job=\"node\",instance=\"{$inst}\",mode=\"steal\"}[{$ri}]))",
+            'ram'        => "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\",instance=\"{$inst}\"} / node_memory_MemTotal_bytes{job=\"node\",instance=\"{$inst}\"})",
+            'swap'       => "clamp_min(100 * (1 - node_memory_SwapFree_bytes{job=\"node\",instance=\"{$inst}\"} / node_memory_SwapTotal_bytes{job=\"node\",instance=\"{$inst}\"}), 0)",
+            'disk'       => "100 * (1 - sum(node_filesystem_avail_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"ext4|xfs|btrfs|zfs\"}) / sum(node_filesystem_size_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"ext4|xfs|btrfs|zfs\"}))",
+            'net_rx'     => "sum(rate(node_network_receive_bytes_total{job=\"node\",instance=\"{$inst}\",device!~\"lo|docker.*|veth.*|br.*|cni.*|flannel.*\"}[{$ri}]))",
+            'net_tx'     => "sum(rate(node_network_transmit_bytes_total{job=\"node\",instance=\"{$inst}\",device!~\"lo|docker.*|veth.*|br.*|cni.*|flannel.*\"}[{$ri}]))",
+            'disk_read'  => "sum(rate(node_disk_read_bytes_total{job=\"node\",instance=\"{$inst}\"}[{$ri}]))",
+            'disk_write' => "sum(rate(node_disk_written_bytes_total{job=\"node\",instance=\"{$inst}\"}[{$ri}]))",
+        ];
+
+        $metricOrder = ['cpu', 'iowait', 'steal', 'ram', 'swap', 'disk', 'net_rx', 'net_tx', 'disk_read', 'disk_write'];
+
+        // Execute range queries
+        $raw = [];
+        foreach ($queries as $key => $query) {
+            $raw[$key] = $this->promRangeQuery($baseUrl, $query, $start, $end, $step);
+        }
+
+        // Build time-series data
+        $tsValues = [];
+        $allTimestamps = [];
+        foreach ($metricOrder as $key) {
+            $tsValues[$key] = [];
+            $results = $raw[$key] ?? [];
+            if (!empty($results) && isset($results[0]['values'])) {
+                foreach ($results[0]['values'] as [$ts, $val]) {
+                    $t = (int)$ts;
+                    $allTimestamps[$t] = true;
+                    $v = (float)$val;
+                    $tsValues[$key][$t] = (is_nan($v) || is_infinite($v)) ? null : $v;
+                }
+            }
+        }
+
+        ksort($allTimestamps);
+        $data = [];
+        foreach (array_keys($allTimestamps) as $t) {
+            $row = [];
+            foreach ($metricOrder as $key) {
+                $row[] = $tsValues[$key][$t] ?? null;
+            }
+            $data[(string)$t] = $row;
+        }
+
+        // Compute stats
+        $statsAvg = [];
+        $statsMax = [];
+        $statsCur = [];
+        for ($i = 0; $i < count($metricOrder); $i++) {
+            $vals = [];
+            foreach ($data as $row) {
+                if ($row[$i] !== null) $vals[] = $row[$i];
+            }
+            if (!empty($vals)) {
+                $statsAvg[] = round(array_sum($vals) / count($vals), 2);
+                $statsMax[] = round(max($vals), 2);
+                $statsCur[] = round(end($vals), 2);
+            } else {
+                $statsAvg[] = 0;
+                $statsMax[] = 0;
+                $statsCur[] = 0;
+            }
+        }
+
+        // Get per-disk filesystem info
+        $diskSizeResults = $this->promQuery($baseUrl, "node_filesystem_size_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"ext4|xfs|btrfs|zfs\"}");
+        $diskAvailResults = $this->promQuery($baseUrl, "node_filesystem_avail_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"ext4|xfs|btrfs|zfs\"}");
+
+        $availByMount = [];
+        foreach ($diskAvailResults as $r) {
+            $availByMount[$r['metric']['mountpoint'] ?? ''] = (float)$r['value'][1];
+        }
+
+        $disks = [];
+        foreach ($diskSizeResults as $r) {
+            $mount = $r['metric']['mountpoint'] ?? '';
+            $size = (float)$r['value'][1];
+            $avail = $availByMount[$mount] ?? $size;
+            $disks[] = [
+                'device' => $r['metric']['device'] ?? '?',
+                'mountpoint' => $mount,
+                'fstype' => $r['metric']['fstype'] ?? '?',
+                'size' => $size,
+                'avail' => $avail,
+                'used_pct' => $size > 0 ? round(100 * (1 - $avail / $size), 1) : 0,
+            ];
+        }
+        usort($disks, fn($a, $b) => strcmp($a['mountpoint'], $b['mountpoint']));
+
+        return response()->json([
+            'info' => ['disks' => $disks],
+            'stats' => ['avg' => $statsAvg, 'max' => $statsMax, 'current' => $statsCur],
+            'data' => $data,
+            'metric_order' => $metricOrder,
+            'period' => $period,
+            'back' => $back,
+        ]);
+    }
+
     protected function getIpForDomain(string $domainname, string $type)
     {//Gets IP from A record for a domain
         switch ($type) {
