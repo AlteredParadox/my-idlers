@@ -81,10 +81,10 @@
                                                     <span class="spec-label">RAM<span class="ram-usage"></span></span>
                                                 </div>
                                             </div>
-                                            <div class="spec-item">
+                                            <div class="spec-item disk-cell" data-hostname="{{ $server->hostname }}">
                                                 <div class="spec-details">
                                                     <span class="spec-value">@if($server->disks->count() > 0)@php $total_gb = $server->disks->sum('disk_as_gb'); @endphp{{ $total_gb >= 1024 ? number_format($total_gb / 1024, 1) . ' TB' : $total_gb . ' GB' }}@else{{ $server->disk }} {{ $server->disk_type }}@endif</span>
-                                                    <span class="spec-label">Disk</span>
+                                                    <span class="spec-label">Disk<span class="disk-usage"></span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -192,10 +192,10 @@
                                                     <span class="spec-label">RAM<span class="ram-usage"></span></span>
                                                 </div>
                                             </div>
-                                            <div class="spec-item">
+                                            <div class="spec-item disk-cell" data-hostname="{{ $server->hostname }}">
                                                 <div class="spec-details">
                                                     <span class="spec-value">@if($server->disks->count() > 0)@php $total_gb = $server->disks->sum('disk_as_gb'); @endphp{{ $total_gb >= 1024 ? number_format($total_gb / 1024, 1) . ' TB' : $total_gb . ' GB' }}@else{{ $server->disk }} {{ $server->disk_type }}@endif</span>
-                                                    <span class="spec-label">Disk</span>
+                                                    <span class="spec-label">Disk<span class="disk-usage"></span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -283,6 +283,16 @@
                 return 'text-success';
             }
 
+            function diskColorClass(pct) {
+                if (pct >= 90) return 'text-danger';
+                if (pct >= 75) return 'text-warning';
+                return 'text-success';
+            }
+
+            function matchHost(hostname, promHost) {
+                return hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0;
+            }
+
             function updateRamUsage(metrics) {
                 document.querySelectorAll('.ram-cell').forEach(function(cell) {
                     var hostname = cell.getAttribute('data-hostname');
@@ -290,9 +300,26 @@
                     if (!span) return;
 
                     for (var promHost in metrics) {
-                        if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
+                        if (matchHost(hostname, promHost) && metrics[promHost].ram_pct != null) {
                             var pct = metrics[promHost].ram_pct;
                             span.className = 'ram-usage ' + ramColorClass(pct);
+                            span.textContent = ' (' + pct + '%)';
+                            return;
+                        }
+                    }
+                });
+            }
+
+            function updateDiskUsage(metrics) {
+                document.querySelectorAll('.disk-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var span = cell.querySelector('.disk-usage');
+                    if (!span) return;
+
+                    for (var promHost in metrics) {
+                        if (matchHost(hostname, promHost) && metrics[promHost].disk_pct != null) {
+                            var pct = metrics[promHost].disk_pct;
+                            span.className = 'disk-usage ' + diskColorClass(pct);
                             span.textContent = ' (' + pct + '%)';
                             return;
                         }
@@ -309,6 +336,7 @@
                     }
                     if (response.data.metrics) {
                         updateRamUsage(response.data.metrics);
+                        updateDiskUsage(response.data.metrics);
                     }
                 }).catch(function() {});
             }
