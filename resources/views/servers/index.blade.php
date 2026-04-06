@@ -58,7 +58,7 @@
                             @if(!empty($servers))
                                 @foreach($servers as $server)
                                 <tr>
-                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}">{{ $server->hostname }}</td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>
@@ -124,10 +124,16 @@
                                             <a href="{{ route('servers.edit', $server->id) }}" class="btn btn-sm btn-action" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
+                                            @if(session('prometheus_enabled') && session('prometheus_url'))
+                                            <span class="btn btn-sm btn-action status-check-btn" title="Live status" data-hostname="{{ $server->hostname }}" style="cursor: default;">
+                                                <i class="fas fa-plug"></i>
+                                            </span>
+                                            @else
                                             <button type="button" class="btn btn-sm btn-action status-check-btn" title="Check status"
                                                     data-hostname="{{ $server->hostname }}" @click="checkIfUp">
                                                 <i class="fas fa-plug"></i>
                                             </button>
+                                            @endif
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
                                                     @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
                                                 <i class="fas fa-trash"></i>
@@ -174,7 +180,7 @@
                                 @foreach($non_active_servers as $server)
                                 @php $expired = $server->price->next_due_date && Carbon\Carbon::parse($server->price->next_due_date)->isPast(); @endphp
                                 <tr class="{{ $expired ? 'expired-row' : '' }}">
-                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}">{{ $server->hostname }}</td>
+                                    <td class="fw-medium hostname-cell" data-full="{{ $server->hostname }}"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></td>
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                     </td>
@@ -240,10 +246,16 @@
                                             <a href="{{ route('servers.edit', $server->id) }}" class="btn btn-sm btn-action" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
+                                            @if(session('prometheus_enabled') && session('prometheus_url'))
+                                            <span class="btn btn-sm btn-action status-check-btn" title="Live status" data-hostname="{{ $server->hostname }}" style="cursor: default;">
+                                                <i class="fas fa-plug"></i>
+                                            </span>
+                                            @else
                                             <button type="button" class="btn btn-sm btn-action status-check-btn" title="Check status"
                                                     data-hostname="{{ $server->hostname }}" @click="checkIfUp">
                                                 <i class="fas fa-plug"></i>
                                             </button>
+                                            @endif
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
                                                     @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
                                                 <i class="fas fa-trash"></i>
@@ -483,7 +495,12 @@
                     });
                     document.querySelectorAll('.hostname-cell').forEach(function(cell) {
                         var full = cell.getAttribute('data-full');
-                        cell.textContent = domainHidden ? full.split('.')[0] : full;
+                        var link = cell.querySelector('a');
+                        if (link) {
+                            link.textContent = domainHidden ? full.split('.')[0] : full;
+                        } else {
+                            cell.textContent = domainHidden ? full.split('.')[0] : full;
+                        }
                     });
                 });
                 el.appendChild(btn);
