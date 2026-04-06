@@ -43,7 +43,7 @@
                                                 {!! App\Models\Server::osIntToIcon($server->os->id ?? 1, $server->os->name ?? 'Unknown') !!}
                                             </div>
                                             <div class="server-title">
-                                                <h5 class="server-hostname">{{ $server->hostname }}</h5>
+                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
                                                     <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
                                                 </span>
@@ -56,10 +56,16 @@
                                             <a href="{{ route('servers.edit', $server->id) }}" class="btn btn-sm btn-action" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
+                                            @if(session('prometheus_enabled') && session('prometheus_url'))
+                                            <span class="btn btn-sm btn-action status-check-btn" title="Live status" data-hostname="{{ $server->hostname }}" style="cursor: default;">
+                                                <i class="fas fa-plug"></i>
+                                            </span>
+                                            @else
                                             <button type="button" class="btn btn-sm btn-action status-check-btn" title="Check status"
                                                     data-hostname="{{ $server->hostname }}" @click="checkIfUp">
                                                 <i class="fas fa-plug"></i>
                                             </button>
+                                            @endif
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
                                                     @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
                                                 <i class="fas fa-trash"></i>
@@ -158,7 +164,7 @@
                                                 {!! App\Models\Server::osIntToIcon($server->os->id ?? 1, $server->os->name ?? 'Unknown') !!}
                                             </div>
                                             <div class="server-title">
-                                                <h5 class="server-hostname">{{ $server->hostname }}</h5>
+                                                <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
                                                     <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
                                                 </span>
