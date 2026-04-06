@@ -265,8 +265,8 @@ class ApiController extends Controller
     {
         $settings = \App\Models\Settings::getSettings();
 
-        if (empty($settings->prometheus_url)) {
-            return response()->json(['error' => 'Prometheus URL not configured'], 404);
+        if (!$settings->prometheus_enabled || empty($settings->prometheus_url)) {
+            return response()->json(['error' => 'Prometheus integration not enabled'], 404);
         }
 
         $baseUrl = rtrim($settings->prometheus_url, '/') . '/api/v1/query';

@@ -249,6 +249,7 @@
                 'Accept': 'application/json',
             };
 
+            var prometheusEnabled = {{ session('prometheus_enabled', 0) ? 'true' : 'false' }};
             var prometheusUrl = @json(session('prometheus_url', ''));
             var prometheusInterval = {{ session('prometheus_check_interval', 20) }};
             var authToken = document.querySelector('meta[name="api_token"]').getAttribute('content');
@@ -286,7 +287,7 @@
                 }).catch(function() {});
             }
 
-            if (prometheusUrl) {
+            if (prometheusEnabled && prometheusUrl) {
                 fetchPrometheusStatus();
                 setInterval(fetchPrometheusStatus, prometheusInterval * 1000);
             }
@@ -302,7 +303,7 @@
                 },
                 methods: {
                     checkIfUp(event) {
-                        if (prometheusUrl) return;
+                        if (prometheusEnabled && prometheusUrl) return;
                         var el = event.target.closest('button') || event.target;
                         var hostname = el.getAttribute('data-hostname') || el.id;
                         var icon = el.querySelector('i') || event.target;
