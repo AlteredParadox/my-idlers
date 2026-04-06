@@ -297,7 +297,7 @@ class ApiController extends Controller
                 $results[$key] = json_decode($response, true);
             }
 
-            // Build instance -> hostname map from node_uname_info
+            // Build instance -> hostname map from node_uname_info (online nodes)
             $instanceToHostname = [];
             if (isset($results['uname']['data']['result'])) {
                 foreach ($results['uname']['data']['result'] as $result) {
@@ -305,6 +305,39 @@ class ApiController extends Controller
                     $nodename = $result['metric']['nodename'] ?? '';
                     if ($instance && $nodename) {
                         $instanceToHostname[$instance] = $nodename;
+                    }
+                }
+            }
+
+            // Find offline instances missing from uname and query 30d history
+            $offlineInstances = [];
+            if (isset($results['up']['data']['result'])) {
+                foreach ($results['up']['data']['result'] as $result) {
+                    $instance = $result['metric']['instance'] ?? '';
+                    $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
+                    if (!$isUp && !isset($instanceToHostname[$instance])) {
+                        $offlineInstances[] = $instance;
+                    }
+                }
+            }
+
+            foreach ($offlineInstances as $instance) {
+                $query = 'last_over_time(node_uname_info{job="node",instance="' . $instance . '"}[30d])';
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $baseUrl . '?' . http_build_query(['query' => $query]),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 5,
+                    CURLOPT_CONNECTTIMEOUT => 3,
+                ]);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode === 200 && $response !== false) {
+                    $data = json_decode($response, true);
+                    if (isset($data['data']['result'][0]['metric']['nodename'])) {
+                        $instanceToHostname[$instance] = $data['data']['result'][0]['metric']['nodename'];
                     }
                 }
             }
