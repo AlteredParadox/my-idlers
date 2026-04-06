@@ -284,16 +284,17 @@
                     if (!icon) return;
 
                     var matched = false;
+                    var statusClasses = ['text-success', 'text-danger', 'text-warning', 'text-muted'];
                     for (var promHost in statuses) {
                         if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
-                            icon.classList.remove('text-success', 'text-danger', 'text-muted');
+                            icon.classList.remove(...statusClasses);
                             icon.classList.add(statuses[promHost] ? 'text-success' : 'text-danger');
                             matched = true;
                             break;
                         }
                     }
                     if (!matched) {
-                        icon.classList.remove('text-success', 'text-danger', 'text-warning', 'text-muted');
+                        icon.classList.remove(...statusClasses);
                         icon.classList.add('text-warning');
                     }
                 });
