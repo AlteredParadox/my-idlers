@@ -292,6 +292,10 @@
                             break;
                         }
                     }
+                    if (!matched) {
+                        icon.classList.remove('text-success', 'text-danger', 'text-muted');
+                        icon.classList.add('text-danger');
+                    }
                 });
             }
 
