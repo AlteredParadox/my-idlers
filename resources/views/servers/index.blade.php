@@ -442,12 +442,12 @@
                         } else if (!isUp && m.offline_since != null) {
                             uptimeData[hostname] = {type: 'downtime', since: m.offline_since};
                             var elapsed = Date.now() / 1000 - m.offline_since;
-                            cell.textContent = fmtDuration(elapsed);
+                            cell.textContent = '-' + fmtDuration(elapsed);
                             cell.style.background = 'var(--bs-danger, #dc3545)';
                             cell.classList.add('text-white');
                         } else if (!isUp) {
                             uptimeData[hostname] = {type: 'down_unknown'};
-                            cell.textContent = 'Down';
+                            cell.textContent = '-Down';
                             cell.style.background = 'var(--bs-danger, #dc3545)';
                             cell.classList.add('text-white');
                         }
@@ -468,7 +468,7 @@
                         cell.textContent = fmtDuration(elapsed);
                     } else if (data.type === 'downtime') {
                         var elapsed = Date.now() / 1000 - data.since;
-                        cell.textContent = fmtDuration(elapsed);
+                        cell.textContent = '-' + fmtDuration(elapsed);
                     }
                 });
             }, 1000);
