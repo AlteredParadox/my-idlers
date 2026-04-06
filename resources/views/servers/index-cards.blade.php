@@ -56,9 +56,9 @@
                                             <a href="{{ route('servers.edit', $server->id) }}" class="btn btn-sm btn-action" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-action" title="Check status" 
-                                                    id="{{ $server->hostname }}" @click="checkIfUp">
-                                                <i class="fas fa-plug" id="{{ $server->hostname }}"></i>
+                                            <button type="button" class="btn btn-sm btn-action status-check-btn" title="Check status"
+                                                    data-hostname="{{ $server->hostname }}" @click="checkIfUp">
+                                                <i class="fas fa-plug"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
                                                     @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
@@ -249,6 +249,41 @@
                 'Accept': 'application/json',
             };
 
+            var prometheusUrl = @json(session('prometheus_url', ''));
+            var prometheusInterval = {{ session('prometheus_check_interval', 20) }};
+            var authToken = document.querySelector('meta[name="api_token"]').getAttribute('content');
+
+            function updateStatusIcons(statuses) {
+                document.querySelectorAll('.status-check-btn').forEach(function(btn) {
+                    var hostname = btn.getAttribute('data-hostname');
+                    var icon = btn.querySelector('i');
+                    if (!icon) return;
+
+                    for (var promHost in statuses) {
+                        if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
+                            icon.classList.remove('text-success', 'text-danger', 'text-muted');
+                            icon.classList.add(statuses[promHost] ? 'text-success' : 'text-danger');
+                            break;
+                        }
+                    }
+                });
+            }
+
+            function fetchPrometheusStatus() {
+                axios.get('/api/prometheus/status', {
+                    headers: {'Authorization': 'Bearer ' + authToken}
+                }).then(function(response) {
+                    if (response.data.statuses) {
+                        updateStatusIcons(response.data.statuses);
+                    }
+                }).catch(function() {});
+            }
+
+            if (prometheusUrl) {
+                fetchPrometheusStatus();
+                setInterval(fetchPrometheusStatus, prometheusInterval * 1000);
+            }
+
             let app = new Vue({
                 el: "#app",
                 data: {
@@ -260,14 +295,15 @@
                 },
                 methods: {
                     checkIfUp(event) {
+                        if (prometheusUrl) return;
                         var el = event.target.closest('button') || event.target;
-                        var hostname = el.id || event.target.id;
+                        var hostname = el.getAttribute('data-hostname') || el.id;
                         var icon = el.querySelector('i') || event.target;
 
                         if (hostname) {
                             axios
                                 .get('/api/online/' + hostname, {
-                                    headers: {'Authorization': 'Bearer ' + document.querySelector('meta[name="api_token"]').getAttribute('content')}
+                                    headers: {'Authorization': 'Bearer ' + authToken}
                                 })
                                 .then(response => (this.status = response.data.is_online))
                                 .finally(() => {

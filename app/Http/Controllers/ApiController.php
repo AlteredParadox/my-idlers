@@ -261,6 +261,55 @@ class ApiController extends Controller
         return response(array('is_online' => $exitCode === 0), 200);
     }
 
+    protected function prometheusStatus()
+    {
+        $settings = \App\Models\Settings::getSettings();
+
+        if (empty($settings->prometheus_url)) {
+            return response()->json(['error' => 'Prometheus URL not configured'], 404);
+        }
+
+        $url = rtrim($settings->prometheus_url, '/') . '/api/v1/query';
+        $query = 'up{job="node"}';
+
+        try {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url . '?' . http_build_query(['query' => $query]),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_CONNECTTIMEOUT => 3,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200 || $response === false) {
+                return response()->json(['error' => 'Failed to query Prometheus'], 502);
+            }
+
+            $data = json_decode($response, true);
+            $statuses = [];
+
+            if (isset($data['data']['result'])) {
+                foreach ($data['data']['result'] as $result) {
+                    $instance = $result['metric']['instance'] ?? '';
+                    // Strip port from instance label (e.g. "hostname:9100" -> "hostname")
+                    $host = preg_replace('/:\d+$/', '', $instance);
+                    $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
+                    $statuses[$host] = $isUp;
+                }
+            }
+
+            return response()->json([
+                'statuses' => $statuses,
+                'interval' => $settings->prometheus_check_interval ?? 20,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Prometheus query failed'], 502);
+        }
+    }
+
     protected function getIpForDomain(string $domainname, string $type)
     {//Gets IP from A record for a domain
         switch ($type) {
