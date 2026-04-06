@@ -316,11 +316,13 @@
             var loading = document.getElementById('prom-loading');
             loading.style.display = '';
 
-            axios.get('/api/prometheus/detail/' + hostname + '/' + currentPeriod + '/' + currentBack, {
-                headers: {'Authorization': 'Bearer ' + authToken}
-            }).then(function(response) {
+            fetch('/api/prometheus/detail/' + hostname + '/' + currentPeriod + '/' + currentBack, {
+                headers: {'Authorization': 'Bearer ' + authToken, 'Accept': 'application/json'}
+            }).then(function(resp) {
+                if (!resp.ok) throw new Error(resp.status);
+                return resp.json();
+            }).then(function(d) {
                 loading.style.display = 'none';
-                var d = response.data;
                 buildStatCards(d.stats);
                 buildDiskCards(d.info.disks);
                 buildCharts(d.data, d.metric_order);
