@@ -108,6 +108,12 @@
                                                 <span class="meta-label">Type</span>
                                                 <span class="meta-value">{{ App\Models\Server::serviceServerType($server->server_type) }}</span>
                                             </div>
+                                            @if(session('prometheus_enabled') && session('prometheus_url'))
+                                            <div class="meta-row">
+                                                <span class="meta-label">Uptime</span>
+                                                <span class="meta-value uptime-cell" data-hostname="{{ $server->hostname }}">-</span>
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
 
@@ -333,6 +339,70 @@
                 });
             }
 
+            function fmtDuration(secs) {
+                var d = Math.floor(secs / 86400);
+                var h = Math.floor((secs % 86400) / 3600);
+                var m = Math.floor((secs % 3600) / 60);
+                var s = Math.floor(secs) % 60;
+                if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+                if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+                if (m > 0) return m + 'm ' + s + 's';
+                return s + 's';
+            }
+
+            var uptimeData = {};
+
+            function updateUptimeCells(statuses, metrics) {
+                document.querySelectorAll('.uptime-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+
+                    for (var promHost in statuses) {
+                        if (!matchHost(hostname, promHost)) continue;
+
+                        var isUp = statuses[promHost];
+                        var m = metrics[promHost] || {};
+
+                        if (isUp && m.uptime != null) {
+                            uptimeData[hostname] = {type: 'uptime', base: m.uptime, fetched: Date.now()};
+                            cell.textContent = fmtDuration(m.uptime);
+                            cell.style.background = '';
+                            cell.style.borderRadius = '';
+                            cell.classList.remove('text-white');
+                        } else if (!isUp && m.offline_since != null) {
+                            uptimeData[hostname] = {type: 'downtime', since: m.offline_since};
+                            var elapsed = Date.now() / 1000 - m.offline_since;
+                            cell.textContent = fmtDuration(elapsed);
+                            cell.style.background = 'var(--bs-danger, #dc3545)';
+                            cell.style.borderRadius = '4px';
+                            cell.classList.add('text-white');
+                        } else if (!isUp) {
+                            uptimeData[hostname] = {type: 'down_unknown'};
+                            cell.textContent = 'Down';
+                            cell.style.background = 'var(--bs-danger, #dc3545)';
+                            cell.style.borderRadius = '4px';
+                            cell.classList.add('text-white');
+                        }
+                        return;
+                    }
+                });
+            }
+
+            setInterval(function() {
+                document.querySelectorAll('.uptime-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var data = uptimeData[hostname];
+                    if (!data) return;
+
+                    if (data.type === 'uptime') {
+                        var elapsed = data.base + (Date.now() - data.fetched) / 1000;
+                        cell.textContent = fmtDuration(elapsed);
+                    } else if (data.type === 'downtime') {
+                        var elapsed = Date.now() / 1000 - data.since;
+                        cell.textContent = fmtDuration(elapsed);
+                    }
+                });
+            }, 1000);
+
             function fetchPrometheusStatus() {
                 axios.get('/api/prometheus/status', {
                     headers: {'Authorization': 'Bearer ' + authToken}
@@ -343,7 +413,9 @@
                     if (response.data.metrics) {
                         updateRamUsage(response.data.metrics);
                         updateDiskUsage(response.data.metrics);
-                        // Link usage not shown in card view (no link speed column)
+                    }
+                    if (response.data.statuses && response.data.metrics) {
+                        updateUptimeCells(response.data.statuses, response.data.metrics);
                     }
                 }).catch(function() {});
             }
