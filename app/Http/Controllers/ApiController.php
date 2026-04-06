@@ -277,6 +277,8 @@ class ApiController extends Controller
                 'uname' => 'node_uname_info{job="node"}',
                 'ram_pct' => '100 * (1 - node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"})',
                 'disk_pct' => '100 * (1 - sum by (instance) (node_filesystem_avail_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}) / sum by (instance) (node_filesystem_size_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}))',
+                'net_rx' => 'sum by (instance) (rate(node_network_receive_bytes_total{job="node",device!~"lo|docker.*|veth.*|br.*|cni.*|flannel.*"}[2m]))',
+                'net_tx' => 'sum by (instance) (rate(node_network_transmit_bytes_total{job="node",device!~"lo|docker.*|veth.*|br.*|cni.*|flannel.*"}[2m]))',
             ];
 
             $results = [];
@@ -346,7 +348,7 @@ class ApiController extends Controller
             // Build RAM % map keyed by instance
             // Build per-instance metric maps
             $metricsByInstance = [];
-            foreach (['ram_pct', 'disk_pct'] as $metricKey) {
+            foreach (['ram_pct', 'disk_pct', 'net_rx', 'net_tx'] as $metricKey) {
                 if (isset($results[$metricKey]['data']['result'])) {
                     foreach ($results[$metricKey]['data']['result'] as $result) {
                         $instance = $result['metric']['instance'] ?? '';

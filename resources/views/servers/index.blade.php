@@ -95,7 +95,7 @@
                                             {{ $server->bandwidth }}<small class="text-muted">GB</small>
                                         @endif
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $server->link_speed ?? 0 }}">
+                                    <td class="text-center text-nowrap link-cell" data-order="{{ $server->link_speed ?? 0 }}" data-hostname="{{ $server->hostname }}" data-link-speed="{{ $server->link_speed ?? 0 }}">
                                         @if($server->link_speed)
                                             @if($server->link_speed >= 1000)
                                                 {{ rtrim(rtrim(number_format($server->link_speed / 1000, 1), '0'), '.') }}<small class="text-muted">Gbps</small>
@@ -103,6 +103,7 @@
                                                 {{ $server->link_speed }}<small class="text-muted">Mbps</small>
                                             @endif
                                         @else - @endif
+                                        <span class="link-usage"></span>
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
@@ -210,7 +211,7 @@
                                             {{ $server->bandwidth }}<small class="text-muted">GB</small>
                                         @endif
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $server->link_speed ?? 0 }}">
+                                    <td class="text-center text-nowrap link-cell" data-order="{{ $server->link_speed ?? 0 }}" data-hostname="{{ $server->hostname }}" data-link-speed="{{ $server->link_speed ?? 0 }}">
                                         @if($server->link_speed)
                                             @if($server->link_speed >= 1000)
                                                 {{ rtrim(rtrim(number_format($server->link_speed / 1000, 1), '0'), '.') }}<small class="text-muted">Gbps</small>
@@ -218,6 +219,7 @@
                                                 {{ $server->link_speed }}<small class="text-muted">Mbps</small>
                                             @endif
                                         @else - @endif
+                                        <span class="link-usage"></span>
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
@@ -355,6 +357,35 @@
                 });
             }
 
+            function linkColorClass(pct) {
+                if (pct >= 90) return 'text-danger';
+                if (pct >= 75) return 'text-warning';
+                return 'text-success';
+            }
+
+            function updateLinkUsage(metrics) {
+                document.querySelectorAll('.link-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var linkSpeedMbps = parseFloat(cell.getAttribute('data-link-speed'));
+                    var span = cell.querySelector('.link-usage');
+                    if (!span || !linkSpeedMbps) return;
+
+                    var linkBytesPerSec = linkSpeedMbps * 1000000 / 8;
+
+                    for (var promHost in metrics) {
+                        if (matchHost(hostname, promHost) && (metrics[promHost].net_rx != null || metrics[promHost].net_tx != null)) {
+                            var rx = metrics[promHost].net_rx || 0;
+                            var tx = metrics[promHost].net_tx || 0;
+                            var peak = Math.max(rx, tx);
+                            var pct = Math.round(peak / linkBytesPerSec * 1000) / 10;
+                            span.className = 'link-usage ' + linkColorClass(pct);
+                            span.textContent = ' (' + pct + '%)';
+                            return;
+                        }
+                    }
+                });
+            }
+
             function fetchPrometheusStatus() {
                 axios.get('/api/prometheus/status', {
                     headers: {'Authorization': 'Bearer ' + authToken}
@@ -365,6 +396,7 @@
                     if (response.data.metrics) {
                         updateRamUsage(response.data.metrics);
                         updateDiskUsage(response.data.metrics);
+                        updateLinkUsage(response.data.metrics);
                     }
                 }).catch(function() {});
             }
