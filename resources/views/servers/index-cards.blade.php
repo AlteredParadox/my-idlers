@@ -75,10 +75,10 @@
                                                     <span class="spec-label">vCPU</span>
                                                 </div>
                                             </div>
-                                            <div class="spec-item">
+                                            <div class="spec-item ram-cell" data-hostname="{{ $server->hostname }}">
                                                 <div class="spec-details">
                                                     <span class="spec-value">{{ $server->ram }} {{ $server->ram_type }}</span>
-                                                    <span class="spec-label">RAM</span>
+                                                    <span class="spec-label">RAM<span class="ram-usage"></span></span>
                                                 </div>
                                             </div>
                                             <div class="spec-item">
@@ -186,10 +186,10 @@
                                                     <span class="spec-label">vCPU</span>
                                                 </div>
                                             </div>
-                                            <div class="spec-item">
+                                            <div class="spec-item ram-cell" data-hostname="{{ $server->hostname }}">
                                                 <div class="spec-details">
                                                     <span class="spec-value">{{ $server->ram }} {{ $server->ram_type }}</span>
-                                                    <span class="spec-label">RAM</span>
+                                                    <span class="spec-label">RAM<span class="ram-usage"></span></span>
                                                 </div>
                                             </div>
                                             <div class="spec-item">
@@ -277,12 +277,38 @@
                 });
             }
 
+            function ramColorClass(pct) {
+                if (pct >= 85) return 'text-danger';
+                if (pct >= 65) return 'text-warning';
+                return 'text-success';
+            }
+
+            function updateRamUsage(metrics) {
+                document.querySelectorAll('.ram-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var span = cell.querySelector('.ram-usage');
+                    if (!span) return;
+
+                    for (var promHost in metrics) {
+                        if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
+                            var pct = metrics[promHost].ram_pct;
+                            span.className = 'ram-usage ' + ramColorClass(pct);
+                            span.textContent = ' (' + pct + '%)';
+                            return;
+                        }
+                    }
+                });
+            }
+
             function fetchPrometheusStatus() {
                 axios.get('/api/prometheus/status', {
                     headers: {'Authorization': 'Bearer ' + authToken}
                 }).then(function(response) {
                     if (response.data.statuses) {
                         updateStatusIcons(response.data.statuses);
+                    }
+                    if (response.data.metrics) {
+                        updateRamUsage(response.data.metrics);
                     }
                 }).catch(function() {});
             }

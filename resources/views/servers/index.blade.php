@@ -69,12 +69,13 @@
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
                                     <td class="text-nowrap">{{ $server->cpu_model }}</td>
-                                    <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
+                                    <td class="text-center text-nowrap ram-cell" data-order="{{ $server->ram_as_mb }}" data-hostname="{{ $server->hostname }}">
                                         @if($server->ram_as_mb >= 1024)
                                             {{ number_format($server->ram_as_mb / 1024, $server->ram_as_mb % 1024 === 0 ? 0 : 1) }}<small class="text-muted">GB</small>
                                         @else
                                             {{ $server->ram_as_mb }}<small class="text-muted">MB</small>
                                         @endif
+                                        <span class="ram-usage"></span>
                                     </td>
                                     @php $total_disk_gb = $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb; @endphp
                                     <td class="text-center text-nowrap" data-order="{{ $total_disk_gb }}">
@@ -182,12 +183,13 @@
                                     </td>
                                     <td class="text-center">{{ $server->cpu }}</td>
                                     <td class="text-nowrap">{{ $server->cpu_model }}</td>
-                                    <td class="text-center text-nowrap" data-order="{{ $server->ram_as_mb }}">
+                                    <td class="text-center text-nowrap ram-cell" data-order="{{ $server->ram_as_mb }}" data-hostname="{{ $server->hostname }}">
                                         @if($server->ram_as_mb >= 1024)
                                             {{ number_format($server->ram_as_mb / 1024, $server->ram_as_mb % 1024 === 0 ? 0 : 1) }}<small class="text-muted">GB</small>
                                         @else
                                             {{ $server->ram_as_mb }}<small class="text-muted">MB</small>
                                         @endif
+                                        <span class="ram-usage"></span>
                                     </td>
                                     @php $total_disk_gb = $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb; @endphp
                                     <td class="text-center text-nowrap" data-order="{{ $total_disk_gb }}">
@@ -301,12 +303,38 @@
                 });
             }
 
+            function ramColorClass(pct) {
+                if (pct >= 85) return 'text-danger';
+                if (pct >= 65) return 'text-warning';
+                return 'text-success';
+            }
+
+            function updateRamUsage(metrics) {
+                document.querySelectorAll('.ram-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var span = cell.querySelector('.ram-usage');
+                    if (!span) return;
+
+                    for (var promHost in metrics) {
+                        if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
+                            var pct = metrics[promHost].ram_pct;
+                            span.className = 'ram-usage ' + ramColorClass(pct);
+                            span.textContent = ' (' + pct + '%)';
+                            return;
+                        }
+                    }
+                });
+            }
+
             function fetchPrometheusStatus() {
                 axios.get('/api/prometheus/status', {
                     headers: {'Authorization': 'Bearer ' + authToken}
                 }).then(function(response) {
                     if (response.data.statuses) {
                         updateStatusIcons(response.data.statuses);
+                    }
+                    if (response.data.metrics) {
+                        updateRamUsage(response.data.metrics);
                     }
                 }).catch(function() {});
             }
