@@ -78,12 +78,13 @@
                                         <span class="ram-usage"></span>
                                     </td>
                                     @php $total_disk_gb = $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb; @endphp
-                                    <td class="text-center text-nowrap" data-order="{{ $total_disk_gb }}">
+                                    <td class="text-center text-nowrap disk-cell" data-order="{{ $total_disk_gb }}" data-hostname="{{ $server->hostname }}">
                                         @if($total_disk_gb >= 1024)
                                             {{ number_format($total_disk_gb / 1024, 1) }}<small class="text-muted">TB</small>
                                         @else
                                             {{ $total_disk_gb }}<small class="text-muted">GB</small>
                                         @endif
+                                        <span class="disk-usage"></span>
                                     </td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->bandwidth == 0 ? 999999 : $server->bandwidth }}">
                                         @if($server->bandwidth == 0)
@@ -192,12 +193,13 @@
                                         <span class="ram-usage"></span>
                                     </td>
                                     @php $total_disk_gb = $server->disks->count() > 0 ? $server->disks->sum('disk_as_gb') : $server->disk_as_gb; @endphp
-                                    <td class="text-center text-nowrap" data-order="{{ $total_disk_gb }}">
+                                    <td class="text-center text-nowrap disk-cell" data-order="{{ $total_disk_gb }}" data-hostname="{{ $server->hostname }}">
                                         @if($total_disk_gb >= 1024)
                                             {{ number_format($total_disk_gb / 1024, 1) }}<small class="text-muted">TB</small>
                                         @else
                                             {{ $total_disk_gb }}<small class="text-muted">GB</small>
                                         @endif
+                                        <span class="disk-usage"></span>
                                     </td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->bandwidth == 0 ? 999999 : $server->bandwidth }}">
                                         @if($server->bandwidth == 0)
@@ -309,6 +311,16 @@
                 return 'text-success';
             }
 
+            function diskColorClass(pct) {
+                if (pct >= 90) return 'text-danger';
+                if (pct >= 75) return 'text-warning';
+                return 'text-success';
+            }
+
+            function matchHost(hostname, promHost) {
+                return hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0;
+            }
+
             function updateRamUsage(metrics) {
                 document.querySelectorAll('.ram-cell').forEach(function(cell) {
                     var hostname = cell.getAttribute('data-hostname');
@@ -316,9 +328,26 @@
                     if (!span) return;
 
                     for (var promHost in metrics) {
-                        if (hostname === promHost || hostname.indexOf(promHost) === 0 || promHost.indexOf(hostname.split('.')[0]) === 0) {
+                        if (matchHost(hostname, promHost) && metrics[promHost].ram_pct != null) {
                             var pct = metrics[promHost].ram_pct;
                             span.className = 'ram-usage ' + ramColorClass(pct);
+                            span.textContent = ' (' + pct + '%)';
+                            return;
+                        }
+                    }
+                });
+            }
+
+            function updateDiskUsage(metrics) {
+                document.querySelectorAll('.disk-cell').forEach(function(cell) {
+                    var hostname = cell.getAttribute('data-hostname');
+                    var span = cell.querySelector('.disk-usage');
+                    if (!span) return;
+
+                    for (var promHost in metrics) {
+                        if (matchHost(hostname, promHost) && metrics[promHost].disk_pct != null) {
+                            var pct = metrics[promHost].disk_pct;
+                            span.className = 'disk-usage ' + diskColorClass(pct);
                             span.textContent = ' (' + pct + '%)';
                             return;
                         }
@@ -335,6 +364,7 @@
                     }
                     if (response.data.metrics) {
                         updateRamUsage(response.data.metrics);
+                        updateDiskUsage(response.data.metrics);
                     }
                 }).catch(function() {});
             }

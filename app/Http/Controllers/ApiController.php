@@ -276,6 +276,7 @@ class ApiController extends Controller
                 'up' => 'up{job="node"}',
                 'uname' => 'node_uname_info{job="node"}',
                 'ram_pct' => '100 * (1 - node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"})',
+                'disk_pct' => '100 * (1 - sum by (instance) (node_filesystem_avail_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}) / sum by (instance) (node_filesystem_size_bytes{job="node",fstype=~"ext4|xfs|btrfs|zfs"}))',
             ];
 
             $results = [];
@@ -343,11 +344,14 @@ class ApiController extends Controller
             }
 
             // Build RAM % map keyed by instance
-            $ramByInstance = [];
-            if (isset($results['ram_pct']['data']['result'])) {
-                foreach ($results['ram_pct']['data']['result'] as $result) {
-                    $instance = $result['metric']['instance'] ?? '';
-                    $ramByInstance[$instance] = round((float)($result['value'][1] ?? 0), 1);
+            // Build per-instance metric maps
+            $metricsByInstance = [];
+            foreach (['ram_pct', 'disk_pct'] as $metricKey) {
+                if (isset($results[$metricKey]['data']['result'])) {
+                    foreach ($results[$metricKey]['data']['result'] as $result) {
+                        $instance = $result['metric']['instance'] ?? '';
+                        $metricsByInstance[$instance][$metricKey] = round((float)($result['value'][1] ?? 0), 1);
+                    }
                 }
             }
 
@@ -358,22 +362,22 @@ class ApiController extends Controller
                 foreach ($results['up']['data']['result'] as $result) {
                     $instance = $result['metric']['instance'] ?? '';
                     $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
-                    $ramPct = $ramByInstance[$instance] ?? null;
+                    $instanceMetrics = $metricsByInstance[$instance] ?? [];
 
                     // Key by hostname from uname if available
                     if (isset($instanceToHostname[$instance])) {
                         $hostname = $instanceToHostname[$instance];
                         $statuses[$hostname] = $isUp;
-                        if ($ramPct !== null) {
-                            $metrics[$hostname] = ['ram_pct' => $ramPct];
+                        if (!empty($instanceMetrics)) {
+                            $metrics[$hostname] = $instanceMetrics;
                         }
                     }
 
                     // Also key by instance IP (without port) as fallback
                     $host = preg_replace('/:\d+$/', '', $instance);
                     $statuses[$host] = $isUp;
-                    if ($ramPct !== null) {
-                        $metrics[$host] = ['ram_pct' => $ramPct];
+                    if (!empty($instanceMetrics)) {
+                        $metrics[$host] = $instanceMetrics;
                     }
                 }
             }
