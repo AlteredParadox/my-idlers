@@ -272,10 +272,10 @@ class ApiController extends Controller
         $baseUrl = rtrim($settings->prometheus_url, '/') . '/api/v1/query';
 
         try {
-            // Query both up status and node_uname_info to map instance IPs to hostnames
             $queries = [
                 'up' => 'up{job="node"}',
                 'uname' => 'node_uname_info{job="node"}',
+                'ram_pct' => '100 * (1 - node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"})',
             ];
 
             $results = [];
@@ -342,26 +342,45 @@ class ApiController extends Controller
                 }
             }
 
-            // Build statuses keyed by hostname (from uname) and instance IP (stripped of port)
+            // Build RAM % map keyed by instance
+            $ramByInstance = [];
+            if (isset($results['ram_pct']['data']['result'])) {
+                foreach ($results['ram_pct']['data']['result'] as $result) {
+                    $instance = $result['metric']['instance'] ?? '';
+                    $ramByInstance[$instance] = round((float)($result['value'][1] ?? 0), 1);
+                }
+            }
+
+            // Build statuses and metrics keyed by hostname and instance IP
             $statuses = [];
+            $metrics = [];
             if (isset($results['up']['data']['result'])) {
                 foreach ($results['up']['data']['result'] as $result) {
                     $instance = $result['metric']['instance'] ?? '';
                     $isUp = isset($result['value'][1]) && $result['value'][1] === '1';
+                    $ramPct = $ramByInstance[$instance] ?? null;
 
                     // Key by hostname from uname if available
                     if (isset($instanceToHostname[$instance])) {
-                        $statuses[$instanceToHostname[$instance]] = $isUp;
+                        $hostname = $instanceToHostname[$instance];
+                        $statuses[$hostname] = $isUp;
+                        if ($ramPct !== null) {
+                            $metrics[$hostname] = ['ram_pct' => $ramPct];
+                        }
                     }
 
                     // Also key by instance IP (without port) as fallback
                     $host = preg_replace('/:\d+$/', '', $instance);
                     $statuses[$host] = $isUp;
+                    if ($ramPct !== null) {
+                        $metrics[$host] = ['ram_pct' => $ramPct];
+                    }
                 }
             }
 
             return response()->json([
                 'statuses' => $statuses,
+                'metrics' => $metrics,
                 'interval' => $settings->prometheus_check_interval ?? 20,
             ]);
         } catch (\Exception $e) {
