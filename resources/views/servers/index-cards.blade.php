@@ -337,6 +337,7 @@
                     if (response.data.metrics) {
                         updateRamUsage(response.data.metrics);
                         updateDiskUsage(response.data.metrics);
+                        // Link usage not shown in card view (no link speed column)
                     }
                 }).catch(function() {});
             }
