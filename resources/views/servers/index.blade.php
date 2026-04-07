@@ -488,6 +488,7 @@
                     if (response.data.statuses && response.data.metrics) {
                         updateUptimeCells(response.data.statuses, response.data.metrics);
                     }
+                    if (statsHidden) applyStatsToggle();
                 }).catch(function() {});
             }
 
@@ -557,32 +558,71 @@
             $('#servers-table').DataTable(dtConfig);
             $('#inactive-servers-table').DataTable(dtConfig);
 
-            // Add "Hide Domains" toggle next to each table's "Show" dropdown
-            var domainHidden = false;
-            document.querySelectorAll('.dataTables_length').forEach(function(el) {
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-domains-btn';
-                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Domains';
-                btn.addEventListener('click', function() {
-                    domainHidden = !domainHidden;
-                    document.querySelectorAll('.toggle-domains-btn').forEach(function(b) {
-                        b.innerHTML = domainHidden
-                            ? '<i class="fas fa-eye"></i> Show Domains'
-                            : '<i class="fas fa-eye-slash"></i> Hide Domains';
-                    });
-                    document.querySelectorAll('.hostname-cell').forEach(function(cell) {
-                        var full = cell.getAttribute('data-full');
-                        var link = cell.querySelector('a');
-                        if (link) {
-                            link.textContent = domainHidden ? full.split('.')[0] : full;
-                        } else {
-                            cell.textContent = domainHidden ? full.split('.')[0] : full;
-                        }
-                    });
+            // Toggle state from localStorage
+            var domainHidden = localStorage.getItem('idlers_hide_domains') === '1';
+            var statsHidden = localStorage.getItem('idlers_hide_stats') === '1';
+
+            function applyDomainToggle() {
+                document.querySelectorAll('.toggle-domains-btn').forEach(function(b) {
+                    b.innerHTML = domainHidden
+                        ? '<i class="fas fa-eye"></i> Show Domains'
+                        : '<i class="fas fa-eye-slash"></i> Hide Domains';
                 });
-                el.appendChild(btn);
+                document.querySelectorAll('.hostname-cell').forEach(function(cell) {
+                    var full = cell.getAttribute('data-full');
+                    var link = cell.querySelector('a');
+                    if (link) {
+                        link.textContent = domainHidden ? full.split('.')[0] : full;
+                    } else {
+                        cell.textContent = domainHidden ? full.split('.')[0] : full;
+                    }
+                });
+            }
+
+            function applyStatsToggle() {
+                var display = statsHidden ? 'none' : '';
+                document.querySelectorAll('.ram-usage, .disk-usage, .link-usage').forEach(function(el) {
+                    el.style.display = display;
+                });
+                document.querySelectorAll('.toggle-stats-btn').forEach(function(b) {
+                    b.innerHTML = statsHidden
+                        ? '<i class="fas fa-chart-bar"></i> Show Stats'
+                        : '<i class="fas fa-chart-bar"></i> Hide Stats';
+                });
+            }
+
+            // Apply saved state on load
+            if (domainHidden) applyDomainToggle();
+            if (statsHidden) applyStatsToggle();
+
+            // Add toggle buttons next to each table's "Show" dropdown
+            document.querySelectorAll('.dataTables_length').forEach(function(el) {
+                var domainBtn = document.createElement('button');
+                domainBtn.type = 'button';
+                domainBtn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-domains-btn';
+                domainBtn.addEventListener('click', function() {
+                    domainHidden = !domainHidden;
+                    localStorage.setItem('idlers_hide_domains', domainHidden ? '1' : '0');
+                    applyDomainToggle();
+                });
+                el.appendChild(domainBtn);
+
+                @if(session('prometheus_enabled') && session('prometheus_url'))
+                var statsBtn = document.createElement('button');
+                statsBtn.type = 'button';
+                statsBtn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-stats-btn';
+                statsBtn.addEventListener('click', function() {
+                    statsHidden = !statsHidden;
+                    localStorage.setItem('idlers_hide_stats', statsHidden ? '1' : '0');
+                    applyStatsToggle();
+                });
+                el.appendChild(statsBtn);
+                @endif
             });
+
+            // Set initial button text
+            applyDomainToggle();
+            applyStatsToggle();
         });
     </script>
     @endsection

@@ -12,6 +12,12 @@
 
         <x-response-alerts></x-response-alerts>
 
+        @if(session('prometheus_enabled') && session('prometheus_url'))
+        <div class="mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary toggle-stats-btn" id="cards-stats-toggle"></button>
+        </div>
+        @endif
+
         <div class="content-card">
             <div class="card-tabs">
                 <ul class="nav nav-tabs" role="tablist">
@@ -417,7 +423,34 @@
                     if (response.data.statuses && response.data.metrics) {
                         updateUptimeCells(response.data.statuses, response.data.metrics);
                     }
+                    if (statsHidden) applyStatsToggle();
                 }).catch(function() {});
+            }
+
+            // Stats toggle (persisted via localStorage)
+            var statsHidden = localStorage.getItem('idlers_hide_stats') === '1';
+
+            function applyStatsToggle() {
+                var display = statsHidden ? 'none' : '';
+                document.querySelectorAll('.ram-usage, .disk-usage').forEach(function(el) {
+                    el.style.display = display;
+                });
+                document.querySelectorAll('.toggle-stats-btn').forEach(function(b) {
+                    b.innerHTML = statsHidden
+                        ? '<i class="fas fa-chart-bar"></i> Show Stats'
+                        : '<i class="fas fa-chart-bar"></i> Hide Stats';
+                });
+            }
+
+            applyStatsToggle();
+
+            var statsToggle = document.getElementById('cards-stats-toggle');
+            if (statsToggle) {
+                statsToggle.addEventListener('click', function() {
+                    statsHidden = !statsHidden;
+                    localStorage.setItem('idlers_hide_stats', statsHidden ? '1' : '0');
+                    applyStatsToggle();
+                });
             }
 
             if (prometheusEnabled && prometheusUrl) {
