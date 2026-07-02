@@ -16,7 +16,7 @@ class Shared extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'active', 'main_domain', 'has_dedicated_ip', 'ip', 'shared_type', 'provider_id', 'location_id', 'bandwidth', 'link_speed', 'disk', 'disk_type', 'disk_as_gb', 'domains_limit', 'subdomains_limit', 'ftp_limit', 'email_limit', 'db_limit', 'was_promo', 'owned_since'];
+    protected $fillable = ['id', 'active', 'main_domain', 'has_dedicated_ip', 'ip', 'shared_type', 'provider_id', 'location_id', 'bandwidth', 'link_speed', 'disk', 'disk_type', 'disk_as_gb', 'domains_limit', 'subdomains_limit', 'ftp_limit', 'email_limit', 'db_limit', 'was_promo', 'transferrable', 'owned_since'];
 
     public $incrementing = false;
 

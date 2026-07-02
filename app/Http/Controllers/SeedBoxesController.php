@@ -66,7 +66,8 @@ class SeedBoxesController extends Controller
             'owned_since' => $request->owned_since,
             'bandwidth' => $request->bandwidth,
             'port_speed' => $request->port_speed,
-            'was_promo' => $request->was_promo
+            'was_promo' => $request->was_promo,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0
         ]);
 
         Cache::forget("all_seedboxes");
@@ -126,6 +127,7 @@ class SeedBoxesController extends Controller
             'bandwidth' => $request->bandwidth,
             'port_speed' => $request->port_speed,
             'was_promo' => $request->was_promo,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
             'active' => $is_active
         ]);
 

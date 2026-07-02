@@ -165,6 +165,10 @@
                 <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ $seedbox_data->active === 1 ? 'checked' : '' }}>
                 <label class="form-check-label" for="is_active">I still have this seed box</label>
             </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="transferrable" id="transferrable" value="1" {{ $seedbox_data->transferrable === 1 ? 'checked' : '' }}>
+                <label class="form-check-label" for="transferrable">Transferrable</label>
+            </div>
             <button type="submit" class="btn btn-primary mb-4">Update Seed Box</button>
         </form>
     </div>

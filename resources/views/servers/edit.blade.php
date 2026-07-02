@@ -326,6 +326,12 @@
                         <label class="form-check-label" for="show_public">Allow some of this data to be public</label>
                     </div>
                 </div>
+                <div class="col-12 col-lg-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="transferrable" id="transferrable" value="1" {{ $server_data->transferrable === 1 ? 'checked' : '' }}>
+                        <label class="form-check-label" for="transferrable">Transferrable</label>
+                    </div>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary mb-4">Update Server</button>
         </form>
