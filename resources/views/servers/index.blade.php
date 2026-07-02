@@ -48,6 +48,7 @@
                                     <th class="text-center">Net</th>
                                     <th>Location</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th>Price</th>
                                     <th class="text-center">Due</th>
                                     <th class="text-center">Since</th>
@@ -111,6 +112,7 @@
                                     <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($server->transferrable) ? '-' : (($server->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
@@ -150,7 +152,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 18 : 17 }}" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -175,6 +177,7 @@
                                     <th class="text-center">Net</th>
                                     <th>Location</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th>Price</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
@@ -239,6 +242,7 @@
                                     <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
                                     <td class="text-nowrap">{{ $server->location->name }}</td>
                                     <td class="text-nowrap">{{ $server->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($server->transferrable) ? '-' : (($server->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
@@ -278,7 +282,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 18 : 17 }}" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -541,7 +545,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, {{ (session('prometheus_enabled') && session('prometheus_url')) ? 16 : 15 }}]}
+                    {orderable: false, targets: [2, {{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}]}
                 ],
                 language: {
                     search: "",
