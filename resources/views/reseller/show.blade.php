@@ -65,6 +65,12 @@
                                     <span class="detail-value">{{ $reseller->owned_since !== null ? date_format(new DateTime($reseller->owned_since), 'jS M Y') : '-' }}</span>
                                 </div>
                             </div>
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Transferrable</span>
+                                    <span class="detail-value">{{ is_null($reseller->transferrable) ? '-' : (($reseller->transferrable === 1) ? 'Yes' : 'No') }}</span>
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <div class="detail-item">
                                     <span class="detail-label">Main Domain</span>

@@ -448,6 +448,12 @@
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
+                                    <span class="detail-label">Transferrable</span>
+                                    <span class="detail-value">{{ is_null($server_data->transferrable) ? '-' : (($server_data->transferrable === 1) ? 'Yes' : 'No') }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-item">
                                     <span class="detail-label">Owned Since</span>
                                     <span class="detail-value">{{ $server_data->owned_since !== null ? date_format(new DateTime($server_data->owned_since), 'jS M Y') : '-' }}</span>
                                 </div>

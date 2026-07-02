@@ -393,6 +393,7 @@ class ExportService
             'bandwidth' => $seedbox->bandwidth,
             'port_speed' => $seedbox->port_speed,
             'was_promo' => $seedbox->was_promo,
+            'transferrable' => $seedbox->transferrable,
             'active' => $seedbox->active,
             'owned_since' => $seedbox->owned_since,
         ];
@@ -441,6 +442,7 @@ class ExportService
             'bandwidth',
             'port_speed',
             'was_promo',
+            'transferrable',
             'active',
             'owned_since',
             'location_id',
@@ -480,6 +482,7 @@ class ExportService
             'email_limit' => $reseller->email_limit,
             'db_limit' => $reseller->db_limit,
             'was_promo' => $reseller->was_promo,
+            'transferrable' => $reseller->transferrable,
             'active' => $reseller->active,
             'owned_since' => $reseller->owned_since,
         ];
@@ -540,6 +543,7 @@ class ExportService
             'email_limit',
             'db_limit',
             'was_promo',
+            'transferrable',
             'active',
             'owned_since',
             'location_id',
@@ -579,6 +583,7 @@ class ExportService
             'email_limit' => $shared->email_limit,
             'db_limit' => $shared->db_limit,
             'was_promo' => $shared->was_promo,
+            'transferrable' => $shared->transferrable,
             'active' => $shared->active,
             'owned_since' => $shared->owned_since,
         ];
@@ -638,6 +643,7 @@ class ExportService
             'email_limit',
             'db_limit',
             'was_promo',
+            'transferrable',
             'active',
             'owned_since',
             'location_id',
@@ -671,6 +677,7 @@ class ExportService
             'ns1' => $domain->ns1,
             'ns2' => $domain->ns2,
             'ns3' => $domain->ns3,
+            'transferrable' => $domain->transferrable,
             'owned_since' => $domain->owned_since,
         ];
 
@@ -709,6 +716,7 @@ class ExportService
             'ns1',
             'ns2',
             'ns3',
+            'transferrable',
             'owned_since',
             'provider_id',
             'provider_name',
@@ -744,6 +752,7 @@ class ExportService
             'disk_as_gb' => $server->disk_as_gb,
             'bandwidth' => $server->bandwidth,
             'ssh' => $server->ssh,
+            'transferrable' => $server->transferrable,
             'active' => $server->active,
             'owned_since' => $server->owned_since,
         ];
@@ -885,6 +894,7 @@ class ExportService
             'disk_as_gb',
             'bandwidth',
             'ssh',
+            'transferrable',
             'active',
             'owned_since',
             'os_id',

@@ -220,6 +220,10 @@
                 <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ $reseller->active === 1 ? 'checked' : '' }}>
                 <label class="form-check-label" for="is_active">I still have this hosting</label>
             </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="transferrable" id="transferrable" value="1" {{ $reseller->transferrable === 1 ? 'checked' : '' }}>
+                <label class="form-check-label" for="transferrable">Transferrable</label>
+            </div>
             <button type="submit" class="btn btn-primary mb-4">Update Reseller Hosting</button>
         </form>
     </div>

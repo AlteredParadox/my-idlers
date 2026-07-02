@@ -686,6 +686,7 @@ class ApiController extends Controller
             'cpu' => 'required|integer',
             'bandwidth' => 'required|integer',
             'was_promo' => 'required|integer',
+            'transferrable' => 'integer',
             'active' => 'required|integer',
             'show_public' => 'required|integer',
             'ip1' => 'ip',
@@ -749,6 +750,7 @@ class ApiController extends Controller
             'bandwidth' => $request->bandwidth,
             'cpu' => $request->cpu,
             'was_promo' => $request->was_promo,
+            'transferrable' => $request->transferrable,
             'show_public' => (isset($request->show_public)) ? 1 : 0
         ]);
 
@@ -797,6 +799,7 @@ class ApiController extends Controller
             'cpu' => 'integer',
             'bandwidth' => 'integer',
             'was_promo' => 'integer',
+            'transferrable' => 'integer',
             'active' => 'integer',
             'show_public' => 'integer',
             'owned_since' => 'date',

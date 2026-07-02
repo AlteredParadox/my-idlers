@@ -17,7 +17,7 @@ class Domains extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'active', 'domain', 'extension', 'ns1', 'ns2', 'ns3', 'price', 'currency', 'payment_term', 'owned_since', 'provider_id', 'next_due_date'];
+    protected $fillable = ['id', 'active', 'domain', 'extension', 'ns1', 'ns2', 'ns3', 'price', 'currency', 'payment_term', 'owned_since', 'provider_id', 'next_due_date', 'transferrable'];
 
 
     public static function allDomains()

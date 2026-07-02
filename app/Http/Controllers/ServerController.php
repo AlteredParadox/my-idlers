@@ -119,6 +119,7 @@ class ServerController extends Controller
             'cpu' => $request->cpu,
             'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
             'show_public' => (isset($request->show_public)) ? 1 : 0
         ]);
 
@@ -217,6 +218,7 @@ class ServerController extends Controller
             'cpu' => $request->cpu,
             'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
             'active' => $is_active,
             'show_public' => (isset($request->show_public)) ? 1 : 0
         ]);

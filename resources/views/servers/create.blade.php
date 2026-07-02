@@ -279,6 +279,10 @@
                     Allow this server to be shown publicly (configure visible fields in settings)
                 </label>
             </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="transferrable" id="transferrable" value="1" {{ old('transferrable') ? 'checked' : '' }}>
+                <label class="form-check-label" for="transferrable">Transferrable</label>
+            </div>
             <button type="submit" class="btn btn-primary mb-4">Add Server</button>
         </form>
     </div>

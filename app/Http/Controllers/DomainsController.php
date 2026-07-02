@@ -63,7 +63,8 @@ class DomainsController extends Controller
             'ns2' => $request->ns2,
             'ns3' => $request->ns3,
             'provider_id' => $request->provider_id,
-            'owned_since' => $request->owned_since
+            'owned_since' => $request->owned_since,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0
         ]);
 
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain_id);
@@ -115,6 +116,7 @@ class DomainsController extends Controller
             'ns3' => $request->ns3,
             'provider_id' => $request->provider_id,
             'owned_since' => $request->owned_since,
+            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
             'active' => $is_active
         ]);
 
