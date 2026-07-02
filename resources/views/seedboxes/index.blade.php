@@ -20,6 +20,7 @@
                             <th>Type</th>
                             <th>Location</th>
                             <th>Provider</th>
+                            <th class="text-center">Transferrable</th>
                             <th class="text-center">Disk</th>
                             <th class="text-center">Bandwidth</th>
                             <th class="text-center">Port</th>
@@ -37,6 +38,7 @@
                             <td><span class="badge badge-type">{{ $row->seed_box_type }}</span></td>
                             <td class="text-nowrap">{{ $row->location->name }}</td>
                             <td class="text-nowrap">{{ $row->provider->name }}</td>
+                            <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                             <td class="text-center text-nowrap">
                                 @if($row->disk_as_gb >= 1000)
                                     {{ number_format($row->disk_as_gb / 1000, 1) }}<small class="text-muted">TB</small>
@@ -84,7 +86,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="11" class="text-center text-muted py-4">No seedboxes found</td>
+                            <td colspan="12" class="text-center text-muted py-4">No seedboxes found</td>
                         </tr>
                     @endif
                     </tbody>
@@ -108,7 +110,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [10]}
+                    {orderable: false, targets: [11]}
                 ],
                 language: {
                     search: "",

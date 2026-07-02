@@ -39,6 +39,7 @@
                                     <th>Type</th>
                                     <th>Location</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
                                     <th class="text-center">Link</th>
@@ -56,6 +57,7 @@
                                     <td><span class="badge badge-type">{{ $row->shared_type }}</span></td>
                                     <td class="text-nowrap">{{ $row->location->name }}</td>
                                     <td class="text-nowrap">{{ $row->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $row->link_speed ?? 0 }}">
@@ -93,7 +95,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">No active shared hosting found</td>
+                                    <td colspan="12" class="text-center text-muted py-4">No active shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -110,6 +112,7 @@
                                     <th>Type</th>
                                     <th>Location</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th class="text-center">Disk</th>
                                     <th class="text-center">Domains</th>
                                     <th class="text-center">Link</th>
@@ -128,6 +131,7 @@
                                     <td><span class="badge badge-type">{{ $row->shared_type }}</span></td>
                                     <td class="text-nowrap">{{ $row->location->name }}</td>
                                     <td class="text-nowrap">{{ $row->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $row->link_speed ?? 0 }}">
@@ -165,7 +169,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">No inactive shared hosting found</td>
+                                    <td colspan="12" class="text-center text-muted py-4">No inactive shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -191,7 +195,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [10]}
+                    {orderable: false, targets: [11]}
                 ],
                 language: {
                     search: "",

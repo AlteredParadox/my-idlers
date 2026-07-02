@@ -37,6 +37,7 @@
                                 <tr>
                                     <th>Domain</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th>Price</th>
                                     <th class="text-center">Due In</th>
                                     <th class="text-center">Since</th>
@@ -53,6 +54,7 @@
                                         </a>
                                     </td>
                                     <td class="text-nowrap">{{ $domain->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap">
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
@@ -79,7 +81,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No active domains found</td>
+                                    <td colspan="7" class="text-center text-muted py-4">No active domains found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -94,6 +96,7 @@
                                 <tr>
                                     <th>Domain</th>
                                     <th>Provider</th>
+                                    <th class="text-center">Transferrable</th>
                                     <th>Price</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
@@ -109,6 +112,7 @@
                                         {{ $domain->domain }}.{{ $domain->extension }}
                                     </td>
                                     <td class="text-nowrap">{{ $domain->provider->name }}</td>
+                                    <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap">
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
@@ -135,7 +139,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No inactive domains found</td>
+                                    <td colspan="7" class="text-center text-muted py-4">No inactive domains found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -161,7 +165,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [5]}
+                    {orderable: false, targets: [6]}
                 ],
                 language: {
                     search: "",
