@@ -116,7 +116,7 @@ class DomainsTest extends TestCase
         $response->assertSessionHasErrors('extension');
     }
 
-    public function test_domain_next_due_date_is_required()
+    public function test_domain_next_due_date_is_optional()
     {
         $response = $this->actingAs($this->user)->post(route('domains.store'), [
             'domain' => 'example',
@@ -128,7 +128,8 @@ class DomainsTest extends TestCase
             'next_due_date' => ''
         ]);
 
-        $response->assertSessionHasErrors('next_due_date');
+        $response->assertSessionDoesntHaveErrors('next_due_date');
+        $this->assertDatabaseHas('domains', ['domain' => 'example']);
     }
 
     public function test_authenticated_user_can_view_domain_details()

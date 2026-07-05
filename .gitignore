@@ -61,3 +61,5 @@ fabric.properties
 # *.ipr
 storage/clockwork/
 !public/
+.phpunit.result.cache
+coverage.xml
