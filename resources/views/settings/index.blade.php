@@ -226,7 +226,7 @@
                         <div class="col-12 col-md-6 col-lg-6">
                             <label class="form-label">Prometheus URL</label>
                             <input type="url" class="form-control" name="prometheus_url"
-                                   value="{{ $setting->prometheus_url }}" placeholder="http://10.11.0.8:9090">
+                                   value="{{ $setting->prometheus_url }}" placeholder="http://prometheus:9090">
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">Check Interval (seconds)</label>

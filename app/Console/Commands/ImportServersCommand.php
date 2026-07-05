@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 class ImportServersCommand extends Command
 {
-    protected $signature = 'import:servers {file}';
+    protected $signature = 'import:servers {file} {--domain-suffix= : Domain appended to each hostname, e.g. example.com}';
     protected $description = 'Import servers from a CSV file';
 
     private array $locationMap = [
@@ -80,7 +80,10 @@ class ImportServersCommand extends Command
         $location = Locations::firstOrCreate(['name' => $locName]);
 
         // Hostname
-        $hostname = trim($data['HOSTNAME']) . '.example.com';
+        $hostname = trim($data['HOSTNAME']);
+        if ($suffix = $this->option('domain-suffix')) {
+            $hostname .= '.' . ltrim($suffix, '.');
+        }
 
         // RAM
         [$ram, $ramType, $ramAsMb] = $this->parseRam(trim($data['RAM']));
