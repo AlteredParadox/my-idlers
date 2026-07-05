@@ -23,6 +23,49 @@ Proudly sponsored by [PikaPods](https://www.pikapods.com/) - Deploy your own My 
 
 [![PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=my-idlers)
 
+## Changes from upstream (this fork)
+
+This is a modified fork of [cp6/my-idlers](https://github.com/cp6/my-idlers) with the following additions:
+
+### Prometheus live monitoring (optional)
+
+All Prometheus features are gated behind a `prometheus_enabled` toggle and a `prometheus_url` setting on the
+settings page — with it disabled the app behaves like upstream.
+
+* Live server status pulled from Prometheus (`node_uname_info`), matching instances to servers by resolving
+  instance IPs to hostnames; servers not found in Prometheus are marked accordingly
+* Live RAM usage, disk usage and network link utilization percentages in the servers list
+* Live uptime/downtime column (downtime shown as negative values), looking back 30 days for offline nodes
+* Prometheus monitoring section on the server detail view
+* When Prometheus is enabled, hostname links to the server detail page and the status badge is display-only
+
+### Pricing & service lifecycle
+
+* One-time billing option and unlimited-bandwidth support
+* One-time priced services excluded from the "due soon" table; inactive services no longer show as due soon
+* Active/Inactive state handled consistently across all service types (servers, domains, shared, etc.),
+  with an expires column and strikethrough styling for inactive services
+* Homepage totals corrected to respect the above
+
+### Servers
+
+* Multiple disk support per server
+* New fields: network type, link speed, CPU model, and a Transferrable flag (shown as a column in list views)
+* Bandwidth shown in list views, with MB/GB/TB conversions for RAM/disk/bandwidth columns
+* Status check uses ping instead of a port-80 probe
+
+### UI
+
+* Condensed, full-width layout with reduced padding
+* Theme support and dark-mode consistency fixes across reloads/session expiry
+* Sorting fixes for all columns, including inactive servers; configurable default per-page setting
+* Show/Hide Stats toggle, persisted (along with the inactive toggle) via localStorage
+* Font caching/preload fixes
+
+### Tooling
+
+* `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
 ## 4.1.0 changes (February 2026):
 
 * Added data export feature for all service types (servers, domains, shared, reseller, seedboxes, DNS, misc)
