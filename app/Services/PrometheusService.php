@@ -238,6 +238,11 @@ class PrometheusService
             }
         }
 
+        return $this->instanceFromScrapeTargets($hostname);
+    }
+
+    private function instanceFromScrapeTargets(string $hostname): ?string
+    {
         // Try matching by instance directly (hostname might be an IP or the
         // scrape target may be an FQDN while the tracker stores a short name)
         $up_results = $this->client->query('up{job="node"}');
