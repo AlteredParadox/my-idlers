@@ -217,6 +217,17 @@ class YabsIngestTest extends TestCase
         $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
     }
 
+    public function test_ingest_invalidates_the_public_server_cache()
+    {
+        $server = $this->makeServer();
+        \Illuminate\Support\Facades\Cache::put('public_server_data', 'stale');
+
+        app(\App\Services\YabsIngestService::class)->ingest($this->yabsPayload(), $server->id);
+
+        // The public servers page renders YABS data; adding a YABS must clear it
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('public_server_data'));
+    }
+
     public function test_deleting_a_yabs_invalidates_the_server_cache()
     {
         $server = $this->makeServer();

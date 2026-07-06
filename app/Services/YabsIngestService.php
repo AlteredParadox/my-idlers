@@ -92,6 +92,9 @@ class YabsIngestService
             Cache::forget("all_yabs");
             Cache::forget("server.$server_id");
             Cache::forget("all_servers");
+            // The public servers page renders YABS data too; the delete path
+            // clears this via serverRelatedCacheForget, the add path must match.
+            Cache::forget("public_server_data");
         } catch (Exception $e) {//Not a valid YABS payload
             return false;
         }
