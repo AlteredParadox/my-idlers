@@ -52,11 +52,18 @@ class GptRound8RegressionTest extends TestCase
         // Zero CPUs (VCPU column empty -> intval 0).
         $this->importCsv('C1,L1,badcpu01.invalid,4 GB,,80 GB,,10TB,1M,$5.00,USD,12/01/26,');
 
+        // GPT round 13: text-field invariants mirror the web rules.
+        $this->importCsv(',L1,badtxt01.invalid,4 GB,2,80 GB,,10TB,1M,$5.00,USD,12/01/26,');      // empty COMPANY
+        $this->importCsv('C1,X,badtxt02.invalid,4 GB,2,80 GB,,10TB,1M,$5.00,USD,12/01/26,');     // 1-char LOCATION
+        $this->importCsv('C1,L1,ab,4 GB,2,80 GB,,10TB,1M,$5.00,USD,12/01/26,');                  // hostname < 5
+
         $this->assertSame(0, Server::count());
         $this->assertSame(0, Pricing::count());
         // GPT round 12: rejected rows must not strand provider/location rows.
         $this->assertSame(0, \App\Models\Providers::count());
         $this->assertSame(0, \App\Models\Locations::count());
+        // GPT round 13: nor the lazily-created default OS row.
+        $this->assertSame(0, \App\Models\OS::count());
 
         // A valid row still imports (empty currency defaults to USD).
         $this->importCsv('C1,L1,goodrow1.invalid,4 GB,2,80 GB,,10TB,1M,$5.00,,12/01/26,');
