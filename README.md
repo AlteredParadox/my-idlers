@@ -268,13 +268,13 @@ Run with a single click on [PikaPods.com](https://www.pikapods.com/)
 
 yabs.sh now has JSON formatted response and can POST the output directly from calling the script.
 
-With My idlers you can use your API key and the server id to directly POST the benchmark result
+With My idlers you can use the signed YABS URL shown on a server details page to directly POST the benchmark result.
 
-`https://yourdomain.com/api/yabs/SERVERID/USERAPIKEYISHERE`
+The signed URL is scoped to one server and expires.
 
 Example yabs.sh call to POST the result:
 
-`curl -sL yabs.sh | bash -s -- -s "https://yourdomain.com/api/yabs/SERVERID/USERAPIKEYISHERE"`
+`curl -sL yabs.sh | bash -s -- -s "https://yourdomain.com/api/yabs/SERVERID?expires=...&signature=..."`
 
 ## Credits
 
@@ -282,7 +282,7 @@ IP who is data provided by [ipwhois.io](https://ipwhois.io/documentation)
 
 ## API endpoints
 
-For GET requests the header must have `Accept: application/json` and your API token (found at `/account`)
+For GET requests the header must have `Accept: application/json` and your API token. Tokens are generated from `/account` and are shown once after rotation.
 
 `Authorization : Bearer API_TOKEN_HERE`
 

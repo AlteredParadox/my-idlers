@@ -36,14 +36,23 @@
                     <h5 class="card-section-title mb-0">API Access</h5>
                 </div>
                 <div class="card-body">
-                    <label class="form-label">API Token</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control font-monospace" value="{{ Auth::user()->api_token }}" readonly>
-                        <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ Auth::user()->api_token }}')">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                    @if(session('new_api_token'))
+                        <label class="form-label">New API Token</label>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control font-monospace" value="{{ session('new_api_token') }}" readonly>
+                            <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(@json(session('new_api_token')))">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    @endif
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" name="rotate_api_token" id="rotate_api_token">
+                        <label class="form-check-label" for="rotate_api_token">
+                            Generate a new API token
+                        </label>
                     </div>
-                    <small class="text-muted">Use this token to authenticate API requests</small>
+                    <small class="text-muted">Stored API tokens are hashed and can only be viewed immediately after rotation.</small>
                 </div>
             </div>
 

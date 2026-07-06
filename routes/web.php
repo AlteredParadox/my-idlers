@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\ApiController;
 use App\Http\Controllers\DNSController;
 use App\Http\Controllers\DomainsController;
 use App\Http\Controllers\ExportController;
@@ -68,6 +69,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers-compare/{server1}/{server2}', [ServerController::class, 'compareServers'])->name('servers.compare');
 
     Route::get('ip/{IP}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
+    Route::get('tools/online/{hostname}', [ApiController::class, 'checkHostIsUp'])
+        ->where('hostname', '[a-zA-Z0-9._-]+')
+        ->middleware(['throttle:10,1'])
+        ->name('tools.online');
+    Route::get('tools/dns/{domainName}/{type}', [ApiController::class, 'getIpForDomain'])
+        ->where(['domainName' => '[a-zA-Z0-9._-]+', 'type' => 'A|AAAA'])
+        ->middleware(['throttle:20,1'])
+        ->name('tools.dns');
+    Route::get('tools/prometheus/status', [ApiController::class, 'prometheusStatus'])
+        ->middleware(['throttle:30,1'])
+        ->name('tools.prometheus.status');
+    Route::get('tools/prometheus/detail/{hostname}/{period}/{back}', [ApiController::class, 'prometheusDetail'])
+        ->where(['hostname' => '[a-zA-Z0-9._-]+', 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+'])
+        ->middleware(['throttle:30,1'])
+        ->name('tools.prometheus.detail');
 
     // Export routes
     Route::get('/export/servers', [ExportController::class, 'servers'])->name('export.servers');

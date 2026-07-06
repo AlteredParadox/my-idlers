@@ -6,10 +6,6 @@ RUN apk add --no-cache linux-headers
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql sockets bcmath pcntl
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- \
-     --install-dir=/usr/local/bin --filename=composer
-
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
