@@ -233,7 +233,9 @@ class PrometheusService
         // Try matching by nodename via node_uname_info
         foreach ($this->client->query('node_uname_info{job="node"}') as $r) {
             $nodename = $r['metric']['nodename'] ?? '';
-            if ($nodename === $hostname || str_starts_with($hostname, $nodename . '.') || str_starts_with($nodename, explode('.', $hostname)[0])) {
+            // Exact short-name match only: a prefix test would let web10
+            // answer for web1 depending on Prometheus response order.
+            if ($nodename === $hostname || str_starts_with($hostname, $nodename . '.') || $nodename === explode('.', $hostname)[0]) {
                 return $r['metric']['instance'] ?? null;
             }
         }

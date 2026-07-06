@@ -19,7 +19,6 @@ class Home extends Model
         Cache::forget('services_count');//Main page services_count cache
         Cache::forget('due_soon');//Main page due_soon cache
         Cache::forget('recently_added');//Main page recently_added cache
-        Cache::forget('all_pricing');//All the pricing
         Cache::forget('all_active_pricing');
         Cache::forget('services_count_all');
         Cache::forget('pricing_breakdown');
@@ -52,6 +51,10 @@ class Home extends Model
                 ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
                 ->where('p.active', 1)
                 ->where('p.term', '!=', 7)
+                // NULLs sort first on both drivers and would crowd real
+                // renewals out of the limited window (and doDueSoon only
+                // advances dates for rows inside this cached set).
+                ->whereNotNull('p.next_due_date')
                 ->where(function ($query) {
                     $query->whereIn('p.service_id', DB::table('servers')->where('active', 1)->select('id'))
                         ->orWhereIn('p.service_id', DB::table('shared_hosting')->where('active', 1)->select('id'))
@@ -131,7 +134,9 @@ class Home extends Model
                     $count++;
                     continue;
                 }
-                $new_due_date = Carbon::createFromFormat('Y-m-d', $service->next_due_date)->addMonths($months)->format('Y-m-d');
+                // NoOverflow: plain addMonths turns Jan 31 +1mo into Mar 3,
+                // silently skipping a renewal cycle and compounding forever.
+                $new_due_date = Carbon::createFromFormat('Y-m-d', $service->next_due_date)->addMonthsNoOverflow($months)->format('Y-m-d');
                 DB::table('pricings')//Update the DB
                 ->where('service_id', $service->service_id)
                     ->update(['next_due_date' => $new_due_date]);

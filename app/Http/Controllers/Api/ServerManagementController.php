@@ -123,9 +123,11 @@ class ServerManagementController extends Controller
     }
 
 
-    public function destroyServer(Request $request)
+    public function destroyServer(Request $request, string $id)
     {
-        $items = Server::find($request->id);
+        // Route parameter, NOT $request->id: request input shadows route
+        // params, so a body {"id": "..."} would delete a different server.
+        $items = Server::find($id);
 
         if (is_null($items)) {
             return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
@@ -134,15 +136,15 @@ class ServerManagementController extends Controller
         $result = $items->delete();
 
         $p = new Pricing();
-        $p->deletePricing($request->id);
+        $p->deletePricing($id);
 
-        Labels::deleteLabelsAssignedTo($request->id);
-        IPs::deleteIPsAssignedTo($request->id);
-        Disk::deleteDisksForServer($request->id);
-        Note::deleteForService($request->id);
-        Yabs::deleteForServer($request->id);
+        Labels::deleteLabelsAssignedTo($id);
+        IPs::deleteIPsAssignedTo($id);
+        Disk::deleteDisksForServer($id);
+        Note::deleteForService($id);
+        Yabs::deleteForServer($id);
         Server::serverRelatedCacheForget();
-        Server::serverSpecificCacheForget($request->id);
+        Server::serverSpecificCacheForget($id);
 
         if ($result) {
             return response()->json(array('result' => 'success'), 200);
@@ -260,10 +262,9 @@ class ServerManagementController extends Controller
         Pricing::where('id', $id)->update($updateData);
 
         // This route takes any pricing row, not just a server's — fan out to
-        // the owning type's caches plus the home-page keys embedding prices.
-        Cache::forget("all_pricing");
-        Cache::forget('due_soon');
-        Cache::forget('pricing_breakdown');
+        // the owning type's caches plus every home-page key embedding prices
+        // (due_soon, recently_added, all_active_pricing, pricing_breakdown).
+        Home::homePageCacheForget();
         Home::forgetServiceCacheByType((int) $row->service_type, $service_id);
 
         return response()->json(array('result' => 'success', 'server_id' => $id), 200);
