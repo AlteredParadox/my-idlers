@@ -89,6 +89,8 @@ class SettingsController extends Controller
         //Clear because they are affected by settings change (sort_on)
         Cache::forget('all_servers');
         Cache::forget('all_active_servers');
+        Cache::forget('non_active_servers');
+        Cache::forget('public_server_data');
         Cache::forget('all_shared');
         Cache::forget('all_seedboxes');
         Cache::forget('all_reseller');

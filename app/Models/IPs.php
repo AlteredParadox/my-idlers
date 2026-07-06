@@ -68,6 +68,12 @@ class IPs extends Model
 
             $data = $response->json();
 
+            // ipwhois.app returns HTTP 200 with success:false when rate-limited;
+            // bail so we don't overwrite good whois data with nulls.
+            if (!($data['success'] ?? false)) {
+                return false;
+            }
+
             $ip->update([
                 'continent' => $data['continent'],
                 'country' => $data['country'],
@@ -80,9 +86,10 @@ class IPs extends Model
                 'fetched_at' => now()
             ]);
 
+            return true;
         }
 
-        return $response->ok();
+        return false;
     }
 
 }

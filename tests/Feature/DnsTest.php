@@ -60,6 +60,26 @@ class DnsTest extends TestCase
         ]);
     }
 
+    public function test_dns_record_persists_shared_and_reseller_associations()
+    {
+        // shared_id/reseller_id were missing from $fillable, so mass assignment
+        // silently dropped them and the association never saved.
+        $this->actingAs($this->user)->post(route('dns.store'), [
+            'hostname' => 'assoc.example.com',
+            'address' => '10.0.0.5',
+            'dns_type' => 'A',
+            'server_id' => 'null',
+            'shared_id' => 'shared01',
+            'reseller_id' => 'null',
+            'domain_id' => 'null',
+        ])->assertRedirect(route('dns.index'));
+
+        $this->assertDatabaseHas('d_n_s', [
+            'hostname' => 'assoc.example.com',
+            'shared_id' => 'shared01',
+        ]);
+    }
+
     public function test_dns_hostname_is_required()
     {
         $response = $this->actingAs($this->user)->post(route('dns.store'), [

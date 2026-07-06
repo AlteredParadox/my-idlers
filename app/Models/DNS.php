@@ -15,7 +15,7 @@ class DNS extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'service_id', 'hostname', 'dns_type', 'address', 'server_id', 'domain_id'];
+    protected $fillable = ['id', 'hostname', 'dns_type', 'address', 'server_id', 'domain_id', 'shared_id', 'reseller_id'];
 
     public static $dnsTypes = ['A', 'AAAA', 'DNAME', 'MX', 'NS', 'SOA', 'TXT', 'URI'];
 
