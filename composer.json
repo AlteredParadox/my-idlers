@@ -12,12 +12,12 @@
     "require": {
         "php": "^8.4",
         "guzzlehttp/guzzle": "^7.9.2",
-        "laravel/framework": "^12.0",
-        "laravel/tinker": "^v2.10.0",
+        "laravel/framework": "^13.0",
+        "laravel/tinker": "^3.0",
         "laravel/ui": "^v4.6.0",
-        "yajra/laravel-datatables-oracle": "~v12.7",
+        "yajra/laravel-datatables-oracle": "~v13.1",
         "ext-json": "*",
-        "illuminate/view": "^12.0"
+        "illuminate/view": "^13.0"
     },
     "require-dev": {
         "fakerphp/faker": "^v1.24.1",
