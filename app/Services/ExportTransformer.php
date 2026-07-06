@@ -62,6 +62,7 @@ class ExportTransformer
         $data = [
             'id' => $misc->id,
             'name' => $misc->name,
+            'active' => $misc->active,
             'owned_since' => $misc->owned_since,
         ];
 
@@ -90,6 +91,7 @@ class ExportTransformer
         return [
             'id',
             'name',
+            'active',
             'owned_since',
             'pricing_price',
             'pricing_currency',
@@ -412,6 +414,7 @@ class ExportTransformer
             'ns2' => $domain->ns2,
             'ns3' => $domain->ns3,
             'transferrable' => $domain->transferrable,
+            'active' => $domain->active,
             'owned_since' => $domain->owned_since,
         ];
 
@@ -452,6 +455,7 @@ class ExportTransformer
             'ns2',
             'ns3',
             'transferrable',
+            'active',
             'owned_since',
             'provider_id',
             'provider_name',

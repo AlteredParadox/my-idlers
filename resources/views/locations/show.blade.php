@@ -26,6 +26,7 @@
                                 @if(isset($item->hostname)) Server
                                 @elseif(isset($item->main_domain_shared)) Shared
                                 @elseif(isset($item->main_domain_reseller)) Reseller
+                                @elseif(isset($item->seedbox_title)) Seed box
                                 @endif
                             </span>
                             <span class="detail-value">
@@ -35,6 +36,8 @@
                                     <a href="{{ route('shared.show', $item->id) }}">{{ $item->main_domain_shared }}</a>
                                 @elseif(isset($item->main_domain_reseller))
                                     <a href="{{ route('reseller.show', $item->id) }}">{{ $item->main_domain_reseller }}</a>
+                                @elseif(isset($item->seedbox_title))
+                                    <a href="{{ route('seedboxes.show', $item->id) }}">{{ $item->seedbox_title }}</a>
                                 @endif
                             </span>
                         </div>

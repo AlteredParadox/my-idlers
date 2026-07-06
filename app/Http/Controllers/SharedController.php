@@ -48,6 +48,7 @@ class SharedController extends Controller
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
+            'dedicated_ip' => 'sometimes|nullable|ip',
             'next_due_date' => 'sometimes|nullable|date',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
@@ -137,6 +138,7 @@ class SharedController extends Controller
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
+            'dedicated_ip' => 'sometimes|nullable|ip',
             'next_due_date' => 'sometimes|nullable|date',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
@@ -177,7 +179,6 @@ class SharedController extends Controller
 
         Labels::deleteLabelsAssignedTo($shared->id);
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $shared->id);
-        Cache::forget("labels_for_service.{$shared->id}");
 
         IPs::syncForService($shared->id, isset($request->dedicated_ip) ? [$request->dedicated_ip] : []);
 
