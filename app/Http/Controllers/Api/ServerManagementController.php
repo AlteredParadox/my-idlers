@@ -59,8 +59,10 @@ class ServerManagementController extends Controller
             // unique index as a QueryException 500 instead of a 400
             'ip2' => 'ip|different:ip1',
             'owned_since' => 'required|date_format:Y-m-d',
-            'ram_type' => 'required|string|size:2',
-            'disk_type' => 'required|string|size:2',
+            // in: enums (not size:2) — the case-sensitive === derivations turn
+            // e.g. 'gb' into a silent 1024x disk_as_gb corruption, no error
+            'ram_type' => 'required|in:MB,GB',
+            'disk_type' => 'required|in:GB,TB',
             'currency' => 'required|string|size:3',
             'price' => 'required|numeric',
             'payment_term' => 'required|integer',
@@ -179,8 +181,8 @@ class ServerManagementController extends Controller
             'active' => 'integer',
             'show_public' => 'integer',
             'owned_since' => 'date_format:Y-m-d',
-            'ram_type' => 'string|size:2',
-            'disk_type' => 'string|size:2',
+            'ram_type' => 'in:MB,GB',
+            'disk_type' => 'in:GB,TB',
             'currency' => 'string|size:3',
             'price' => 'numeric',
             'payment_term' => 'integer',
