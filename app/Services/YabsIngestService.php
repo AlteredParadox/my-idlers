@@ -32,12 +32,14 @@ class YabsIngestService
     {
         $data = explode(" ", $string);
         if ($data[0] === 'busy') {
-            return "MBps";
+            return "Mbps";
         }
+        // Bit-rates, not byte-rates: iperf reports Gbits/sec and the old
+        // GBps label was an 8x mislabel on every network row
         return match ($data[1]) {
-            "Gbits/sec" => "GBps",
-            "Mbits/sec" => "MBps",
-            default => "KBps",//Kbps
+            "Gbits/sec" => "Gbps",
+            "Mbits/sec" => "Mbps",
+            default => "Kbps",
         };
     }
 
@@ -83,8 +85,11 @@ class YabsIngestService
 
             DB::transaction(function () use ($yabs_id, $server_id, $data) {
                 $this->insertYabsRow($yabs_id, $server_id, $data);
-                $this->insertDiskSpeeds($yabs_id, $server_id, $data['fio']);
-                $this->insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'], (bool)$data['net']['ipv4']);
+                // Modern yabs.sh omits these keys when a test auto-skips (fio
+                // needs 2GB free; iperf binary download can fail) — the run is
+                // still complete, valid output and must ingest.
+                $this->insertDiskSpeeds($yabs_id, $server_id, $data['fio'] ?? []);
+                $this->insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'] ?? [], (bool)($data['net']['ipv4'] ?? 0));
                 $this->updateServerAfterRun($server_id, $data['cpu']['model']);
             });
 
@@ -124,7 +129,7 @@ class YabsIngestService
             'vm' => $is_vm,
             'distro' => $data['os']['distro'],
             'kernel' => $data['os']['kernel'],
-            'uptime' => $data['os']['uptime'],
+            'uptime' => $this->formatUptime($data['os']['uptime']),
             'cpu_model' => $data['cpu']['model'],
             'cpu_cores' => $data['cpu']['cores'],
             'cpu_freq' => (float)$data['cpu']['freq'],
@@ -138,7 +143,7 @@ class YabsIngestService
             'disk_gb' => ($data['mem']['disk'] / 1024 / 1024),
             'disk_type' => $disk_type,
             'output_date' => $this->formatRunTime($data['time']),
-        ] + $this->geekbenchScores($data['geekbench']));
+        ] + $this->geekbenchScores($data['geekbench'] ?? []));
     }
 
 
@@ -186,8 +191,25 @@ class YabsIngestService
     }
 
 
+    /** Modern yabs.sh emits uptime as raw seconds from /proc/uptime */
+    private function formatUptime($uptime): string
+    {
+        if (!is_numeric($uptime)) {
+            return (string) $uptime;
+        }
+        $seconds = (int) $uptime;
+        $days = intdiv($seconds, 86400);
+        $hours = intdiv($seconds % 86400, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+
+        return trim(($days > 0 ? "$days days, " : '') . "$hours hours, $minutes minutes", ', ');
+    }
+
     private function insertDiskSpeeds(string $yabs_id, string $server_id, $fio): void
     {
+        if (empty($fio)) {
+            return;//disk_speed columns are NOT NULL; no row when fio was skipped
+        }
         $speeds = [];
         foreach ($fio as $ds) {
             $speeds[$ds['bs']] = $ds['speed_rw'];

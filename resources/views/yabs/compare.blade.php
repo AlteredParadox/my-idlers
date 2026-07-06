@@ -71,47 +71,75 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
-                                <td class="text-center">{{ $yabs1_data->gb5_single ?? '—' }}</td>
+                                <td class="text-center">{{ $yabs1_data->gb5_single ?? ($yabs1_data->gb6_single !== null ? $yabs1_data->gb6_single . ' (v6)' : '—') }}</td>
                                 @if($yabs1_data->gb5_single !== null && $yabs2_data->gb5_single !== null)
                                     {!! \App\Process::tableRowCompare($yabs1_data->gb5_single, $yabs2_data->gb5_single, '') !!}
+                                @elseif($yabs1_data->gb6_single !== null && $yabs2_data->gb6_single !== null)
+                                    {!! \App\Process::tableRowCompare($yabs1_data->gb6_single, $yabs2_data->gb6_single, '') !!}
                                 @else
                                     <td class="text-center equal-td">—</td>
                                 @endif
-                                <td class="text-center">{{ $yabs2_data->gb5_single ?? '—' }}</td>
+                                <td class="text-center">{{ $yabs2_data->gb5_single ?? ($yabs2_data->gb6_single !== null ? $yabs2_data->gb6_single . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
-                                <td class="text-center">{{ $yabs1_data->gb5_multi ?? '—' }}</td>
+                                <td class="text-center">{{ $yabs1_data->gb5_multi ?? ($yabs1_data->gb6_multi !== null ? $yabs1_data->gb6_multi . ' (v6)' : '—') }}</td>
                                 @if($yabs1_data->gb5_multi !== null && $yabs2_data->gb5_multi !== null)
                                     {!! \App\Process::tableRowCompare($yabs1_data->gb5_multi, $yabs2_data->gb5_multi, '') !!}
+                                @elseif($yabs1_data->gb6_multi !== null && $yabs2_data->gb6_multi !== null)
+                                    {!! \App\Process::tableRowCompare($yabs1_data->gb6_multi, $yabs2_data->gb6_multi, '') !!}
                                 @else
                                     <td class="text-center equal-td">—</td>
                                 @endif
-                                <td class="text-center">{{ $yabs2_data->gb5_multi ?? '—' }}</td>
+                                <td class="text-center">{{ $yabs2_data->gb5_multi ?? ($yabs2_data->gb6_multi !== null ? $yabs2_data->gb6_multi . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
-                                <td class="text-center">{{ $yabs1_data->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_4k_as_mbps, $yabs2_data->disk_speed->d_4k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $yabs2_data->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($yabs1_data->disk_speed !== null && $yabs2_data->disk_speed !== null)
+                                    <td class="text-center">{{ $yabs1_data->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_4k_as_mbps, $yabs2_data->disk_speed->d_4k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $yabs2_data->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">64K Disk Speed</td>
-                                <td class="text-center">{{ $yabs1_data->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_64k_as_mbps, $yabs2_data->disk_speed->d_64k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $yabs2_data->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($yabs1_data->disk_speed !== null && $yabs2_data->disk_speed !== null)
+                                    <td class="text-center">{{ $yabs1_data->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_64k_as_mbps, $yabs2_data->disk_speed->d_64k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $yabs2_data->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">512K Disk Speed</td>
-                                <td class="text-center">{{ $yabs1_data->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_512k_as_mbps, $yabs2_data->disk_speed->d_512k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $yabs2_data->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($yabs1_data->disk_speed !== null && $yabs2_data->disk_speed !== null)
+                                    <td class="text-center">{{ $yabs1_data->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_512k_as_mbps, $yabs2_data->disk_speed->d_512k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $yabs2_data->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">1M Disk Speed</td>
-                                <td class="text-center">{{ $yabs1_data->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_1m_as_mbps, $yabs2_data->disk_speed->d_1m_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $yabs2_data->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($yabs1_data->disk_speed !== null && $yabs2_data->disk_speed !== null)
+                                    <td class="text-center">{{ $yabs1_data->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($yabs1_data->disk_speed->d_1m_as_mbps, $yabs2_data->disk_speed->d_1m_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $yabs2_data->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             @for($i = 0; $i < 6; $i++)
                                 @if(isset($yabs1_data->network_speed[$i]) && isset($yabs2_data->network_speed[$i]) && $yabs1_data->network_speed[$i]->location === $yabs2_data->network_speed[$i]->location)

@@ -579,25 +579,25 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">4K</span>
-                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_4k }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_4k_type }}</span></span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_4k ?? '—' }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_4k_type ?? '' }}</span></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">64K</span>
-                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_64k }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_64k_type }}</span></span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_64k ?? '—' }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_64k_type ?? '' }}</span></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">512K</span>
-                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_512k }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_512k_type }}</span></span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_512k ?? '—' }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_512k_type ?? '' }}</span></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">1M</span>
-                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_1m }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_1m_type }}</span></span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->disk_speed->d_1m ?? '—' }} <span class="text-muted">{{ $server_data->yabs[0]->disk_speed->d_1m_type ?? '' }}</span></span>
                                 </div>
                             </div>
                         </div>

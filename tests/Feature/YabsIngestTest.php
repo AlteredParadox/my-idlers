@@ -117,7 +117,7 @@ class YabsIngestTest extends TestCase
         $this->assertDatabaseHas('disk_speed', ['server_id' => $server->id]);
         $this->assertDatabaseHas('network_speed', [
             'server_id' => $server->id,
-            'send_type' => 'GBps',
+            'send_type' => 'Gbps',
         ]);
     }
 

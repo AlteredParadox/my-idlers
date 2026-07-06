@@ -345,9 +345,10 @@ class ServerManagementController extends Controller
             'os' => ['required', 'array'],
             'cpu' => ['required', 'array'],
             'mem' => ['required', 'array'],
-            'geekbench' => ['required', 'array'],
-            'fio' => ['required', 'array'],
-            'iperf' => ['required', 'array'],
+            // sometimes: yabs.sh omits these keys when a test auto-skips
+            'geekbench' => ['sometimes', 'array'],
+            'fio' => ['sometimes', 'array'],
+            'iperf' => ['sometimes', 'array'],
         ]);
 
         $insert = $ingest->ingest($request->all(), $server->id);
