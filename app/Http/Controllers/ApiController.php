@@ -18,7 +18,6 @@ use App\Models\Shared;
 use App\Models\Yabs;
 use App\Services\ExportService;
 use App\Services\PrometheusService;
-use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
