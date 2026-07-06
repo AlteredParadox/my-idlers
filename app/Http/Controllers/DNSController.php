@@ -23,11 +23,11 @@ class DNSController extends Controller
 
     public function create()
     {
-        $Servers = Server::all();
-        $Domains = Domains::all();
-        $Shareds = Shared::all();
-        $Resellers = Reseller::all();
-        return view('dns.create', compact(['Servers', 'Domains', 'Shareds', 'Resellers']));
+        $servers = Server::all();
+        $domains = Domains::all();
+        $shareds = Shared::all();
+        $resellers = Reseller::all();
+        return view('dns.create', compact(['servers', 'domains', 'shareds', 'resellers']));
     }
 
     public function store(Request $request)
@@ -77,17 +77,17 @@ class DNSController extends Controller
 
     public function edit(DNS $dn)
     {
-        $Servers = Server::all();
-        $Domains = Domains::all();
-        $Shareds = Shared::all();
-        $Resellers = Reseller::all();
+        $servers = Server::all();
+        $domains = Domains::all();
+        $shareds = Shared::all();
+        $resellers = Reseller::all();
         $dn = DNS::findOrFail($dn->id);
         $labels = DB::table('labels_assigned as l')
             ->join('labels', 'l.label_id', 'labels.id')
             ->where('l.service_id', $dn->id)
             ->get(['labels.id']);
 
-        return view('dns.edit', compact(['dn', 'labels', 'Servers', 'Domains', 'Shareds', 'Resellers']));
+        return view('dns.edit', compact(['dn', 'labels', 'servers', 'domains', 'shareds', 'resellers']));
     }
 
     public function update(Request $request, DNS $dn): \Illuminate\Http\RedirectResponse

@@ -1,8 +1,8 @@
 require('bootstrap')
 require('datatables')
-window.Vue = require('vue/dist/vue');
-window.axios = require('axios');
+globalThis.Vue = require('vue/dist/vue');
+globalThis.axios = require('axios');
 import $ from 'jquery';
-window.jQuery = $;
-window.$ = $;
+globalThis.jQuery = $;
+globalThis.$ = $;
 require('datatables.net-bs5');

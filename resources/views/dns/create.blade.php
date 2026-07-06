@@ -106,7 +106,7 @@
                             <label class="form-label">Server</label>
                             <select class="form-select" name="server_id">
                                 <option value="null"></option>
-                                @foreach ($Servers as $server)
+                                @foreach ($servers as $server)
                                     <option value="{{ $server['id'] }}">{{ $server['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -115,7 +115,7 @@
                             <label class="form-label">Shared</label>
                             <select class="form-select" name="shared_id">
                                 <option value="null"></option>
-                                @foreach ($Shareds as $shared)
+                                @foreach ($shareds as $shared)
                                     <option value="{{ $shared['id'] }}">{{ $shared['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -124,7 +124,7 @@
                             <label class="form-label">Reseller</label>
                             <select class="form-select" name="reseller_id">
                                 <option value="null"></option>
-                                @foreach ($Resellers as $reseller)
+                                @foreach ($resellers as $reseller)
                                     <option value="{{ $reseller['id'] }}">{{ $reseller['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -133,7 +133,7 @@
                             <label class="form-label">Domain</label>
                             <select class="form-select" name="domain_id">
                                 <option value="null"></option>
-                                @foreach ($Domains as $domain)
+                                @foreach ($domains as $domain)
                                     <option value="{{ $domain['id'] }}">{{ $domain['domain'] }}.{{ $domain['extension'] }}</option>
                                 @endforeach
                             </select>

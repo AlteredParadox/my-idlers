@@ -71,15 +71,15 @@ class Pricing extends Model
         if ($term === 1) {
             return $cost;
         } elseif ($term === 2) {
-            return ($cost / 3);
+            return $cost / 3;
         } elseif ($term === 3) {
-            return ($cost / 6);
+            return $cost / 6;
         } elseif ($term === 4) {
-            return ($cost / 12);
+            return $cost / 12;
         } elseif ($term === 5) {
-            return ($cost / 24);
+            return $cost / 24;
         } elseif ($term === 6) {
-            return ($cost / 36);
+            return $cost / 36;
         } elseif ($term === 7) {
             return 0;
         } else {

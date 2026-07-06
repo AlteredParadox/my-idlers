@@ -68,7 +68,6 @@ Route::middleware('auth:api')->get('settings/', 'App\Http\Controllers\ApiControl
 Route::middleware('auth:api')->get('shared/', 'App\Http\Controllers\ApiController@getAllShared');
 Route::middleware('auth:api')->get('shared/{id}', 'App\Http\Controllers\ApiController@getShared');
 
-//Route::get('providers', 'App\Http\Controllers\ApiController@getAllProvidersTable')->name('get-all-providers');
 
 Route::middleware('auth:api')->get('online/{hostname}', 'App\Http\Controllers\ApiController@checkHostIsUp');
 

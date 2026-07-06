@@ -53,15 +53,15 @@ class IPs extends Model
         return $this->hasOne(Note::class, 'service_id', 'id');
     }
 
-    public static function getUpdateIpInfo(IPs $IP): bool
+    public static function getUpdateIpInfo(IPs $ip): bool
     {
-        $response = Http::get("https://ipwhois.app/json/{$IP->address}");
+        $response = Http::get("https://ipwhois.app/json/{$ip->address}");
 
         if ($response->ok()) {
 
             $data = $response->json();
 
-            $IP->update([
+            $ip->update([
                 'continent' => $data['continent'],
                 'country' => $data['country'],
                 'region' => $data['region'],

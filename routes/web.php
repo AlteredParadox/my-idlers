@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('domains', DomainsController::class);
 
-    Route::resource('IPs', IPsController::class);
+    Route::resource('IPs', IPsController::class)->parameters(['IPs' => 'ip']);
 
     Route::resource('labels', LabelsController::class);
 
@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers-compare-choose', [ServerController::class, 'chooseCompare'])->name('servers-compare-choose');
     Route::get('servers-compare/{server1}/{server2}', [ServerController::class, 'compareServers'])->name('servers.compare');
 
-    Route::get('ip/{IP}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
+    Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
 
     // Export routes
     Route::get('/export/servers', [ExportController::class, 'servers'])->name('export.servers');

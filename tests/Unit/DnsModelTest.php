@@ -10,11 +10,11 @@ class DnsModelTest extends TestCase
     public function test_dns_types_array_contains_expected_types()
     {
         $expectedTypes = ['A', 'AAAA', 'DNAME', 'MX', 'NS', 'SOA', 'TXT', 'URI'];
-        $this->assertEquals($expectedTypes, DNS::$dns_types);
+        $this->assertEquals($expectedTypes, DNS::$dnsTypes);
     }
 
     public function test_dns_types_array_has_8_elements()
     {
-        $this->assertCount(8, DNS::$dns_types);
+        $this->assertCount(8, DNS::$dnsTypes);
     }
 }
