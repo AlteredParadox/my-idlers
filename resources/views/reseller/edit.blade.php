@@ -37,6 +37,13 @@
                             <label class="form-label">Dedicated IP</label>
                             <input type="text" class="form-control" name="dedicated_ip" value="{{ $reseller->ips[0]['address'] ?? '' }}" maxlength="255">
                         </div>
+                        {{-- IPs assigned via the IPs page: must round-trip or saving deletes them --}}
+                        @foreach($reseller->ips->slice(1) as $extra_ip)
+                        <div class="col-12 col-lg-4">
+                            <label class="form-label">IP {{ $loop->iteration + 1 }}</label>
+                            <input type="text" class="form-control" name="ip{{ $loop->iteration + 1 }}" value="{{ $extra_ip['address'] }}" maxlength="255">
+                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>

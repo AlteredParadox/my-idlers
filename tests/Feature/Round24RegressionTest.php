@@ -90,7 +90,7 @@ class Round24RegressionTest extends TestCase
     {
         $this->postJson('/api/servers', [
             'hostname' => 'dup-api.example.com', 'server_type' => 1,
-            'os_id' => 1, 'provider_id' => 1, 'location_id' => 1,
+            'os_id' => \App\Models\OS::first()->id, 'provider_id' => \App\Models\Providers::first()->id, 'location_id' => \App\Models\Locations::first()->id,
             'ssh_port' => 22, 'ram' => 2048, 'ram_type' => 'MB', 'ram_as_mb' => 2048,
             'disk' => 50, 'disk_type' => 'GB', 'disk_as_gb' => 50,
             'cpu' => 2, 'bandwidth' => 1000, 'was_promo' => 0,

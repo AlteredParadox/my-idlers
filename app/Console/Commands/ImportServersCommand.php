@@ -38,7 +38,9 @@ class ImportServersCommand extends Command
             return str_getcsv($line);
         }, file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 
-        $headers = array_shift($rows);
+        // Excel exports prepend a UTF-8 BOM to the first header; padded
+        // headers mis-key array_combine and every row then fails.
+        $headers = array_map(fn ($h) => trim($h, "\xEF\xBB\xBF \t\r"), array_shift($rows));
 
         // Pre-create Debian 13 OS
         $os = OS::firstOrCreate(['name' => 'Debian 13']);
@@ -59,7 +61,7 @@ class ImportServersCommand extends Command
                 $this->importServer($data, $os);
                 $count++;
             } catch (\Exception $e) {
-                $this->error("Row " . ($i + 2) . " ({$data['HOSTNAME']}): " . $e->getMessage());
+                $this->error("Row " . ($i + 2) . " (" . ($data['HOSTNAME'] ?? '?') . "): " . $e->getMessage());
                 $errors++;
             }
         }
