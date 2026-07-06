@@ -284,7 +284,7 @@
                     var matched = false;
                     var statusClasses = ['text-success', 'text-danger', 'text-warning', 'text-muted'];
                     for (var promHost in statuses) {
-                        if (hostname === promHost || promHost.split('.')[0] === hostname.split('.')[0]) {
+                        if (hostname === promHost || promHost === hostname.split('.')[0] || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0) {
                             icon.classList.remove(...statusClasses);
                             icon.classList.add(statuses[promHost] ? 'text-success' : 'text-danger');
                             matched = true;
@@ -311,7 +311,7 @@
             }
 
             function matchHost(hostname, promHost) {
-                return hostname === promHost || promHost.split('.')[0] === hostname.split('.')[0];
+                return hostname === promHost || promHost === hostname.split('.')[0] || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0;
             }
 
             function updateRamUsage(metrics) {
