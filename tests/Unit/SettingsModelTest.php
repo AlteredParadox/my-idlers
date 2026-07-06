@@ -72,4 +72,18 @@ class SettingsModelTest extends TestCase
         $result = Settings::orderByProcess(99);
         $this->assertEquals(['created_at', 'desc'], $result);
     }
+
+    public function test_boolean_flags_cast_string_values_to_int()
+    {
+        // MySQL returns tinyint columns as strings; without the cast the
+        // strict `=== 1` checks in the public view / gate fail closed.
+        // Driver-independent: assigning a string exercises the cast in memory.
+        $settings = new Settings();
+        $settings->show_servers_public = '1';
+        $settings->show_server_value_price = '0';
+
+        $this->assertSame(1, $settings->show_servers_public);
+        $this->assertSame(0, $settings->show_server_value_price);
+        $this->assertTrue($settings->show_servers_public === 1);
+    }
 }
