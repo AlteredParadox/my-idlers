@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('yabs', function (Blueprint $table) {
-            if (env('DB_CONNECTION') !== 'sqlite') {
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
                 $table->dropForeign('yabs_fk_servers');
             }
 
