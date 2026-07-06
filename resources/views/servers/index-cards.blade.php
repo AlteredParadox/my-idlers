@@ -51,7 +51,7 @@
                                             <div class="server-title">
                                                 <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
-                                                    <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
+                                                    <i class="fas fa-map-marker-alt"></i> {{ $server->location->name ?? '-' }}
                                                 </span>
                                             </div>
                                         </div>
@@ -104,7 +104,7 @@
                                         <div class="server-meta">
                                             <div class="meta-row">
                                                 <span class="meta-label">Provider</span>
-                                                <span class="meta-value">{{ $server->provider->name }}</span>
+                                                <span class="meta-value">{{ $server->provider->name ?? '-' }}</span>
                                             </div>
                                             <div class="meta-row">
                                                 <span class="meta-label">OS</span>
@@ -178,7 +178,7 @@
                                             <div class="server-title">
                                                 <h5 class="server-hostname"><a href="{{ route('servers.show', $server->id) }}" class="text-reset text-decoration-none">{{ $server->hostname }}</a></h5>
                                                 <span class="server-location">
-                                                    <i class="fas fa-map-marker-alt"></i> {{ $server->location->name }}
+                                                    <i class="fas fa-map-marker-alt"></i> {{ $server->location->name ?? '-' }}
                                                 </span>
                                             </div>
                                         </div>
@@ -221,7 +221,7 @@
                                         <div class="server-meta">
                                             <div class="meta-row">
                                                 <span class="meta-label">Provider</span>
-                                                <span class="meta-value">{{ $server->provider->name }}</span>
+                                                <span class="meta-value">{{ $server->provider->name ?? '-' }}</span>
                                             </div>
                                             <div class="meta-row">
                                                 <span class="meta-label">OS</span>

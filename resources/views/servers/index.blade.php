@@ -240,8 +240,8 @@
                                         <span class="link-usage"></span>
                                     </td>
                                     <td class="text-center text-nowrap">{{ $server->network_type ?? '-' }}</td>
-                                    <td class="text-nowrap">{{ $server->location->name }}</td>
-                                    <td class="text-nowrap">{{ $server->provider->name }}</td>
+                                    <td class="text-nowrap">{{ $server->location->name ?? '-' }}</td>
+                                    <td class="text-nowrap">{{ $server->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($server->transferrable) ? '-' : (($server->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap" data-order="{{ $server->price->usd_per_month }}">
                                         {{ $server->price->price }} {{ $server->price->currency }}
