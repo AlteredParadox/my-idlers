@@ -88,19 +88,11 @@ class ServerController extends Controller
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
-        $link_speed_mbps = null;
-        if ($request->link_speed) {
-            $link_speed_mbps = (int)($request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed);
-        }
+        $link_speed_mbps = $this->linkSpeedAsMbps($request);
 
         $server_id = Str::random(8);
 
-        // Calculate total disk for backward compat columns
-        $total_disk_gb = 0;
-        foreach ($request->disk as $i => $disk_size) {
-            $unit = $request->disk_type[$i];
-            $total_disk_gb += ($unit === 'TB') ? ($disk_size * 1024) : $disk_size;
-        }
+        $total_disk_gb = $this->totalDiskAsGb($request);
 
         // Atomic: pricing/IPs insert first (FK order), so a failed server
         // insert would otherwise orphan them.
@@ -210,30 +202,13 @@ class ServerController extends Controller
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
-        // The edit form renders one ipN field per assigned IP (not just two):
-        // validate them ALL so garbage in ip3+ is rejected, and collect them
-        // all so a 9th+ IP isn't silently deleted on save.
-        $ip_fields = [];
-        foreach ($request->all() as $key => $value) {
-            if (preg_match('/^ip\d+$/', $key) && !is_null($value)) {
-                $ip_fields[$key] = $value;
-            }
-        }
-        $request->validate(array_fill_keys(array_keys($ip_fields), 'ip'));
+        $ip_fields = $this->collectAndValidateIpFields($request);
 
-        $link_speed_mbps = null;
-        if ($request->link_speed) {
-            $link_speed_mbps = (int)($request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed);
-        }
+        $link_speed_mbps = $this->linkSpeedAsMbps($request);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        // Calculate total disk for backward compat columns
-        $total_disk_gb = 0;
-        foreach ($request->disk as $i => $disk_size) {
-            $unit = $request->disk_type[$i];
-            $total_disk_gb += ($unit === 'TB') ? ($disk_size * 1024) : $disk_size;
-        }
+        $total_disk_gb = $this->totalDiskAsGb($request);
 
         $server->update([
             'hostname' => $request->hostname,
@@ -312,6 +287,44 @@ class ServerController extends Controller
 
         return redirect()->route('servers.index')
             ->with('error', 'Server was not deleted.');
+    }
+
+    private function linkSpeedAsMbps(Request $request): ?int
+    {
+        if (!$request->link_speed) {
+            return null;
+        }
+
+        return (int) ($request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed);
+    }
+
+    /** Total disk for the backward-compat servers.disk_as_gb column */
+    private function totalDiskAsGb(Request $request): int
+    {
+        $total_disk_gb = 0;
+        foreach ($request->disk as $i => $disk_size) {
+            $total_disk_gb += ($request->disk_type[$i] === 'TB') ? ($disk_size * 1024) : $disk_size;
+        }
+
+        return $total_disk_gb;
+    }
+
+    /**
+     * The edit form renders one ipN field per assigned IP (not just two):
+     * validate them ALL so garbage in ip3+ is rejected, and collect them all
+     * so a 9th+ IP isn't silently deleted on save.
+     */
+    private function collectAndValidateIpFields(Request $request): array
+    {
+        $ip_fields = [];
+        foreach ($request->all() as $key => $value) {
+            if (preg_match('/^ip\d+$/', $key) && !is_null($value)) {
+                $ip_fields[$key] = $value;
+            }
+        }
+        $request->validate(array_fill_keys(array_keys($ip_fields), 'ip'));
+
+        return $ip_fields;
     }
 
     public function chooseCompare()
