@@ -75,9 +75,49 @@ class ApiRegressionTest extends TestCase
         ]);
     }
 
+    public function test_api_server_create_without_hostname_is_rejected_and_leaves_no_orphans()
+    {
+        $this->postJson('/api/servers', [
+            'server_type' => 1,
+            'os_id' => 1,
+            'provider_id' => 1,
+            'location_id' => 1,
+            'ssh_port' => 22,
+            'ram' => 2048,
+            'ram_type' => 'MB',
+            'ram_as_mb' => 2048,
+            'disk' => 50,
+            'disk_type' => 'GB',
+            'disk_as_gb' => 50,
+            'cpu' => 2,
+            'bandwidth' => 1000,
+            'was_promo' => 0,
+            'active' => 1,
+            'show_public' => 0,
+            'owned_since' => '2024-01-01',
+            'currency' => 'USD',
+            'price' => 5.00,
+            'payment_term' => 1,
+        ], $this->apiHeaders())->assertStatus(400);
+
+        // hostname used to be optional: pricing/IP rows were written before
+        // Server::create failed on the non-null hostname column
+        $this->assertSame(0, \App\Models\Pricing::count());
+        $this->assertSame(0, \App\Models\Server::count());
+    }
+
+    public function test_currency_list_has_fallback_when_rates_unavailable()
+    {
+        // EXCHANGE_RATES_URL is blank in the test environment
+        $currencies = \App\Models\Pricing::getCurrencyList();
+
+        $this->assertNotEmpty($currencies);
+        $this->assertContains('USD', $currencies);
+    }
+
     public function test_api_missing_records_return_404_not_500()
     {
-        foreach (['servers', 'shared', 'reseller', 'seedboxes', 'domains', 'misc', 'yabs'] as $resource) {
+        foreach (['servers', 'shared', 'reseller', 'seedbox', 'domains', 'misc', 'yabs'] as $resource) {
             $this->getJson("/api/{$resource}/nonexistent1", $this->apiHeaders())
                 ->assertStatus(404);
         }

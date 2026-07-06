@@ -14,6 +14,8 @@ use App\Models\Yabs;
 
 class ServiceQueryController extends Controller
 {
+    private const ERROR_NOT_FOUND = 'Not found';
+
     protected function getAllServers()
     {
         $servers = Server::allServers()->toJson(JSON_PRETTY_PRINT);
@@ -25,7 +27,7 @@ class ServiceQueryController extends Controller
     {
         $record = Server::server($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -42,7 +44,7 @@ class ServiceQueryController extends Controller
     {
         $record = Shared::sharedHosting($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -59,7 +61,7 @@ class ServiceQueryController extends Controller
     {
         $record = Reseller::resellerHosting($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -76,7 +78,7 @@ class ServiceQueryController extends Controller
     {
         $record = SeedBoxes::seedbox($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -93,7 +95,7 @@ class ServiceQueryController extends Controller
     {
         $record = Domains::domain($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -110,7 +112,7 @@ class ServiceQueryController extends Controller
     {
         $record = Misc::misc($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
@@ -127,7 +129,7 @@ class ServiceQueryController extends Controller
     {
         $record = Yabs::yabs($id);
         if (is_null($record)) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
         return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
