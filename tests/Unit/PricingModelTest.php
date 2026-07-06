@@ -94,4 +94,13 @@ class PricingModelTest extends TestCase
     {
         $this->assertEquals(62, $this->pricing->termAsMonths(99));
     }
+
+    public function test_active_is_mass_assignable()
+    {
+        // 'active' was missing from $fillable, so insertPricing's $is_active=0
+        // (used by the cancelled-server import) was silently dropped -> default 1.
+        $pricing = new Pricing(['active' => 0]);
+
+        $this->assertSame(0, $pricing->active);
+    }
 }

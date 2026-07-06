@@ -20,7 +20,7 @@ class Pricing extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['service_id', 'service_type', 'currency', 'price', 'term', 'as_usd', 'usd_per_month', 'next_due_date'];
+    protected $fillable = ['service_id', 'service_type', 'currency', 'price', 'term', 'as_usd', 'usd_per_month', 'next_due_date', 'active'];
 
     private static function refreshRates(): object
     {
