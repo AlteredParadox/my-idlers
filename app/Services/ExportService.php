@@ -18,6 +18,12 @@ class ExportService
      */
     protected const VALID_FORMATS = ['json', 'csv'];
 
+    public const ERROR_INVALID_FORMAT = 'Invalid format. Supported formats: json, csv';
+
+    public const MIME_JSON = 'application/json';
+
+    public const MIME_CSV = 'text/csv';
+
     /**
      * Validate export format
      *
@@ -62,7 +68,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "servers_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -70,7 +76,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getServerCsvHeaders()),
             'filename' => "servers_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -98,7 +104,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "domains_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -106,7 +112,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getDomainCsvHeaders()),
             'filename' => "domains_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -134,7 +140,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "shared_hosting_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -142,7 +148,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getSharedCsvHeaders()),
             'filename' => "shared_hosting_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -170,7 +176,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "reseller_hosting_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -178,7 +184,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getResellerCsvHeaders()),
             'filename' => "reseller_hosting_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -206,7 +212,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "seedboxes_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -214,7 +220,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getSeedboxCsvHeaders()),
             'filename' => "seedboxes_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -242,7 +248,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "dns_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -250,7 +256,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getDnsCsvHeaders()),
             'filename' => "dns_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -313,7 +319,7 @@ class ExportService
             return [
                 'data' => $this->toJson($exportData),
                 'filename' => "misc_services_export_{$timestamp}.json",
-                'content_type' => 'application/json'
+                'content_type' => self::MIME_JSON
             ];
         }
 
@@ -321,7 +327,7 @@ class ExportService
         return [
             'data' => $this->toCsv($exportData, $this->getMiscCsvHeaders()),
             'filename' => "misc_services_export_{$timestamp}.csv",
-            'content_type' => 'text/csv'
+            'content_type' => self::MIME_CSV
         ];
     }
 
@@ -1230,7 +1236,7 @@ class ExportService
         return [
             'data' => $this->toJson($exportData),
             'filename' => "my_idlers_export_{$timestamp}.json",
-            'content_type' => 'application/json'
+            'content_type' => self::MIME_JSON
         ];
     }
 

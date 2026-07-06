@@ -10,66 +10,67 @@ class LabelsSeeder extends Seeder
 {
     public function run()
     {
+        $now = date('Y-m-d H:i:s');
         $os = [
             [
                 "id" => Str::random(8),
                 "label" => "Docker",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "Kubernetes",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "Apache2",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "MySQL",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "FTP",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "Mail",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "PHP 8",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "PHP 7.4",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "PHP 8.1",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "Idling",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "Uptime",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ],
             [
                 "id" => Str::random(8),
                 "label" => "API",
-                "created_at" => date('Y-m-d H:i:s')
+                "created_at" => $now
             ]
         ];
 

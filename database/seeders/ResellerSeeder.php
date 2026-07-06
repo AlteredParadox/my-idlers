@@ -11,6 +11,7 @@ class ResellerSeeder extends Seeder
 {
     public function run()
     {
+        $whmCpanel = 'WHM/cPanel';
         $reseller = [];
         $pricing = [];
 
@@ -21,7 +22,7 @@ class ResellerSeeder extends Seeder
             'active' => 1,
             'accounts' => 15,
             'main_domain' => 'reseller-agency.example.com',
-            'reseller_type' => 'WHM/cPanel',
+            'reseller_type' => $whmCpanel,
             'bandwidth' => null,
             'disk' => 100,
             'disk_type' => 'GB',
@@ -57,7 +58,7 @@ class ResellerSeeder extends Seeder
             'active' => 1,
             'accounts' => 45,
             'main_domain' => 'webdesign-hosting.example.com',
-            'reseller_type' => 'WHM/cPanel',
+            'reseller_type' => $whmCpanel,
             'bandwidth' => null,
             'disk' => 250,
             'disk_type' => 'GB',
@@ -129,7 +130,7 @@ class ResellerSeeder extends Seeder
             'active' => 1,
             'accounts' => 120,
             'main_domain' => 'enterprise-reseller.example.com',
-            'reseller_type' => 'WHM/cPanel',
+            'reseller_type' => $whmCpanel,
             'bandwidth' => null,
             'disk' => 500,
             'disk_type' => 'GB',

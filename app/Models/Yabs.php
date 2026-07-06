@@ -110,13 +110,11 @@ class Yabs extends Model
         if ($data[0] === 'busy') {
             return 0;
         }
-        if ($data[1] === "Gbits/sec") {
-            return $data[0] * 1000;
-        } elseif ($data[1] === "Mbits/sec") {
-            return $data[0];
-        } else {//Kbps
-            return $data[0] / 1000;
-        }
+        return match ($data[1]) {
+            "Gbits/sec" => $data[0] * 1000,
+            "Mbits/sec" => $data[0],
+            default => $data[0] / 1000,//Kbps
+        };
     }
 
     public static function speedType(string $string): string
@@ -125,13 +123,11 @@ class Yabs extends Model
         if ($data[0] === 'busy') {
             return "MBps";
         }
-        if ($data[1] === "Gbits/sec") {
-            return "GBps";
-        } elseif ($data[1] === "Mbits/sec") {
-            return "MBps";
-        } else {//Kbps
-            return "KBps";
-        }
+        return match ($data[1]) {
+            "Gbits/sec" => "GBps",
+            "Mbits/sec" => "MBps",
+            default => "KBps",//Kbps
+        };
     }
 
     public static function speedAsFloat(string $string): float

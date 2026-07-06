@@ -26,6 +26,17 @@ use Illuminate\Support\Str;
 
 class ApiController extends Controller
 {
+    private const VALIDATION_MESSAGES = [
+        'required' => ':attribute is required',
+        'min' => ':attribute must be longer than 3',
+        'integer' => ':attribute must be an integer',
+        'string' => ':attribute must be a string',
+        'size' => ':attribute must be exactly :size characters',
+        'numeric' => ':attribute must be a float',
+        'ip' => ':attribute must be a valid IP address',
+        'date' => ':attribute must be a date Y-m-d',
+    ];
+
     /**
      * The export service instance.
      *
@@ -650,19 +661,16 @@ class ApiController extends Controller
 
     public function getIpForDomain(string $domainname, string $type)
     {//Gets IP from A record for a domain
-        switch ($type) {
-            case "A":
-                $data = dns_get_record($domainname, DNS_A);
-                if (isset($data['0']['ip'])) {
-                    return response(array('ip' => $data['0']['ip']), 200);
-                }
-                break;
-            case "AAAA":
-                $data = dns_get_record($domainname, DNS_AAAA);
-                if (isset($data['0']['ipv6'])) {
-                    return response(array('ip' => $data['0']['ipv6']), 200);
-                }
-                break;
+        if ($type === "A") {
+            $data = dns_get_record($domainname, DNS_A);
+            if (isset($data['0']['ip'])) {
+                return response(array('ip' => $data['0']['ip']), 200);
+            }
+        } elseif ($type === "AAAA") {
+            $data = dns_get_record($domainname, DNS_AAAA);
+            if (isset($data['0']['ipv6'])) {
+                return response(array('ip' => $data['0']['ipv6']), 200);
+            }
         }
         return response(array('ip' => null), 200);
     }
@@ -697,18 +705,7 @@ class ApiController extends Controller
             'next_due_date' => 'date',
         ];
 
-        $messages = [
-            'required' => ':attribute is required',
-            'min' => ':attribute must be longer than 3',
-            'integer' => ':attribute must be an integer',
-            'string' => ':attribute must be a string',
-            'size' => ':attribute must be exactly :size characters',
-            'numeric' => ':attribute must be a float',
-            'ip' => ':attribute must be a valid IP address',
-            'date' => ':attribute must be a date Y-m-d',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
@@ -808,17 +805,7 @@ class ApiController extends Controller
             'next_due_date' => 'date',
         ];
 
-        $messages = [
-            'required' => ':attribute is required',
-            'min' => ':attribute must be longer than 3',
-            'integer' => ':attribute must be an integer',
-            'string' => ':attribute must be a string',
-            'size' => ':attribute must be exactly :size characters',
-            'numeric' => ':attribute must be a float',
-            'date' => ':attribute must be a date Y-m-d',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
@@ -854,16 +841,7 @@ class ApiController extends Controller
             'next_due_date' => 'date',
         ];
 
-        $messages = [
-            'required' => ':attribute is required',
-            'integer' => ':attribute must be an integer',
-            'string' => ':attribute must be a string',
-            'size' => ':attribute must be exactly :size characters',
-            'numeric' => ':attribute must be a float',
-            'date' => ':attribute must be a date Y-m-d',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
@@ -957,7 +935,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -979,7 +957,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1001,7 +979,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1023,7 +1001,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1045,7 +1023,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1067,7 +1045,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1089,7 +1067,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -1111,7 +1089,7 @@ class ApiController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 

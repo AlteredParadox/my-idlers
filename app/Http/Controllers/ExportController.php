@@ -29,7 +29,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -50,7 +50,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -71,7 +71,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -92,7 +92,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -113,7 +113,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -134,7 +134,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -155,7 +155,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
@@ -176,7 +176,7 @@ class ExportController extends Controller
 
         if (!$this->exportService->isValidFormat($format)) {
             return response()->json([
-                'error' => 'Invalid format. Supported formats: json, csv'
+                'error' => ExportService::ERROR_INVALID_FORMAT
             ], 400);
         }
 
