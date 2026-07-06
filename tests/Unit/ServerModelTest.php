@@ -61,6 +61,24 @@ class ServerModelTest extends TestCase
         $this->assertStringContainsString('<i', $result);
     }
 
+    public function test_flag_columns_cast_string_values_to_int()
+    {
+        // MySQL returns tinyint/int columns as strings. Without the cast, the
+        // edit view's `$server->active === 1` is false for an active server,
+        // so saving the form silently sets active=0. Driver-independent:
+        // assigning strings exercises the cast in memory.
+        $server = new Server();
+        $server->active = '1';
+        $server->show_public = '0';
+        $server->transferrable = '1';
+        $server->server_type = '3';
+
+        $this->assertSame(1, $server->active);
+        $this->assertSame(0, $server->show_public);
+        $this->assertSame(1, $server->transferrable);
+        $this->assertSame(3, $server->server_type);
+    }
+
     public function test_table_row_compare_returns_plus_when_val1_greater()
     {
         $result = \App\Process::tableRowCompare('100', '50', 'MB');

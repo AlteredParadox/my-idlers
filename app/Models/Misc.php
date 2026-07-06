@@ -20,6 +20,12 @@ class Misc extends Model
 
     protected $fillable = ['id', 'active', 'name', 'owned_since'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'active' => 'integer',
+    ];
+
     protected static function boot()
     {
         parent::boot();

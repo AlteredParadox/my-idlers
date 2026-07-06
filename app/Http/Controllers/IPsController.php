@@ -47,6 +47,7 @@ class IPsController extends Controller
         ]);
 
         IPs::getUpdateIpInfo($ip);
+        self::forgetServiceCaches($ip->service_id);
 
         return redirect()->route('IPs.index')
             ->with('success', 'IP address created Successfully.');
@@ -54,7 +55,11 @@ class IPsController extends Controller
 
     public function destroy(IPs $ip)
     {
+        $service_id = $ip->service_id;
+
         if ($ip->delete()) {
+            self::forgetServiceCaches($service_id);
+
             return redirect()->route('IPs.index')
                 ->with('success', 'IP address was deleted Successfully.');
         }
@@ -67,11 +72,24 @@ class IPsController extends Controller
         $result = IPs::getUpdateIpInfo($ip);
 
         if ($result) {
+            self::forgetServiceCaches($ip->service_id);
+
             return redirect()->route('IPs.index')
                 ->with('success', 'IP address updated Successfully.');
         }
         return redirect()->route('IPs.index')
             ->with('error', 'IP was not updated.');
+    }
+
+    /**
+     * The IP's service_id may belong to a server (or shared/reseller/seedbox).
+     * The server caches embed the ips relation, so a change to IPs must clear
+     * them or the show/index pages show stale IP lists for up to a month.
+     */
+    private static function forgetServiceCaches(string $service_id): void
+    {
+        Server::serverSpecificCacheForget($service_id);
+        Server::serverRelatedCacheForget();
     }
 
 }

@@ -22,6 +22,17 @@ class Server extends Model
         'ram', 'disk', 'ram_type', 'disk_type', 'ns1', 'ns2', 'label', 'bandwidth', 'ram_as_mb', 'disk_as_gb',
         'has_yabs', 'was_promo', 'transferrable', 'owned_since', 'ssh', 'active', 'show_public', 'cpu', 'cpu_model', 'link_speed', 'network_type'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'server_type' => 'integer',
+        'has_yabs' => 'integer',
+        'was_promo' => 'integer',
+        'transferrable' => 'integer',
+        'active' => 'integer',
+        'show_public' => 'integer',
+    ];
+
     protected static function boot()
     {
         parent::boot();
