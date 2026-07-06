@@ -301,19 +301,20 @@ class Yabs extends Model
                 }
             }
 
-            //Update server
+            //Update server: don't overwrite user-entered specs with measured
+            //values (server_disks is the disk source of truth, and ram/cpu
+            //hold as-provisioned amounts; YABS sees usable RAM and only the
+            //root filesystem). Flag the benchmark and fill cpu_model when it
+            //was never set.
+            $server_update = ['has_yabs' => 1];
+
+            if (empty(DB::table('servers')->where('id', $server_id)->value('cpu_model'))) {
+                $server_update['cpu_model'] = $model;
+            }
+
             DB::table('servers')
                 ->where('id', $server_id)
-                ->update([
-                    'ram' => $ram_f,
-                    'ram_type' => $ram_type,
-                    'ram_as_mb' => ($ram / 1024),
-                    'disk' => $disk_f,
-                    'disk_as_gb' => ($disk / 1024 / 1024),
-                    'disk_type' => $disk_type,
-                    'cpu' => $cores,
-                    'has_yabs' => 1
-                ]);
+                ->update($server_update);
 
             Cache::forget("yabs.$yabs_id");
             Cache::forget("all_yabs");
