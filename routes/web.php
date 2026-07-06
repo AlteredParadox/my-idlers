@@ -86,13 +86,15 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['throttle:30,1'])
         ->name('tools.prometheus.detail');
 
-    // Export routes
-    Route::get('/export/servers', [ExportController::class, 'servers'])->name('export.servers');
-    Route::get('/export/domains', [ExportController::class, 'domains'])->name('export.domains');
-    Route::get('/export/shared', [ExportController::class, 'shared'])->name('export.shared');
-    Route::get('/export/reseller', [ExportController::class, 'reseller'])->name('export.reseller');
-    Route::get('/export/seedboxes', [ExportController::class, 'seedboxes'])->name('export.seedboxes');
-    Route::get('/export/dns', [ExportController::class, 'dns'])->name('export.dns');
-    Route::get('/export/misc', [ExportController::class, 'misc'])->name('export.misc');
-    Route::get('/export/all', [ExportController::class, 'all'])->name('export.all');
+    // Export routes (throttled: they eager-load whole tables and build files in memory)
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::get('/export/servers', [ExportController::class, 'servers'])->name('export.servers');
+        Route::get('/export/domains', [ExportController::class, 'domains'])->name('export.domains');
+        Route::get('/export/shared', [ExportController::class, 'shared'])->name('export.shared');
+        Route::get('/export/reseller', [ExportController::class, 'reseller'])->name('export.reseller');
+        Route::get('/export/seedboxes', [ExportController::class, 'seedboxes'])->name('export.seedboxes');
+        Route::get('/export/dns', [ExportController::class, 'dns'])->name('export.dns');
+        Route::get('/export/misc', [ExportController::class, 'misc'])->name('export.misc');
+        Route::get('/export/all', [ExportController::class, 'all'])->name('export.all');
+    });
 });

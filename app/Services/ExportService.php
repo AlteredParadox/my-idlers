@@ -408,50 +408,52 @@ class ExportService
     {
         // Create a temporary file for the ZIP
         $tempFile = tempnam(sys_get_temp_dir(), 'export_');
-        $zip = new \ZipArchive();
 
-        if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            throw new ExportException('Failed to create export archive.');
+        try {
+            $zip = new \ZipArchive();
+
+            if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new ExportException('Failed to create export archive.');
+            }
+
+            // Add each service type as a separate CSV file
+            $csvFiles = [
+                'servers' => ['servers.csv', $this->transformer->getServerCsvHeaders()],
+                'domains' => ['domains.csv', $this->transformer->getDomainCsvHeaders()],
+                'shared' => ['shared_hosting.csv', $this->transformer->getSharedCsvHeaders()],
+                'reseller' => ['reseller_hosting.csv', $this->transformer->getResellerCsvHeaders()],
+                'seedboxes' => ['seedboxes.csv', $this->transformer->getSeedboxCsvHeaders()],
+                'dns' => ['dns.csv', $this->transformer->getDnsCsvHeaders()],
+                'misc' => ['misc_services.csv', $this->transformer->getMiscCsvHeaders()],
+            ];
+
+            foreach ($csvFiles as $section => [$filename, $headers]) {
+                $zip->addFromString($filename, $this->csv->toCsv($sections[$section], $headers));
+            }
+
+            // Add metadata file
+            $metadata = [
+                'export_date' => date('c'),
+                'version' => '4.1.0',
+                'counts' => array_map('count', $sections),
+            ];
+            $zip->addFromString(
+                'metadata.json',
+                json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            );
+
+            $zip->close();
+
+            return [
+                'data' => file_get_contents($tempFile),
+                'filename' => "my_idlers_export_{$timestamp}.zip",
+                'content_type' => 'application/zip'
+            ];
+        } finally {
+            // Never leave the temp file behind, even if a CSV/zip step throws
+            if (is_file($tempFile)) {
+                @unlink($tempFile);
+            }
         }
-
-        // Add each service type as a separate CSV file
-        $csvFiles = [
-            'servers' => ['servers.csv', $this->transformer->getServerCsvHeaders()],
-            'domains' => ['domains.csv', $this->transformer->getDomainCsvHeaders()],
-            'shared' => ['shared_hosting.csv', $this->transformer->getSharedCsvHeaders()],
-            'reseller' => ['reseller_hosting.csv', $this->transformer->getResellerCsvHeaders()],
-            'seedboxes' => ['seedboxes.csv', $this->transformer->getSeedboxCsvHeaders()],
-            'dns' => ['dns.csv', $this->transformer->getDnsCsvHeaders()],
-            'misc' => ['misc_services.csv', $this->transformer->getMiscCsvHeaders()],
-        ];
-
-        foreach ($csvFiles as $section => [$filename, $headers]) {
-            $zip->addFromString($filename, $this->csv->toCsv($sections[$section], $headers));
-        }
-
-        // Add metadata file
-        $metadata = [
-            'export_date' => date('c'),
-            'version' => '4.1.0',
-            'counts' => array_map('count', $sections),
-        ];
-        $zip->addFromString(
-            'metadata.json',
-            json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-        );
-
-        $zip->close();
-
-        // Read the ZIP file content
-        $zipContent = file_get_contents($tempFile);
-
-        // Clean up the temporary file
-        unlink($tempFile);
-
-        return [
-            'data' => $zipContent,
-            'filename' => "my_idlers_export_{$timestamp}.zip",
-            'content_type' => 'application/zip'
-        ];
     }
 }
