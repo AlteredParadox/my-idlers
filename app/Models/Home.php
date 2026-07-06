@@ -127,7 +127,7 @@ class Home extends Model
                     ->update(['next_due_date' => $new_due_date]);
                 $due_soon[$count]->next_due_date = $new_due_date;//Update array being sent to view
                 $altered_due_soon = 1;
-                if ($service->service_type === 1) {
+                if ((int) $service->service_type === 1) {
                     $server_due_date_changed = true;
                     Server::serverSpecificCacheForget($service->service_id);
                 }

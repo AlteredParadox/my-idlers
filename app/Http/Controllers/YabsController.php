@@ -102,7 +102,7 @@ class YabsController extends Controller
 
     public function yabsToJson(Yabs $yab): array
     {
-        $all_yabs = Yabs::yabs($yab->id)[0];
+        $all_yabs = Yabs::yabs($yab->id);
         return Yabs::buildYabsArray($all_yabs);
     }
 

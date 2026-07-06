@@ -3,29 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Providers;
-use App\Models\Server;
 use App\Services\PrometheusService;
-use Illuminate\Http\Request;
 
 class ToolsController extends Controller
 {
-
-    public function getAllProvidersTable(Request $request)
-    {
-        if ($request->ajax()) {
-            $data = Providers::latest()->get();
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    return '<form action="' . route('providers.destroy', $row['id']) . '" method="POST"><i class="fas fa-trash text-danger ms-3" @click="modalForm" id="btn-' . $row['name'] . '" title="' . $row['id'] . '"></i> </form>';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
-    }
-
-
     public function checkHostIsUp(string $hostname)
     {//Check if host/ip is "up" via ping
         $exitCode = 1;

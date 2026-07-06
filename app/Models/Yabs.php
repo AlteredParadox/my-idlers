@@ -83,7 +83,7 @@ class Yabs extends Model
                 'amount' => $data->ram . ' ' . $data->ram_type,
                 'mb' => $data->ram_mb,
                 'swap' => [
-                    'amount' => $data->swap ?? null . ' ' . $data->swap_type ?? null,
+                    'amount' => ($data->swap ?? '') . ' ' . ($data->swap_type ?? ''),
                     'mb' => $data->swap_mb ?? null,
                 ],
             ],

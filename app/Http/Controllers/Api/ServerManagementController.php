@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Disk;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -77,7 +78,7 @@ class ServerManagementController extends Controller
                 IPs::insertIP($server_id, $request->ip2);
             }
 
-            return Server::create([
+            $server = Server::create([
                 'id' => $server_id,
                 'hostname' => $request->hostname,
                 'server_type' => $request->server_type,
@@ -101,6 +102,12 @@ class ServerManagementController extends Controller
                 'active' => $request->boolean('active') ? 1 : 0,
                 'show_public' => $request->boolean('show_public') ? 1 : 0
             ]);
+
+            // Parity with the web create path: record a server_disks row so disk
+            // totals (which join server_disks) include API-created servers.
+            Disk::insertDisk($server_id, (int) $request->disk, $request->disk_type, 'SSD');
+
+            return $server;
         });
 
         Server::serverRelatedCacheForget();

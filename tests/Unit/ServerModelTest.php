@@ -53,6 +53,14 @@ class ServerModelTest extends TestCase
         $this->assertStringContainsString('&#039;', $result);
     }
 
+    public function test_os_icon_tolerates_null_os()
+    {
+        // A server can reference a since-deleted OS; rendering must not fatal
+        $result = Server::osIntToIcon(null, null);
+
+        $this->assertStringContainsString('<i', $result);
+    }
+
     public function test_table_row_compare_returns_plus_when_val1_greater()
     {
         $result = \App\Process::tableRowCompare('100', '50', 'MB');
