@@ -248,6 +248,7 @@ If you already have at least version 2.0 installed:
 docker run \
   -p 8000:8000 \
   -e APP_URL=https://... \
+  -e TRUSTED_PROXIES='*' \
   -e DB_HOST=... \
   -e DB_DATABASE=... \
   -e DB_USERNAME=... \
@@ -257,6 +258,14 @@ docker run \
   ghcr.io/cp6/my-idlers:latest
 docker exec ... php artisan migrate:fresh --seed --force  # Set up database one time
 ```
+
+Notes:
+
+* `APP_URL` must exactly match the scheme and hostname you use to reach the app — requests
+  with any other `Host` header are rejected in production (TrustHosts).
+* `TRUSTED_PROXIES` is required when TLS terminates at a reverse proxy in front of the
+  container (`*` to trust any upstream, or a comma-separated list of proxy IPs/CIDRs).
+  Without it, signed YABS URLs fail validation because the app sees requests as plain http.
 
 ## Managed Hosting
 
