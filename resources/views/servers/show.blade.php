@@ -93,7 +93,6 @@
     @if(session('prometheus_enabled') && session('prometheus_url'))
     <script>
     (function() {
-        var authToken = document.querySelector('meta[name="api_token"]').getAttribute('content');
         var hostname = @json($server_data->hostname);
         var currentPeriod = '24h';
         var currentBack = 0;
@@ -316,8 +315,8 @@
             var loading = document.getElementById('prom-loading');
             loading.style.display = '';
 
-            fetch('/api/prometheus/detail/' + hostname + '/' + currentPeriod + '/' + currentBack, {
-                headers: {'Authorization': 'Bearer ' + authToken, 'Accept': 'application/json'}
+            fetch('/tools/prometheus/detail/' + encodeURIComponent(hostname) + '/' + currentPeriod + '/' + currentBack, {
+                headers: {'Accept': 'application/json'}
             }).then(function(resp) {
                 if (!resp.ok) throw new Error(resp.status);
                 return resp.json();
@@ -636,7 +635,7 @@
                 </div>
                 <p class="mb-3">Run this command on your server to add YABS benchmark data:</p>
                 <div class="yabs-command">
-                    <code>curl -sL yabs.sh | bash -s -- -s "{{ route('api.store-yabs', [$server_data->id, \Illuminate\Support\Facades\Auth::user()->api_token]) }}"</code>
+                    <code>curl -sL yabs.sh | bash -s -- -s "{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('api.store-yabs', now()->addHours(12), ['server' => $server_data->id]) }}"</code>
                 </div>
             </div>
             @endif
@@ -707,7 +706,7 @@
         <div class="mt-3">
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showYabsCode()">Show YABS command</button>
             <div id="yabs_code" class="d-none mt-2 yabs-command">
-                <code>curl -sL yabs.sh | bash -s -- -s "{{ route('api.store-yabs', [$server_data->id, \Illuminate\Support\Facades\Auth::user()->api_token]) }}"</code>
+                <code>curl -sL yabs.sh | bash -s -- -s "{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('api.store-yabs', now()->addHours(12), ['server' => $server_data->id]) }}"</code>
             </div>
         </div>
         @endif

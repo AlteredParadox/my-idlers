@@ -15,7 +15,6 @@ use App\Models\Reseller;
 use App\Models\SeedBoxes;
 use App\Models\Server;
 use App\Models\Shared;
-use App\Models\User;
 use App\Models\Yabs;
 use App\Services\ExportService;
 use DataTables;
@@ -249,7 +248,7 @@ class ApiController extends Controller
         }
     }
 
-    protected function checkHostIsUp(string $hostname)
+    public function checkHostIsUp(string $hostname)
     {//Check if host/ip is "up" via ping
         $exitCode = 1;
         $pingCmd = stripos(PHP_OS, 'WIN') === 0
@@ -259,7 +258,7 @@ class ApiController extends Controller
         return response(array('is_online' => $exitCode === 0), 200);
     }
 
-    protected function prometheusStatus()
+    public function prometheusStatus()
     {
         $settings = \App\Models\Settings::getSettings();
 
@@ -649,7 +648,7 @@ class ApiController extends Controller
         ]);
     }
 
-    protected function getIpForDomain(string $domainname, string $type)
+    public function getIpForDomain(string $domainname, string $type)
     {//Gets IP from A record for a domain
         switch ($type) {
             case "A":
@@ -781,7 +780,7 @@ class ApiController extends Controller
         return response()->json(array('result' => 'fail'), 500);
     }
 
-    public function updateServer(Request $request)
+    public function updateServer(Request $request, string $id)
     {
         $rules = [
             'hostname' => 'string|min:3',
@@ -825,19 +824,27 @@ class ApiController extends Controller
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
         }
 
-        $server_update = Server::where('id', $request->id)->update(request()->all());
+        $updateData = collect($validator->validated())
+            ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port'])
+            ->toArray();
+
+        if ($request->has('ssh_port')) {
+            $updateData['ssh'] = $request->integer('ssh_port');
+        }
+
+        $server_update = Server::where('id', $id)->update($updateData);
 
         Server::serverRelatedCacheForget();
-        Server::serverSpecificCacheForget($request->id);
+        Server::serverSpecificCacheForget($id);
 
         if ($server_update) {
-            return response()->json(array('result' => 'success', 'server_id' => $request->id), 200);
+            return response()->json(array('result' => 'success', 'server_id' => $id), 200);
         }
 
         return response()->json(array('result' => 'fail', 'request' => $request->post()), 500);
     }
 
-    public function updatePricing(Request $request)
+    public function updatePricing(Request $request, string $id)
     {
         $rules = [
             'price' => 'required|numeric',
@@ -868,24 +875,44 @@ class ApiController extends Controller
 
         $request->usd_per_month = $pricing->costAsPerMonth($request->as_usd, $request->term);
 
-        $price_update = Pricing::where('id', $request->id)->update(request()->all());
+        $validated = $validator->validated();
+        $updateData = [
+            'price' => $validated['price'],
+            'currency' => $validated['currency'],
+            'term' => $validated['term'],
+            'as_usd' => $request->as_usd,
+            'usd_per_month' => $request->usd_per_month,
+        ];
+
+        if (array_key_exists('next_due_date', $validated)) {
+            $updateData['next_due_date'] = $validated['next_due_date'];
+        }
+
+        $price_update = Pricing::where('id', $id)->update($updateData);
 
         Cache::forget("all_pricing");
         Server::serverRelatedCacheForget();
 
         if ($price_update) {
-            return response()->json(array('result' => 'success', 'server_id' => $request->id), 200);
+            return response()->json(array('result' => 'success', 'server_id' => $id), 200);
         }
 
         return response()->json(array('result' => 'fail', 'request' => $request->post()), 500);
     }
 
-    public function storeYabs(Request $request, Server $server, string $key): \Illuminate\Http\JsonResponse
+    public function storeYabs(Request $request, Server $server): \Illuminate\Http\JsonResponse
     {
-        $r = User::where('api_token', $key)->first();
-        if (!isset($r->id)) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
+        $request->validate([
+            'time' => ['required', 'string'],
+            'version' => ['required'],
+            'net' => ['required', 'array'],
+            'os' => ['required', 'array'],
+            'cpu' => ['required', 'array'],
+            'mem' => ['required', 'array'],
+            'geekbench' => ['required', 'array'],
+            'fio' => ['required', 'array'],
+            'iperf' => ['required', 'array'],
+        ]);
 
         $insert = Yabs::insertFromJson($request, $server->id);
 

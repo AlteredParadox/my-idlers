@@ -1016,6 +1016,10 @@ class ExportService
 
         $value = (string) $value;
 
+        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            $value = "'" . $value;
+        }
+
         // Check if the field needs quoting
         $needsQuoting = false;
 

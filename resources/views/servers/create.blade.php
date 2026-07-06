@@ -326,15 +326,11 @@
                         var hostname = document.getElementById('hostname').value;
                         if (hostname) {
                             axios
-                                .get('/api/dns/' + hostname + '/A', {
-                                    headers: {'Authorization': 'Bearer ' + document.querySelector('meta[name="api_token"]').getAttribute('content')}
-                                })
+                                .get('/tools/dns/' + encodeURIComponent(hostname) + '/A')
                                 .then(response => (this.ipv4_in = response.data.ip))
                                 .catch(error => {});
                             axios
-                                .get('/api/dns/' + hostname + '/AAAA', {
-                                    headers: {'Authorization': 'Bearer ' + document.querySelector('meta[name="api_token"]').getAttribute('content')}
-                                })
+                                .get('/tools/dns/' + encodeURIComponent(hostname) + '/AAAA')
                                 .then(response => (this.ipv6_in = response.data.ip))
                                 .catch(error => {});
                         }

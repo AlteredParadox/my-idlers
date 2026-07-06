@@ -16,7 +16,7 @@ class UsersSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@admin.com',
             'password' => Hash::make('password'),
-            'api_token' => Str::random(60),
+            'api_token' => \App\Models\User::hashApiToken(Str::random(60)),
             'email_verified_at' => Carbon::now(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),

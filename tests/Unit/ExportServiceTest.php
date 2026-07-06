@@ -257,6 +257,17 @@ class ExportServiceTest extends TestCase
         $this->assertEquals('id,name', $lines[0]);
     }
 
+    public function test_to_csv_neutralizes_spreadsheet_formulas()
+    {
+        $data = [
+            ['id' => 1, 'name' => '=HYPERLINK("https://example.com")']
+        ];
+
+        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+
+        $this->assertStringContainsString('"\'=HYPERLINK(""https://example.com"")"', $result);
+    }
+
     // ==================== flattenForCsv Tests ====================
 
     public function test_flatten_for_csv_returns_flat_array_for_simple_data()

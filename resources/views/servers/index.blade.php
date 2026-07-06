@@ -310,8 +310,6 @@
             var prometheusEnabled = {{ session('prometheus_enabled', 0) ? 'true' : 'false' }};
             var prometheusUrl = @json(session('prometheus_url', ''));
             var prometheusInterval = {{ session('prometheus_check_interval', 20) }};
-            var authToken = document.querySelector('meta[name="api_token"]').getAttribute('content');
-
             function updateStatusIcons(statuses) {
                 document.querySelectorAll('.status-check-btn').forEach(function(btn) {
                     var hostname = btn.getAttribute('data-hostname');
@@ -478,9 +476,7 @@
             }, 1000);
 
             function fetchPrometheusStatus() {
-                axios.get('/api/prometheus/status', {
-                    headers: {'Authorization': 'Bearer ' + authToken}
-                }).then(function(response) {
+                axios.get('/tools/prometheus/status').then(function(response) {
                     if (response.data.statuses) {
                         updateStatusIcons(response.data.statuses);
                     }
@@ -520,9 +516,7 @@
 
                         if (hostname) {
                             axios
-                                .get('/api/online/' + hostname, {
-                                    headers: {'Authorization': 'Bearer ' + authToken}
-                                })
+                                .get('/tools/online/' + encodeURIComponent(hostname))
                                 .then(response => (this.status = response.data.is_online))
                                 .finally(() => {
                                     icon.classList.remove('text-success', 'text-danger');

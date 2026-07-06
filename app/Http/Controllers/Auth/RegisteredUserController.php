@@ -49,7 +49,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'api_token' => Str::random(60)
+            'api_token' => User::hashApiToken(Str::random(60))
         ]);
 
         event(new Registered($user));
