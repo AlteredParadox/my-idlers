@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-11.48-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.2.0-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -65,6 +65,46 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## 4.2.0 changes (July 2026):
+
+**Framework upgrade — Laravel 11 → 13**
+
+* Upgraded Laravel `11.48` → `12.62` → `13.18` (staged, one major at a time), on PHP 8.4
+* Upgraded PHPUnit `11` → `12`, Tinker `2` → `3`; refreshed all Composer dependencies
+* Renamed the CSRF middleware `VerifyCsrfToken` → `PreventRequestForgery` (Laravel 13 rename;
+  adds `Sec-Fetch-Site` origin verification on top of token checking)
+* Removed the unused `yajra/laravel-datatables-oracle` package — DataTables is used client-side
+  only, so it was server-side dead weight (and the sole dependency forcing a major bump each hop)
+* Verified across the whole upgrade: full test suite green on both SQLite and MySQL,
+  `config:cache`/`route:cache`/`view:cache`, migrations from zero, and a real file-cache
+  round-trip of eager-loaded model collections (the production cache path the test suite,
+  which uses the array driver, can't otherwise exercise)
+
+**Security & data-integrity hardening**
+
+An extensive multi-pass review (internal + cross-model) hardened every write path. Highlights:
+
+* **Input validation parity across web forms, the REST API, and CSV import** — closed-set fields
+  (server/payment terms, RAM/disk units, booleans) constrained to their real domains; a
+  convertible-currency allow-list (unknown or unrated currencies are rejected rather than
+  silently converted 1:1 as USD); price and capacity fields bounded to mirror the forms and
+  column limits. The three surfaces now share one set of rule definitions
+* **CSV import made strict** — every column is parsed from its raw string *before* casting and
+  validated against the same invariants the UI enforces; a rejected row is reported and creates
+  nothing (no orphaned provider/location/OS catalog rows), all inside a per-row transaction
+* **XSS / request-safety fixes** — the shared delete-confirmation modal no longer renders a
+  service name via `v-html` (stored-XSS vector) and its "No" button no longer submits the delete
+  form; Prometheus-sourced labels are rendered via `textContent`, and the ping tool rejects
+  option-style hostnames
+* **MySQL-vs-SQLite correctness** — production runs MySQL, so the test suite now runs against
+  both engines in CI; this surfaced and fixed a class of bugs invisible under SQLite
+  (string-vs-int columns, changed-vs-matched row counts, strict-mode truncation/overflow)
+* **Cache-invalidation, null-safety and API-consistency fixes** throughout — stale caches after
+  edits, 500s on missing/legacy-orphan records, and catalog endpoints returning `200 []` for
+  missing IDs are all resolved
+* **Modern `yabs.sh` compatibility** — Geekbench 6-only runs, auto-skipped fio/iperf blocks,
+  numeric uptime, and 128+ thread machines all ingest and display correctly
 
 ## 4.1.0 changes (February 2026):
 
@@ -125,7 +165,9 @@ settings page — with it disabled the app behaves like upstream.
 
 ### Test Suite
 
-The application now includes a comprehensive test suite with 150 tests and 294 assertions:
+The application includes a comprehensive test suite — 489 tests / 1488 assertions as of 4.2.0 —
+run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
+under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
 **Feature Tests:**
 - Authentication (login, registration, password reset, email verification)
@@ -376,12 +418,9 @@ Body content template
     "bandwidth": 2000,
     "ram": 2024,
     "ram_type": "MB",
-    "ram_as_mb": 2024,
     "disk": 30,
     "disk_type": "GB",
-    "disk_as_gb": 30,
     "cpu": 2,
-    "has_yabs": 0,
     "was_promo": 1,
     "ip1": "127.0.0.1",
     "ip2": null,
@@ -389,11 +428,18 @@ Body content template
     "currency": "USD",
     "price": 4.00,
     "payment_term": 1,
-    "as_usd": 4.00,
-    "usd_per_month": 4.00,
     "next_due_date": "2022-02-01"
 }
 ```
+
+Validation notes (as of 4.2.0):
+
+* `ram_as_mb` / `disk_as_gb` / `as_usd` / `usd_per_month` are **derived server-side** from
+  `ram`/`ram_type`, `disk`/`disk_type` and `price`/`currency` — don't send them (any supplied
+  value is ignored so the stored figures can't contradict their source fields)
+* `server_type` and `payment_term` must be `1`–`7`; `ram_type` is `MB`/`GB`, `disk_type` is
+  `GB`/`TB`; `active`/`show_public`/`was_promo`/`transferrable` are `0`/`1`
+* `currency` must be a currently-convertible code; `price` and capacity fields must be `>= 0`
 
 **PUT requests**
 
@@ -418,12 +464,9 @@ Body content template
     "bandwidth": 2000,
     "ram": 2024,
     "ram_type": "MB",
-    "ram_as_mb": 2024,
     "disk": 30,
     "disk_type": "GB",
-    "disk_as_gb": 30,
     "cpu": 2,
-    "has_yabs": 0,
     "was_promo": 1,
     "owned_since": "2022-01-01"
 }
