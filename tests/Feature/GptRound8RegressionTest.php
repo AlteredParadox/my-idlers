@@ -122,6 +122,11 @@ class GptRound8RegressionTest extends TestCase
             ->transformSeedboxForExport($seedbox);
         $this->assertSame('192.0.2.80', $exported['ips'][0]['address']);
         $this->assertContains('ips', (new \App\Services\ExportTransformer())->getSeedboxCsvHeaders());
+
+        // The combined export has its OWN eager-load list (GPT round 11:
+        // sibling site) — the JSON must carry the seedbox IPs too.
+        $all = json_decode((new \App\Services\ExportService())->exportAll('json')['data'], true);
+        $this->assertSame('192.0.2.80', $all['seedboxes'][0]['ips'][0]['address']);
     }
 
     public function test_catalog_get_by_id_returns_404_for_missing_rows()
