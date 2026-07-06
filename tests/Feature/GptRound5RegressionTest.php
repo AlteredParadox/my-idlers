@@ -128,15 +128,16 @@ class GptRound5RegressionTest extends TestCase
         $this->assertSame(0, Server::count());
     }
 
-    public function test_valid_non_usd_currency_and_zero_price_still_accepted()
+    public function test_fallback_currency_and_zero_price_still_accepted()
     {
-        // JPY isn't in the offline fallback rate list — validation must not
-        // depend on the exchange-rate API being reachable. Zero price is
-        // legitimate (free service).
+        // With rates unavailable (test env), the explicit fallbacks stay
+        // accepted; zero price is legitimate (free service). GPT round 6
+        // overruled the earlier accept-any-ISO stance: valid-but-unrated
+        // codes (JPY here) are rejected — see GptRound6RegressionTest.
         $this->actingAs($this->user)->post(route('servers.store'), $this->webServerPayload([
-            'currency' => 'JPY', 'price' => 0,
+            'currency' => 'EUR', 'price' => 0,
         ]))->assertRedirect(route('servers.index'));
 
-        $this->assertDatabaseHas('pricings', ['currency' => 'JPY', 'price' => 0.00]);
+        $this->assertDatabaseHas('pricings', ['currency' => 'EUR', 'price' => 0.00]);
     }
 }
