@@ -46,7 +46,7 @@ class Server extends Model
         });
     }
 
-    public static function server(string $server_id): Server
+    public static function server(string $server_id): ?Server
     {//Single server and relationships (no using joins)
         return Cache::remember("server.$server_id", now()->addMonth(1), function () use ($server_id) {
             return Server::where('id', $server_id)

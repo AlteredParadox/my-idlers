@@ -1,0 +1,112 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Locations;
+use App\Models\OS;
+use App\Models\Providers;
+use App\Models\Settings;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Tests\TestCase;
+
+/**
+ * Regressions for the 2026-07 external code review findings:
+ * API field mapping on server create, 404s for missing records,
+ * shared-hosting db_limit persistence.
+ */
+class ApiRegressionTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private string $token;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->token = Str::random(60);
+        User::factory()->create(['api_token' => User::hashApiToken($this->token)]);
+        Providers::create(['name' => 'Test Provider']);
+        Locations::create(['name' => 'Test Location']);
+        OS::create(['name' => 'Ubuntu 22.04']);
+        Settings::create(['id' => 1]);
+    }
+
+    private function apiHeaders(): array
+    {
+        return ['Authorization' => 'Bearer ' . $this->token];
+    }
+
+    public function test_api_server_create_persists_ssh_active_and_explicit_show_public_zero()
+    {
+        $response = $this->postJson('/api/servers', [
+            'hostname' => 'api-created.example.com',
+            'server_type' => 1,
+            'os_id' => 1,
+            'provider_id' => 1,
+            'location_id' => 1,
+            'ssh_port' => 2222,
+            'ram' => 2048,
+            'ram_type' => 'MB',
+            'ram_as_mb' => 2048,
+            'disk' => 50,
+            'disk_type' => 'GB',
+            'disk_as_gb' => 50,
+            'cpu' => 2,
+            'bandwidth' => 1000,
+            'was_promo' => 0,
+            'transferrable' => 0,
+            'active' => 1,
+            'show_public' => 0,
+            'owned_since' => '2024-01-01',
+            'currency' => 'USD',
+            'price' => 5.00,
+            'payment_term' => 1,
+        ], $this->apiHeaders());
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('servers', [
+            'hostname' => 'api-created.example.com',
+            'ssh' => 2222,
+            'active' => 1,
+            'show_public' => 0, // was saved as 1 pre-fix because isset() ignored the value
+        ]);
+    }
+
+    public function test_api_missing_records_return_404_not_500()
+    {
+        foreach (['servers', 'shared', 'reseller', 'seedboxes', 'domains', 'misc', 'yabs'] as $resource) {
+            $this->getJson("/api/{$resource}/nonexistent1", $this->apiHeaders())
+                ->assertStatus(404);
+        }
+    }
+
+    public function test_shared_hosting_create_persists_db_limit()
+    {
+        $this->actingAs(User::factory()->create())->post(route('shared.store'), [
+            'domain' => 'shared.example.com',
+            'shared_type' => 'cPanel',
+            'provider_id' => 1,
+            'location_id' => 1,
+            'disk' => 10,
+            'disk_type' => 'GB',
+            'bandwidth' => 100,
+            'domains' => 5,
+            'sub_domains' => 10,
+            'email' => 20,
+            'ftp' => 5,
+            'db' => 7,
+            'was_promo' => 0,
+            'currency' => 'USD',
+            'price' => 3.00,
+            'payment_term' => 1,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('shared_hosting', [
+            'main_domain' => 'shared.example.com',
+            'db_limit' => 7, // create used to write 'db__limit' and silently drop it
+        ]);
+    }
+}

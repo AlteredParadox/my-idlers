@@ -81,10 +81,12 @@ class YabsIngestService
         try {
             $yabs_id = Str::random(8);
 
-            $this->insertYabsRow($yabs_id, $server_id, $data);
-            $this->insertDiskSpeeds($yabs_id, $server_id, $data['fio']);
-            $this->insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'], (bool)$data['net']['ipv4']);
-            $this->updateServerAfterRun($server_id, $data['cpu']['model']);
+            DB::transaction(function () use ($yabs_id, $server_id, $data) {
+                $this->insertYabsRow($yabs_id, $server_id, $data);
+                $this->insertDiskSpeeds($yabs_id, $server_id, $data['fio']);
+                $this->insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'], (bool)$data['net']['ipv4']);
+                $this->updateServerAfterRun($server_id, $data['cpu']['model']);
+            });
 
             Cache::forget("yabs.$yabs_id");
             Cache::forget("all_yabs");

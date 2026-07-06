@@ -89,7 +89,7 @@ class SharedController extends Controller
             'subdomains_limit' => $request->sub_domains,
             'email_limit' => $request->email,
             'ftp_limit' => $request->ftp,
-            'db__limit' => $request->db
+            'db_limit' => $request->db
         ]);
 
         Cache::forget('all_shared');
