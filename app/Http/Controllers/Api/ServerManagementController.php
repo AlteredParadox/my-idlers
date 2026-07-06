@@ -68,8 +68,8 @@ class ServerManagementController extends Controller
             // e.g. 'gb' into a silent 1024x disk_as_gb corruption, no error
             'ram_type' => 'required|in:MB,GB',
             'disk_type' => 'required|in:GB,TB',
-            'currency' => 'required|string|size:3',
-            'price' => 'required|numeric',
+            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
+            'price' => 'required|numeric|min:0|max:99999999',
             'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
@@ -188,8 +188,8 @@ class ServerManagementController extends Controller
             'owned_since' => 'date_format:Y-m-d',
             'ram_type' => 'in:MB,GB',
             'disk_type' => 'in:GB,TB',
-            'currency' => 'string|size:3',
-            'price' => 'numeric',
+            'currency' => 'string|size:3|' . \App\Models\Pricing::currencyRule(),
+            'price' => 'numeric|min:0|max:99999999',
             'payment_term' => 'integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
@@ -311,8 +311,8 @@ class ServerManagementController extends Controller
     public function updatePricing(Request $request, string $id)
     {
         $rules = [
-            'price' => 'required|numeric',
-            'currency' => 'required|string|size:3',
+            'price' => 'required|numeric|min:0|max:99999999',
+            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
             'term' => 'required|integer|in:1,2,3,4,5,6,7',
             'active' => 'integer|in:0,1',
             'next_due_date' => 'date_format:Y-m-d',
