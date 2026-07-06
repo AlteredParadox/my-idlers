@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -45,9 +46,13 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
+                // Also rotate the API token: a reset is how you recover from
+                // compromise, so any leaked bearer token must die with the
+                // old password.
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
+                    'api_token' => User::hashApiToken(Str::random(60)),
                 ])->save();
 
                 event(new PasswordReset($user));

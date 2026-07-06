@@ -68,4 +68,28 @@ class PasswordResetTest extends TestCase
             return true;
         });
     }
+
+    public function test_password_reset_rotates_the_api_token()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $originalToken = $user->api_token;
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $this->post('/reset-password', [
+                'token' => $notification->token,
+                'email' => $user->email,
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
+            ]);
+
+            return true;
+        });
+
+        // A leaked bearer token must not survive a password reset
+        $this->assertNotSame($originalToken, $user->fresh()->api_token);
+    }
 }

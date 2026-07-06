@@ -22,11 +22,20 @@ class RegisteredUserController extends Controller
      */
     public function create()
     {
-        $maxUsers = env('MAX_USERS', 1);
-        if ($maxUsers > 0 && User::count() >= $maxUsers) {
+        if ($this->registrationClosed()) {
             return redirect('/login');
         }
         return view('auth.register');
+    }
+
+    /**
+     * Whether the single-user (or MAX_USERS) registration cap has been reached.
+     */
+    private function registrationClosed(): bool
+    {
+        $maxUsers = (int) env('MAX_USERS', 1);
+
+        return $maxUsers > 0 && User::count() >= $maxUsers;
     }
 
     /**
@@ -39,6 +48,12 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
+        // The GET view guards on this too, but the cap MUST be enforced here:
+        // a guest can POST directly to /register without ever hitting create().
+        if ($this->registrationClosed()) {
+            abort(403, 'Registration is closed.');
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
