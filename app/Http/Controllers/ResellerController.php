@@ -31,7 +31,7 @@ class ResellerController extends Controller
     {
         $request->validate([
             'domain' => 'required|min:4|max:255',
-            'reseller_type' => 'required|string',
+            'reseller_type' => 'required|string|max:255',
             'disk' => 'integer',
             'os_id' => 'integer',
             'provider_id' => 'required|integer|exists:providers,id',
@@ -123,7 +123,7 @@ class ResellerController extends Controller
     {
         $request->validate([
             'domain' => 'required|min:4|max:255',
-            'reseller_type' => 'required|string',
+            'reseller_type' => 'required|string|max:255',
             'disk' => 'integer',
             'os_id' => 'integer',
             'provider_id' => 'required|integer|exists:providers,id',

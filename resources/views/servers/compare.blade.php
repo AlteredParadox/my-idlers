@@ -69,15 +69,23 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single, $server2_data[0]->yabs[0]->gb5_single, '') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single }}</td>
+                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single ?? '—' }}</td>
+                                @if($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null)
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single, $server2_data[0]->yabs[0]->gb5_single, '') !!}
+                                @else
+                                    <td class="text-center equal-td">—</td>
+                                @endif
+                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single ?? '—' }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi, $server2_data[0]->yabs[0]->gb5_multi, '') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi }}</td>
+                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi ?? '—' }}</td>
+                                @if($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null)
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi, $server2_data[0]->yabs[0]->gb5_multi, '') !!}
+                                @else
+                                    <td class="text-center equal-td">—</td>
+                                @endif
+                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi ?? '—' }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
@@ -151,15 +159,27 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single per USD</td>
-                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
-                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), '', false) !!}
-                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @if($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null)
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), '', false) !!}
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi per USD</td>
-                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
-                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), '', false) !!}
-                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @if($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null)
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), '', false) !!}
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Location</td>
@@ -175,9 +195,13 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Owned Since</td>
-                                <td class="text-center">{{ date_format(new DateTime($server1_data[0]->owned_since), 'F Y') }}</td>
-                                <td class="text-center equal-td">{{ \Carbon\Carbon::parse($server1_data[0]->owned_since)->diffForHumans(\Carbon\Carbon::parse($server2_data[0]->owned_since)) }}</td>
-                                <td class="text-center">{{ date_format(new DateTime($server2_data[0]->owned_since), 'F Y') }}</td>
+                                <td class="text-center">{{ $server1_data[0]->owned_since !== null ? date_format(new DateTime($server1_data[0]->owned_since), 'F Y') : '-' }}</td>
+                                @if($server1_data[0]->owned_since !== null && $server2_data[0]->owned_since !== null)
+                                    <td class="text-center equal-td">{{ \Carbon\Carbon::parse($server1_data[0]->owned_since)->diffForHumans(\Carbon\Carbon::parse($server2_data[0]->owned_since)) }}</td>
+                                @else
+                                    <td class="text-center equal-td">—</td>
+                                @endif
+                                <td class="text-center">{{ $server2_data[0]->owned_since !== null ? date_format(new DateTime($server2_data[0]->owned_since), 'F Y') : '-' }}</td>
                             </tr>
                         </tbody>
                     </table>
