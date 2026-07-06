@@ -31,7 +31,7 @@ class SeedBoxesController extends Controller
         $request->validate([
             'title' => 'required|string|min:2|max:255',
             'hostname' => 'sometimes|nullable|string|min:2|max:255',
-            'seed_box_type' => 'required|string',
+            'seed_box_type' => 'required|string|max:255',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',
@@ -100,7 +100,7 @@ class SeedBoxesController extends Controller
         $request->validate([
             'title' => 'required|string|min:2|max:255',
             'hostname' => 'sometimes|nullable|string|min:2|max:255',
-            'seed_box_type' => 'required|string',
+            'seed_box_type' => 'required|string|max:255',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',

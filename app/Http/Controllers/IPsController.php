@@ -55,7 +55,9 @@ class IPsController extends Controller
             $ip = IPs::create([
                 'id' => $ip_id,
                 'address' => $request->address,
-                'is_ipv4' => ($request->ip_type === 'ipv4') ? 1 : 0,
+                // Derive from the address itself — the pre-selected dropdown let an
+                // IPv6 paste be stored (and publicly rendered) as IPv4
+                'is_ipv4' => (filter_var($request->address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) ? 0 : 1,
                 'service_id' => $request->service_id,
                 'active' => 1
             ]);
