@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Domains;
 use App\Models\Providers;
+use App\Models\Reseller;
+use App\Models\SeedBoxes;
+use App\Models\Server;
+use App\Models\Shared;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -44,6 +49,17 @@ class ProvidersController extends Controller
 
     public function destroy(Providers $provider)
     {
+        $inUse = Server::where('provider_id', $provider->id)->exists()
+            || Shared::where('provider_id', $provider->id)->exists()
+            || Reseller::where('provider_id', $provider->id)->exists()
+            || SeedBoxes::where('provider_id', $provider->id)->exists()
+            || Domains::where('provider_id', $provider->id)->exists();
+
+        if ($inUse) {
+            return redirect()->route('providers.index')
+                ->with('error', 'Cannot delete a provider that is assigned to services.');
+        }
+
         if ($provider->delete()) {
             Cache::forget('providers');
 
