@@ -22,6 +22,14 @@ class Process
         return ($this->endTime - $this->startTime) * 100;
     }
 
+    // Guards the per-USD compare rows: usd_per_month is 0 for one-time/lifetime
+    // terms and for free ($0) services, and dividing by it would fatal (PHP 8
+    // DivisionByZeroError).
+    public static function safeDivide(float $numerator, float $denominator): float
+    {
+        return $denominator != 0.0 ? $numerator / $denominator : 0.0;
+    }
+
     public static function paymentTermIntToString(int $term): string
     {
         return match ($term) {

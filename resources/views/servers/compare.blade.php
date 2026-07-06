@@ -127,39 +127,39 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Actual Price</td>
-                                <td class="text-center">{{ $server1_data[0]->price->price }}<span class="data-type">{{ $server1_data[0]->currency }}</span> {{ \App\Process::paymentTermIntToString($server1_data[0]->price->term) }}</td>
+                                <td class="text-center">{{ $server1_data[0]->price->price }}<span class="data-type">{{ $server1_data[0]->price->currency }}</span> {{ \App\Process::paymentTermIntToString($server1_data[0]->price->term) }}</td>
                                 <td class="text-center equal-td">—</td>
                                 <td class="text-center">{{ $server2_data[0]->price->price }}<span class="data-type">{{ $server2_data[0]->price->currency }}</span> {{ \App\Process::paymentTermIntToString($server2_data[0]->price->term) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">CPU per USD</td>
-                                <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->cpu_cores / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->cpu_cores / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->cpu_cores / $server2_data[0]->price->usd_per_month, '') !!}
-                                <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->cpu_cores / $server2_data[0]->price->usd_per_month, 2) }}</td>
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->cpu_cores, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->cpu_cores, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->cpu_cores, $server2_data[0]->price->usd_per_month), '') !!}
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->cpu_cores, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Disk GB per USD</td>
-                                <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->disk_gb / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_gb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->disk_gb / $server2_data[0]->price->usd_per_month, '') !!}
-                                <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->disk_gb / $server2_data[0]->price->usd_per_month, 2) }}</td>
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->disk_gb, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->disk_gb, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->disk_gb, $server2_data[0]->price->usd_per_month), '') !!}
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->disk_gb, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">RAM MB per USD</td>
-                                <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->ram_mb / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->ram_mb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->ram_mb / $server2_data[0]->price->usd_per_month, '') !!}
-                                <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->ram_mb / $server2_data[0]->price->usd_per_month, 2) }}</td>
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->ram_mb, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->ram_mb, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->ram_mb, $server2_data[0]->price->usd_per_month), '') !!}
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->ram_mb, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single per USD</td>
-                                <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->gb5_single / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_single / $server2_data[0]->price->usd_per_month, '') !!}
-                                <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->gb5_single / $server2_data[0]->price->usd_per_month, 2) }}</td>
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), '') !!}
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi per USD</td>
-                                <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->gb5_multi / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_multi / $server2_data[0]->price->usd_per_month, '') !!}
-                                <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->gb5_multi / $server2_data[0]->price->usd_per_month, 2) }}</td>
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), '') !!}
+                                <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Location</td>
