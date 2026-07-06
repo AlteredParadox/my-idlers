@@ -19,6 +19,13 @@ class Domains extends Model
 
     protected $fillable = ['id', 'active', 'domain', 'extension', 'ns1', 'ns2', 'ns3', 'price', 'currency', 'payment_term', 'owned_since', 'provider_id', 'next_due_date', 'transferrable'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'active' => 'integer',
+        'transferrable' => 'integer',
+    ];
+
 
     public static function allDomains()
     {//All domains and relationships (no using joins)

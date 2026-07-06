@@ -61,7 +61,13 @@ class Home extends Model
                 })
                 ->orderBy('next_due_date', 'ASC')
                 ->limit(Session::get('due_soon_amount'))
-                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title']);
+                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title'])
+                ->map(function ($row) {
+                    // Raw DB rows arrive as strings under MySQL; the views compare
+                    // service_type strictly (=== 1), so normalize to int here.
+                    $row->service_type = (int) $row->service_type;
+                    return $row;
+                });
         });
     }
 
@@ -101,7 +107,11 @@ class Home extends Model
                 ->where('p.active', 1)
                 ->orderBy('created_at', 'DESC')
                 ->limit(Session::get('recently_added_amount'))
-                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title']);
+                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title'])
+                ->map(function ($row) {
+                    $row->service_type = (int) $row->service_type;
+                    return $row;
+                });
         });
     }
 
@@ -142,7 +152,7 @@ class Home extends Model
         }
 
         if ($altered_due_soon === 1) {//Made changes to due soon so re-write it
-            Cache::put('due_soon', $due_soon);
+            Cache::put('due_soon', $due_soon, now()->addHours(6));//keep the original 6h TTL
         }
 
         return $due_soon;

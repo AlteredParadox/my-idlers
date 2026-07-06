@@ -20,6 +20,14 @@ class SeedBoxes extends Model
 
     protected $fillable = ['id', 'active', 'title', 'hostname', 'seed_box_type', 'provider_id', 'location_id', 'bandwidth', 'port_speed', 'disk', 'disk_type', 'disk_as_gb', 'was_promo', 'transferrable', 'owned_since'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'active' => 'integer',
+        'was_promo' => 'integer',
+        'transferrable' => 'integer',
+    ];
+
     protected static function boot()
     {
         parent::boot();

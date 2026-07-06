@@ -49,7 +49,13 @@ class LabelsController extends Controller
             ->leftJoin('reseller_hosting as r', 'las.service_id', 'r.id')
             ->leftJoin('domains as d', 'las.service_id', 'd.id')
             ->where('las.label_id', $label->id)
-            ->get(['p.service_type', 'p.service_id', 's.hostname', 'sh.main_domain as shared', 'r.main_domain as reseller', 'd.domain', 'd.extension']);
+            ->get(['p.service_type', 'p.service_id', 's.hostname', 'sh.main_domain as shared', 'r.main_domain as reseller', 'd.domain', 'd.extension'])
+            ->map(function ($row) {
+                // Raw DB rows arrive as strings under MySQL; the view compares
+                // service_type strictly (=== 1..4), so normalize to int here.
+                $row->service_type = (int) $row->service_type;
+                return $row;
+            });
 
         return view('labels.show', compact(['label', 'labels']));
     }

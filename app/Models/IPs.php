@@ -19,6 +19,13 @@ class IPs extends Model
 
     protected $fillable = ['id', 'service_id', 'address', 'is_ipv4', 'active', 'continent', 'country', 'region', 'city', 'org', 'isp', 'asn', 'timezone_gmt', 'fetched_at'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'is_ipv4' => 'integer',
+        'active' => 'integer',
+    ];
+
     public $incrementing = false;
 
     public static function deleteIPsAssignedTo($service_id): void

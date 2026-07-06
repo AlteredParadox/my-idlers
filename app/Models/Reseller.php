@@ -19,6 +19,14 @@ class Reseller extends Model
 
     protected $fillable = ['id', 'active', 'accounts', 'main_domain', 'has_dedicated_ip', 'ip', 'reseller_type', 'provider_id', 'location_id', 'bandwidth', 'link_speed', 'disk', 'disk_type', 'disk_as_gb', 'domains_limit', 'subdomains_limit', 'ftp_limit', 'email_limit', 'db_limit', 'was_promo', 'transferrable', 'owned_since'];
 
+    // MySQL returns tinyint/int columns as strings; cast so the strict
+    // `=== 1` checks in the edit/detail views work in production.
+    protected $casts = [
+        'active' => 'integer',
+        'was_promo' => 'integer',
+        'transferrable' => 'integer',
+    ];
+
     public $incrementing = false;
 
     protected static function boot()
