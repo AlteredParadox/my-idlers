@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class DNSController extends Controller
 {
@@ -31,16 +32,34 @@ class DNSController extends Controller
         return view('dns.create', compact(['servers', 'domains', 'shareds', 'resellers']));
     }
 
+    /**
+     * The DNS create/edit selects submit the literal string 'null' for an
+     * unlinked service; otherwise the value must be a real id in $table.
+     * Without this a forged request stored dangling ids that 404 on the
+     * show page's relation links.
+     */
+    private function serviceIdRule(string $table): \Closure
+    {
+        return function (string $attribute, $value, \Closure $fail) use ($table) {
+            if ($value === null || $value === 'null' || $value === '') {
+                return;
+            }
+            if (!\DB::table($table)->where('id', $value)->exists()) {
+                $fail("The selected {$attribute} does not exist.");
+            }
+        };
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'hostname' => 'required|string|min:2|max:255',
             'address' => 'required|string|min:2|max:255',
-            'dns_type' => 'required|string|max:255',
-            'server_id' => 'sometimes|nullable|string|max:8',
-            'shared_id' => 'sometimes|nullable|string|max:8',
-            'reseller_id' => 'sometimes|nullable|string|max:8',
-            'domain_id' => 'sometimes|nullable|string|max:8',
+            'dns_type' => ['required', 'string', Rule::in(DNS::$dnsTypes)],
+            'server_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('servers')],
+            'shared_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('shared_hosting')],
+            'reseller_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('reseller_hosting')],
+            'domain_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('domains')],
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
             'label3' => 'sometimes|nullable|string|exists:labels,id',
@@ -100,11 +119,11 @@ class DNSController extends Controller
         $request->validate([
             'hostname' => 'required|string|min:2|max:255',
             'address' => 'required|string|min:2|max:255',
-            'dns_type' => 'required|string|max:255',
-            'server_id' => 'sometimes|nullable|string|max:8',
-            'shared_id' => 'sometimes|nullable|string|max:8',
-            'reseller_id' => 'sometimes|nullable|string|max:8',
-            'domain_id' => 'sometimes|nullable|string|max:8',
+            'dns_type' => ['required', 'string', Rule::in(DNS::$dnsTypes)],
+            'server_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('servers')],
+            'shared_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('shared_hosting')],
+            'reseller_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('reseller_hosting')],
+            'domain_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('domains')],
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
             'label3' => 'sometimes|nullable|string|exists:labels,id',

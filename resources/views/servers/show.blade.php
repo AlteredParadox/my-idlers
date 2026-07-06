@@ -194,13 +194,49 @@
                 var color = diskBarColor(d.used_pct);
                 var col = document.createElement('div');
                 col.className = 'col-12 col-md-6 col-lg-4';
-                col.innerHTML =
-                    '<div class="disk-card-prom">' +
-                    '<div class="disk-header"><span>' + d.mountpoint + '</span><span style="color:' + color + '">' + d.used_pct + '%</span></div>' +
-                    '<div class="disk-meta">' + d.device + ' &middot; ' + d.fstype + '</div>' +
-                    '<div class="disk-bar-bg"><div class="disk-bar-fill" style="width:' + d.used_pct + '%;background:' + color + '"></div></div>' +
-                    '<div class="disk-sizes"><span>' + fmtBytes(used) + ' used</span><span>' + fmtBytes(d.size) + ' total</span></div>' +
-                    '</div>';
+
+                // Build with textContent, not innerHTML: mountpoint/device/fstype
+                // are Prometheus node_exporter labels — trusted today, but an
+                // injected filesystem label must never execute here.
+                var card = document.createElement('div');
+                card.className = 'disk-card-prom';
+
+                var header = document.createElement('div');
+                header.className = 'disk-header';
+                var mount = document.createElement('span');
+                mount.textContent = d.mountpoint;
+                var pct = document.createElement('span');
+                pct.style.color = color;
+                pct.textContent = d.used_pct + '%';
+                header.appendChild(mount);
+                header.appendChild(pct);
+
+                var meta = document.createElement('div');
+                meta.className = 'disk-meta';
+                meta.textContent = d.device + ' · ' + d.fstype;
+
+                var barBg = document.createElement('div');
+                barBg.className = 'disk-bar-bg';
+                var barFill = document.createElement('div');
+                barFill.className = 'disk-bar-fill';
+                barFill.style.width = d.used_pct + '%';
+                barFill.style.background = color;
+                barBg.appendChild(barFill);
+
+                var sizes = document.createElement('div');
+                sizes.className = 'disk-sizes';
+                var usedSpan = document.createElement('span');
+                usedSpan.textContent = fmtBytes(used) + ' used';
+                var totalSpan = document.createElement('span');
+                totalSpan.textContent = fmtBytes(d.size) + ' total';
+                sizes.appendChild(usedSpan);
+                sizes.appendChild(totalSpan);
+
+                card.appendChild(header);
+                card.appendChild(meta);
+                card.appendChild(barBg);
+                card.appendChild(sizes);
+                col.appendChild(card);
                 container.appendChild(col);
             });
         }

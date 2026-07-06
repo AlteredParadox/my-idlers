@@ -79,6 +79,13 @@ class DnsTest extends TestCase
     {
         // shared_id/reseller_id were missing from $fillable, so mass assignment
         // silently dropped them and the association never saved.
+        \App\Models\Pricing::create([
+            'service_id' => 'shared01', 'service_type' => 2, 'currency' => 'USD',
+            'price' => 5.00, 'term' => 1, 'as_usd' => 5.00, 'usd_per_month' => 5.00,
+            'next_due_date' => now()->addMonth()->format('Y-m-d'),
+        ]);
+        \App\Models\Shared::create(['id' => 'shared01', 'main_domain' => 'assoc-host.example.com', 'shared_type' => 'cPanel']);
+
         $this->actingAs($this->user)->post(route('dns.store'), [
             'hostname' => 'assoc.example.com',
             'address' => '10.0.0.5',

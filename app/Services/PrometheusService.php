@@ -113,7 +113,7 @@ class PrometheusService
                 continue;
             }
 
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $instance . '"}[30d])');
+            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $this->promQuote($instance) . '"}[30d])');
             if (isset($data[0]['metric']['nodename'])) {
                 $hostnames[$instance] = $data[0]['metric']['nodename'];
             }
@@ -151,7 +151,7 @@ class PrometheusService
         $now = time();
         foreach (self::OFFLINE_TIERS as [$lookback, $step]) {
             $offlineSince = null;
-            $results = $this->client->rangeQuery('up{job="node",instance="' . $instance . '"}', $now - $lookback, $now, $step);
+            $results = $this->client->rangeQuery('up{job="node",instance="' . $this->promQuote($instance) . '"}', $now - $lookback, $now, $step);
             foreach ($results[0]['values'] ?? [] as [$ts, $val]) {
                 if ($val === '1') {
                     $offlineSince = (float)$ts;
@@ -263,7 +263,7 @@ class PrometheusService
             if ($instance === '' || $this->isUp($r)) {
                 continue;
             }
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $instance . '"}[30d])');
+            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $this->promQuote($instance) . '"}[30d])');
             if (isset($data[0]['metric']['nodename']) && $this->hostMatches($hostname, $data[0]['metric']['nodename'])) {
                 return $instance;
             }
@@ -292,8 +292,19 @@ class PrometheusService
             || str_starts_with($stored, $candidate . '.');
     }
 
+    /**
+     * Escape a label value for safe embedding in a PromQL `instance="..."`
+     * string literal. Prometheus instance labels are admin-controlled in
+     * practice, but a stray quote or backslash would break the selector.
+     */
+    private function promQuote(string $value): string
+    {
+        return str_replace(['\\', '"', "\n"], ['\\\\', '\\"', '\\n'], $value);
+    }
+
     private function detailQueries(string $inst, int $step): array
     {
+        $inst = $this->promQuote($inst);
         $ri = max($step * 2, 120) . 's';
         $fstypes = self::FSTYPES;
         $netExclude = self::NET_DEVICE_EXCLUDE;
@@ -361,6 +372,7 @@ class PrometheusService
 
     private function filesystemInfo(string $inst): array
     {
+        $inst = $this->promQuote($inst);
         $fstypes = self::FSTYPES;
         $sizeResults = $this->client->query("node_filesystem_size_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"{$fstypes}\"}");
         $availResults = $this->client->query("node_filesystem_avail_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"{$fstypes}\"}");
