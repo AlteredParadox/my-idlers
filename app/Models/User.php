@@ -30,6 +30,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'api_token',
         'remember_token',
     ];
 
@@ -41,4 +42,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function hashApiToken(string $token): string
+    {
+        return hash('sha256', $token);
+    }
+
+    public function rotateApiToken(): string
+    {
+        $token = \Illuminate\Support\Str::random(60);
+        $this->api_token = self::hashApiToken($token);
+        $this->save();
+
+        return $token;
+    }
 }

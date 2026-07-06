@@ -77,7 +77,7 @@ Route::middleware('auth:api')->get('prometheus/detail/{hostname}/{period}/{back}
 
 Route::middleware('auth:api')->get('dns/{domainName}/{type}', 'App\Http\Controllers\ApiController@getIpForDomain');
 
-Route::middleware('throttle:4')->post('yabs/{server}/{key}', 'App\Http\Controllers\ApiController@storeYabs')->name('api.store-yabs');
+Route::middleware(['throttle:4', 'signed'])->post('yabs/{server}', 'App\Http\Controllers\ApiController@storeYabs')->name('api.store-yabs');
 Route::middleware('auth:api')->get('yabs/', 'App\Http\Controllers\ApiController@getAllYabs');
 Route::middleware('auth:api')->get('yabs/{id}', 'App\Http\Controllers\ApiController@getYabs');
 
