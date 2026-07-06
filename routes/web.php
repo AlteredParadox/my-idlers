@@ -35,17 +35,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('domains', DomainsController::class);
 
-    Route::resource('IPs', IPsController::class)->parameters(['IPs' => 'ip']);
+    Route::resource('IPs', IPsController::class)->parameters(['IPs' => 'ip'])->only(['index', 'create', 'store', 'destroy']);//no show/edit/update methods exist
 
     Route::resource('labels', LabelsController::class)->only(['index', 'create', 'store', 'show', 'destroy']);//no edit/update methods exist
 
-    Route::resource('locations', LocationsController::class);
+    Route::resource('locations', LocationsController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
     Route::resource('misc', MiscController::class);
 
-    Route::resource('os', OsController::class);
+    Route::resource('os', OsController::class)->only(['index', 'create', 'store', 'destroy']);
 
-    Route::resource('providers', ProvidersController::class);
+    Route::resource('providers', ProvidersController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
     Route::resource('reseller', ResellerController::class);
 
@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('shared', SharedController::class);
 
-    Route::resource('yabs', YabsController::class);
+    Route::resource('yabs', YabsController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
     Route::resource('notes', NoteController::class);
 
