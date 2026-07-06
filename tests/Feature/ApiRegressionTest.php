@@ -115,6 +115,15 @@ class ApiRegressionTest extends TestCase
         $this->assertContains('USD', $currencies);
     }
 
+    public function test_api_update_pricing_missing_id_returns_404_not_500()
+    {
+        // A missing id used to make ->update() return 0 changed rows -> the
+        // controller reported failure (500); it should be 404.
+        $this->putJson('/api/pricing/99999', [
+            'price' => 5.00, 'currency' => 'USD', 'term' => 1,
+        ], $this->apiHeaders())->assertStatus(404);
+    }
+
     public function test_api_missing_records_return_404_not_500()
     {
         foreach (['servers', 'shared', 'reseller', 'seedbox', 'domains', 'misc', 'yabs'] as $resource) {

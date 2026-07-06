@@ -146,7 +146,9 @@ class YabsIngestService
     /** YABS reports disk in KB; store as GB or TB */
     private function scaleDisk($disk): array
     {
-        if ($disk > 100000000) {
+        // $disk is in KB; ~1 TB boundary (was 100000000 ≈ 95 GB, which pushed
+        // every normal VPS disk into the fractional-TB branch).
+        if ($disk > 1000000000) {
             return [$disk / 1024 / 1024 / 1024, 'TB'];
         }
         return [$disk / 1024 / 1024, 'GB'];

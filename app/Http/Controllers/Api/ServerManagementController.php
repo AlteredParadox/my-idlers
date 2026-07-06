@@ -189,16 +189,19 @@ class ServerManagementController extends Controller
             $updateData['ssh'] = $request->integer('ssh_port');
         }
 
-        $server_update = Server::where('id', $id)->update($updateData);
+        if (!Server::where('id', $id)->exists()) {
+            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+        }
+
+        // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
+        // reports 0 for an idempotent re-save, so success is keyed on existence,
+        // not the dirty count.
+        Server::where('id', $id)->update($updateData);
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($id);
 
-        if ($server_update) {
-            return response()->json(array('result' => 'success', 'server_id' => $id), 200);
-        }
-
-        return response()->json(array('result' => 'fail'), 500);
+        return response()->json(array('result' => 'success', 'server_id' => $id), 200);
     }
 
 
@@ -238,19 +241,19 @@ class ServerManagementController extends Controller
         }
 
         $service_id = Pricing::where('id', $id)->value('service_id');
-        $price_update = Pricing::where('id', $id)->update($updateData);
+        if (is_null($service_id)) {
+            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+        }
+
+        // Success is keyed on existence, not update()'s changed-row count (0 on
+        // an idempotent re-save under MySQL).
+        Pricing::where('id', $id)->update($updateData);
 
         Cache::forget("all_pricing");
         Server::serverRelatedCacheForget();
-        if ($service_id) {
-            Server::serverSpecificCacheForget($service_id);
-        }
+        Server::serverSpecificCacheForget($service_id);
 
-        if ($price_update) {
-            return response()->json(array('result' => 'success', 'server_id' => $id), 200);
-        }
-
-        return response()->json(array('result' => 'fail'), 500);
+        return response()->json(array('result' => 'success', 'server_id' => $id), 200);
     }
 
 
