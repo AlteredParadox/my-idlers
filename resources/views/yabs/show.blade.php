@@ -107,6 +107,25 @@
                                 </div>
                             </div>
                         </div>
+                        @if($yabs->gb6_single !== null || $yabs->gb6_multi !== null)
+                        <div class="detail-section-header">
+                            <h6 class="detail-section-title">Geekbench 6</h6>
+                        </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Single Core</span>
+                                    <span class="detail-value">@if($yabs->gb6_id)<a href="https://browser.geekbench.com/v6/cpu/{{ $yabs->gb6_id }}">{{ $yabs->gb6_single }}</a>@else {{ $yabs->gb6_single }} @endif</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Multi Core</span>
+                                    <span class="detail-value">@if($yabs->gb6_id)<a href="https://browser.geekbench.com/v6/cpu/{{ $yabs->gb6_id }}">{{ $yabs->gb6_multi }}</a>@else {{ $yabs->gb6_multi }} @endif</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <div class="detail-section-header">
                             <h6 class="detail-section-title">Disk Speed</h6>

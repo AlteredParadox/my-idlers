@@ -611,6 +611,7 @@ class ExportTransformer
             4 => 'Yearly',
             5 => 'Biennially',
             6 => 'Triennially',
+            7 => 'One time',
             default => 'Unknown'
         };
     }
