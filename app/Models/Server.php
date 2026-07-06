@@ -87,57 +87,36 @@ class Server extends Model
 
     public static function serviceServerType(int $type, bool $short = true): string
     {
-        if ($type === 1) {
-            return "KVM";
-        } elseif ($type === 2) {
-            return "OVZ";
-        } elseif ($type === 3) {
-            if (!$short) {
-                return "Dedicated";
-            }
-            return "DEDI";
-        } elseif ($type === 4) {
-            return "LXC";
-        } elseif ($type === 6) {
-            return "VMware";
-        } elseif ($type === 7) {
-            return "NAT";
-        } else {
-            if (!$short) {
-                return "Semi-dedicated";
-            }
-            return "SEMI-DEDI";
-        }
+        return match ($type) {
+            1 => "KVM",
+            2 => "OVZ",
+            3 => $short ? "DEDI" : "Dedicated",
+            4 => "LXC",
+            6 => "VMware",
+            7 => "NAT",
+            default => $short ? "SEMI-DEDI" : "Semi-dedicated",
+        };
     }
 
     public static function osIntToIcon(int $os, string $os_name): string
     {
         $name = strtolower(str_replace(' ', '', $os_name));
-        if ($name === "none") {//None
-            return "<i class='fas fa-expand' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "centos")) {//CentOS
-            return "<i class='fa-brands fa-centos os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "debian")) {//Debian
-            return "<i class='fa-brands fa-debian os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "fedora")) {//Fedora
-            return "<i class='fa-brands fa-fedora os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "freebsd")) {//FreeBSD
-            return "<i class='fa-brands fa-freebsd os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "openbsd")) {//OpenBSD
-            return "<i class='fa-brands fa-linux os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "ubuntu")) {//Ubuntu
-            return "<i class='fa-brands fa-ubuntu os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "windows")) {//Windows
-            return "<i class='fa-brands fa-windows os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "opensuse")) {//OpenSUSE
-            return "<i class='fa-brands fa-opensuse os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "redhat")) {//Red Hat
-            return "<i class='fa-brands fa-redhat os-icon' title='{$os_name}'></i>";
-        } elseif (str_contains($name, "linux")) {//Linux
-            return "<i class='fa-brands fa-linux os-icon' title='{$os_name}'></i>";
-        } else {//OTHER ISO CUSTOM etc
-            return "<i class='fa-solid fa-compact-disc os-icon' title='{$os_name}'></i>";
-        }
+        $icon = match (true) {
+            $name === "none" => "fas fa-expand",
+            str_contains($name, "centos") => "fa-brands fa-centos os-icon",
+            str_contains($name, "debian") => "fa-brands fa-debian os-icon",
+            str_contains($name, "fedora") => "fa-brands fa-fedora os-icon",
+            str_contains($name, "freebsd") => "fa-brands fa-freebsd os-icon",
+            str_contains($name, "openbsd") => "fa-brands fa-linux os-icon",
+            str_contains($name, "ubuntu") => "fa-brands fa-ubuntu os-icon",
+            str_contains($name, "windows") => "fa-brands fa-windows os-icon",
+            str_contains($name, "opensuse") => "fa-brands fa-opensuse os-icon",
+            str_contains($name, "redhat") => "fa-brands fa-redhat os-icon",
+            str_contains($name, "linux") => "fa-brands fa-linux os-icon",
+            default => "fa-solid fa-compact-disc os-icon",//OTHER ISO CUSTOM etc
+        };
+
+        return "<i class='{$icon}' title='{$os_name}'></i>";
     }
 
     public static function tableRowCompare(string $val1, string $val2, string $value_type = '', bool $is_int = true): string

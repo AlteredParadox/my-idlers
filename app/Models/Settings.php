@@ -55,28 +55,18 @@ class Settings extends Model
 
     public static function orderByProcess(int $value): array
     {
-        if ($value === 1) {//created_at ASC
-            return ['created_at', 'asc'];
-        } elseif ($value === 2) {//created_at DESC
-            return ['created_at', 'desc'];
-        } elseif ($value === 3) {//next_due_date ASC
-            return ['next_due_date', 'asc'];
-        } elseif ($value === 4) {//next_due_date DESC
-            return ['next_due_date', 'desc'];
-        } elseif ($value === 5) {//as_usd ASC
-            return ['as_usd', 'asc'];
-        } elseif ($value === 6) {//as_usd DESC
-            return ['as_usd', 'desc'];
-        } elseif ($value === 7) {//owned_since ASC
-            return ['owned_since', 'asc'];
-        } elseif ($value === 8) {//owned_since DESC
-            return ['owned_since', 'desc'];
-        } elseif ($value === 9) {//updated_at ASC
-            return ['updated_at', 'asc'];
-        } elseif ($value === 10) {//updated_at DESC
-            return ['updated_at', 'desc'];
-        }
-        return ['created_at', 'desc'];
+        return match ($value) {
+            1 => ['created_at', 'asc'],
+            3 => ['next_due_date', 'asc'],
+            4 => ['next_due_date', 'desc'],
+            5 => ['as_usd', 'asc'],
+            6 => ['as_usd', 'desc'],
+            7 => ['owned_since', 'asc'],
+            8 => ['owned_since', 'desc'],
+            9 => ['updated_at', 'asc'],
+            10 => ['updated_at', 'desc'],
+            default => ['created_at', 'desc'],
+        };
     }
 
 }

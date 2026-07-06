@@ -11,6 +11,7 @@ class YabsSeeder extends Seeder
 {
     public function run(): void
     {
+        $dateFormat = 'Y-m-d H:i:s';
         // Get server IDs that exist
         $servers = DB::table('servers')->pluck('id')->toArray();
         
@@ -33,7 +34,7 @@ class YabsSeeder extends Seeder
                 'has_ipv6' => 1,
                 'aes' => 1,
                 'vm' => 1,
-                'output_date' => Carbon::now()->subDays(7)->format('Y-m-d H:i:s'),
+                'output_date' => Carbon::now()->subDays(7)->format($dateFormat),
                 'cpu_cores' => 4,
                 'cpu_freq' => 2300,
                 'cpu_model' => 'AMD EPYC 7642 48-Core Processor',
@@ -134,7 +135,7 @@ class YabsSeeder extends Seeder
                 'has_ipv6' => 1,
                 'aes' => 1,
                 'vm' => 1,
-                'output_date' => Carbon::now()->subDays(14)->format('Y-m-d H:i:s'),
+                'output_date' => Carbon::now()->subDays(14)->format($dateFormat),
                 'cpu_cores' => 8,
                 'cpu_freq' => 2100,
                 'cpu_model' => 'Intel Xeon E5-2680 v4',
@@ -220,7 +221,7 @@ class YabsSeeder extends Seeder
                 'has_ipv6' => 1,
                 'aes' => 1,
                 'vm' => 1,
-                'output_date' => Carbon::now()->subDays(3)->format('Y-m-d H:i:s'),
+                'output_date' => Carbon::now()->subDays(3)->format($dateFormat),
                 'cpu_cores' => 2,
                 'cpu_freq' => 3500,
                 'cpu_model' => 'AMD Ryzen 9 5950X 16-Core Processor',

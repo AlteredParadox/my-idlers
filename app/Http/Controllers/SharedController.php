@@ -53,7 +53,10 @@ class SharedController extends Controller
             'label4' => 'sometimes|nullable|string',
         ]);
 
-        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
+        $link_speed_mbps = null;
+        if ($request->link_speed) {
+            $link_speed_mbps = $request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed;
+        }
 
         $shared_id = Str::random(8);
 
@@ -138,7 +141,10 @@ class SharedController extends Controller
             'label4' => 'sometimes|nullable|string',
         ]);
 
-        $link_speed_mbps = $request->link_speed ? (($request->link_speed_type === 'Gbps') ? $request->link_speed * 1000 : $request->link_speed) : null;
+        $link_speed_mbps = null;
+        if ($request->link_speed) {
+            $link_speed_mbps = $request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed;
+        }
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 

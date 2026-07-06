@@ -24,22 +24,15 @@ class Process
 
     public static function paymentTermIntToString(int $term): string
     {
-        if ($term === 1) {
-            return "p/m";
-        } elseif ($term === 2) {
-            return "p/qtr";
-        } elseif ($term === 3) {
-            return "p/hy";
-        } elseif ($term === 4) {
-            return "p/y";
-        } elseif ($term === 5) {
-            return "p/2y";
-        } elseif ($term === 6) {
-            return "p/3y";
-        } elseif ($term === 7) {
-            return "once";
-        } else {
-            return "unknown";
-        }
+        return match ($term) {
+            1 => "p/m",
+            2 => "p/qtr",
+            3 => "p/hy",
+            4 => "p/y",
+            5 => "p/2y",
+            6 => "p/3y",
+            7 => "once",
+            default => "unknown",
+        };
     }
 }

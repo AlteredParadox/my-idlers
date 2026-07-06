@@ -26,7 +26,7 @@ class Pricing extends Model
         if (Cache::has("currency_rates")) {
             return Cache::get("currency_rates");
         }
-        $response_json = file_get_contents("https://open.er-api.com/v6/latest/USD");
+        $response_json = file_get_contents(config('services.exchange_rates.url'));
         if (false === $response_json) {
             Log::error("do file_get_contents failed");
             return (object)null;
@@ -68,44 +68,29 @@ class Pricing extends Model
 
     public function costAsPerMonth(string $cost, int $term): float
     {
-        if ($term === 1) {
-            return $cost;
-        } elseif ($term === 2) {
-            return $cost / 3;
-        } elseif ($term === 3) {
-            return $cost / 6;
-        } elseif ($term === 4) {
-            return $cost / 12;
-        } elseif ($term === 5) {
-            return $cost / 24;
-        } elseif ($term === 6) {
-            return $cost / 36;
-        } elseif ($term === 7) {
-            return 0;
-        } else {
-            return $cost;
-        }
+        return match ($term) {
+            2 => $cost / 3,
+            3 => $cost / 6,
+            4 => $cost / 12,
+            5 => $cost / 24,
+            6 => $cost / 36,
+            7 => 0,
+            default => $cost,
+        };
     }
 
     public function termAsMonths(int $term): int
     {
-        if ($term === 1) {
-            return 1;
-        } elseif ($term === 2) {
-            return 3;
-        } elseif ($term === 3) {
-            return 6;
-        } elseif ($term === 4) {
-            return 12;
-        } elseif ($term === 5) {
-            return 24;
-        } elseif ($term === 6) {
-            return 36;
-        } elseif ($term === 7) {
-            return 0;
-        } else {
-            return 62;
-        }
+        return match ($term) {
+            1 => 1,
+            2 => 3,
+            3 => 6,
+            4 => 12,
+            5 => 24,
+            6 => 36,
+            7 => 0,
+            default => 62,
+        };
     }
 
     public function deletePricing($id): void
