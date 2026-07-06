@@ -44,6 +44,15 @@ class ServerModelTest extends TestCase
         $this->assertEquals('Semi-dedicated', Server::serviceServerType(5, false));
     }
 
+    public function test_os_icon_escapes_os_name_to_prevent_attribute_breakout()
+    {
+        $result = Server::osIntToIcon(1, "Ubuntu' onmouseover='alert(1)");
+
+        // The single quote that would break out of title='...' must be escaped
+        $this->assertStringNotContainsString("onmouseover='alert(1)", $result);
+        $this->assertStringContainsString('&#039;', $result);
+    }
+
     public function test_table_row_compare_returns_plus_when_val1_greater()
     {
         $result = \App\Process::tableRowCompare('100', '50', 'MB');

@@ -109,7 +109,7 @@ class ServerManagementController extends Controller
             return response()->json(array('result' => 'success', 'server_id' => $server_id), 200);
         }
 
-        return response()->json(array('result' => 'fail', 'request' => $request->post()), 500);
+        return response()->json(array('result' => 'fail'), 500);
     }
 
 
@@ -185,7 +185,7 @@ class ServerManagementController extends Controller
             return response()->json(array('result' => 'success', 'server_id' => $id), 200);
         }
 
-        return response()->json(array('result' => 'fail', 'request' => $request->post()), 500);
+        return response()->json(array('result' => 'fail'), 500);
     }
 
 
@@ -233,7 +233,7 @@ class ServerManagementController extends Controller
             return response()->json(array('result' => 'success', 'server_id' => $id), 200);
         }
 
-        return response()->json(array('result' => 'fail', 'request' => $request->post()), 500);
+        return response()->json(array('result' => 'fail'), 500);
     }
 
 

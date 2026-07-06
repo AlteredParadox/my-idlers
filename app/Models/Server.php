@@ -116,7 +116,7 @@ class Server extends Model
             default => "fa-solid fa-compact-disc os-icon",//OTHER ISO CUSTOM etc
         };
 
-        return "<i class='{$icon}' title='{$os_name}'></i>";
+        return "<i class='{$icon}' title='" . e($os_name) . "'></i>";
     }
 
 
