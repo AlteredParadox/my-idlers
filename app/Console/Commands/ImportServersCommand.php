@@ -206,17 +206,9 @@ class ImportServersCommand extends Command
     {
         $bw = strtoupper(trim($bw));
 
-        if ($bw === '' || $bw === 'UNLIMITED') {
-            return 0;
-        }
-
-        // "25TB OUT (UNLIMITED IN)" → extract number
-        if (preg_match('/^(\d+)\s*TB/i', $bw, $m)) {
-            return intval($m[1]) * 1000; // TB to GB
-        }
-
-        if (preg_match('/^(\d+)\s*GB/i', $bw, $m)) {
-            return intval($m[1]);
+        // "25TB OUT (UNLIMITED IN)" → extract leading amount as GB; empty/UNLIMITED → 0
+        if (preg_match('/^(\d+)\s*(TB|GB)/', $bw, $m)) {
+            return intval($m[1]) * ($m[2] === 'TB' ? 1000 : 1);
         }
 
         return 0;
