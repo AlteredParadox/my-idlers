@@ -240,9 +240,26 @@ class PrometheusService
 
         // Try matching by instance directly (hostname might be an IP or the
         // scrape target may be an FQDN while the tracker stores a short name)
-        foreach ($this->client->query('up{job="node"}') as $r) {
+        $up_results = $this->client->query('up{job="node"}');
+        foreach ($up_results as $r) {
             $instance = $r['metric']['instance'] ?? '';
             if ($this->hostMatches($hostname, preg_replace('/:\d+$/', '', $instance))) {
+                return $instance;
+            }
+        }
+
+        // Offline nodes vanish from instant uname queries after Prometheus's
+        // staleness window, but the LIST still tracks them via last_over_time
+        // (resolveOfflineHostnames) — without this pass a down node's detail
+        // page 404s ("Failed to load monitoring data") while its history
+        // exists and the index shows the downtime counter.
+        foreach ($up_results as $r) {
+            $instance = $r['metric']['instance'] ?? '';
+            if ($instance === '' || $this->isUp($r)) {
+                continue;
+            }
+            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $instance . '"}[30d])');
+            if (isset($data[0]['metric']['nodename']) && $this->hostMatches($hostname, $data[0]['metric']['nodename'])) {
                 return $instance;
             }
         }
