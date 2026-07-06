@@ -132,7 +132,7 @@ class ExportDnsTest extends TestCase
      */
     public function test_export_dns_supports_dname_record_type()
     {
-        $this->createDnsRecord('dns-dname', 'dname.example.com', 'DNAME', 'target.example.com');
+        $this->createDnsRecord('ddname', 'dname.example.com', 'DNAME', 'target.example.com');
 
         $result = $this->exportService->exportDns('json');
         $data = json_decode($result['data'], true);
@@ -226,7 +226,7 @@ class ExportDnsTest extends TestCase
         $dnsTypes = ['A', 'AAAA', 'DNAME', 'MX', 'NS', 'SOA', 'TXT', 'URI'];
         
         foreach ($dnsTypes as $index => $type) {
-            $this->createDnsRecord("dns-all-{$index}", "{$type}.example.com", $type, "address-{$type}");
+            $this->createDnsRecord("dall{$index}", "{$type}.example.com", $type, "address-{$type}");
         }
 
         $result = $this->exportService->exportDns('json');
@@ -262,7 +262,7 @@ class ExportDnsTest extends TestCase
      */
     public function test_export_dns_json_uses_pretty_print()
     {
-        $this->createDnsRecord('dns-pretty', 'pretty.example.com', 'A', '192.168.1.1');
+        $this->createDnsRecord('dpretty', 'pretty.example.com', 'A', '192.168.1.1');
 
         $result = $this->exportService->exportDns('json');
 
@@ -309,9 +309,9 @@ class ExportDnsTest extends TestCase
      */
     public function test_export_dns_handles_multiple_dns_records()
     {
-        $this->createDnsRecord('dns-multi-1', 'record1.example.com', 'A', '192.168.1.1');
-        $this->createDnsRecord('dns-multi-2', 'record2.example.com', 'MX', 'mail.example.com');
-        $this->createDnsRecord('dns-multi-3', 'record3.example.com', 'TXT', 'some text');
+        $this->createDnsRecord('dmulti1', 'record1.example.com', 'A', '192.168.1.1');
+        $this->createDnsRecord('dmulti2', 'record2.example.com', 'MX', 'mail.example.com');
+        $this->createDnsRecord('dmulti3', 'record3.example.com', 'TXT', 'some text');
 
         $result = $this->exportService->exportDns('json');
         $data = json_decode($result['data'], true);
@@ -357,7 +357,7 @@ class ExportDnsTest extends TestCase
     public function test_export_dns_handles_dns_record_with_server_id()
     {
         DNS::create([
-            'id' => 'dns-server',
+            'id' => 'dserver',
             'hostname' => 'server.example.com',
             'dns_type' => 'A',
             'address' => '192.168.1.100',
@@ -379,7 +379,7 @@ class ExportDnsTest extends TestCase
     public function test_export_dns_handles_dns_record_with_domain_id()
     {
         DNS::create([
-            'id' => 'dns-domain',
+            'id' => 'ddomain',
             'hostname' => 'domain.example.com',
             'dns_type' => 'A',
             'address' => '192.168.1.200',
@@ -402,7 +402,7 @@ class ExportDnsTest extends TestCase
     public function test_export_dns_handles_special_characters_in_txt_records()
     {
         $txtValue = 'v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC';
-        $this->createDnsRecord('dns-special', 'dkim.example.com', 'TXT', $txtValue);
+        $this->createDnsRecord('dspecial', 'dkim.example.com', 'TXT', $txtValue);
 
         $result = $this->exportService->exportDns('json');
         $data = json_decode($result['data'], true);

@@ -74,7 +74,7 @@ class ExportServersTest extends TestCase
 
         // Create IP addresses
         IPs::create([
-            'id' => 'ip1' . $id,
+            'id' => 'a' . $id,
             'service_id' => $id,
             'address' => '192.168.1.1',
             'is_ipv4' => 1,
@@ -82,7 +82,7 @@ class ExportServersTest extends TestCase
         ]);
 
         IPs::create([
-            'id' => 'ip2' . $id,
+            'id' => 'b' . $id,
             'service_id' => $id,
             'address' => '2001:db8::1',
             'is_ipv4' => 0,
@@ -90,7 +90,7 @@ class ExportServersTest extends TestCase
         ]);
 
         // Create YABS data
-        $yabsId = 'yabs' . $id;
+        $yabsId = 'y' . $id;
         Yabs::create([
             'id' => $yabsId,
             'server_id' => $id,

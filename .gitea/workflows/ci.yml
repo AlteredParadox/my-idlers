@@ -8,6 +8,19 @@ on:
 jobs:
   test-and-scan:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: my_idlers_test
+          MARIADB_USER: idlers
+          MARIADB_PASSWORD: idlers
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,7 +30,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
+          extensions: mbstring, pdo_sqlite, sqlite3, pdo_mysql, gd, zip
           coverage: pcov
 
       - name: Install dependencies
@@ -28,8 +41,13 @@ jobs:
           echo "APP_KEY=" > .env
           php artisan key:generate --force
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage (SQLite)
         run: vendor/bin/phpunit --coverage-clover coverage.xml
+
+      # Production is MySQL; several bug classes (int columns as strings,
+      # changed-vs-matched row counts) are invisible under SQLite.
+      - name: Run tests (MySQL)
+        run: vendor/bin/phpunit -c phpunit.mysql.xml
 
       - name: SonarQube scan
         uses: SonarSource/sonarqube-scan-action@v6
