@@ -56,6 +56,12 @@ class PrometheusClient
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => $timeout,
             CURLOPT_CONNECTTIMEOUT => 3,
+            // Restrict to HTTP(S) so a crafted prometheus_url can't reach
+            // file://, gopher://, dict:// etc. Private/internal addresses are
+            // intentionally allowed: a self-hosted Prometheus normally lives
+            // on a private network (the documented default is prometheus:9090).
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
