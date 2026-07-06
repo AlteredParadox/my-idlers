@@ -76,9 +76,8 @@ class YabsIngestService
     }
 
 
-    public function ingest($data, string $server_id): bool
+    public function ingest(array $data, string $server_id): bool
     {
-        $data = (object)$data;
         try {
             $yabs_id = Str::random(8);
 
@@ -98,7 +97,7 @@ class YabsIngestService
     }
 
 
-    private function insertYabsRow(string $yabs_id, string $server_id, object $data): void
+    private function insertYabsRow(string $yabs_id, string $server_id, array $data): void
     {
         [$ram_f, $ram_type] = $this->scaleRam($data['mem']['ram']);
         [$disk_f, $disk_type] = $this->scaleDisk($data['mem']['disk']);
@@ -124,7 +123,7 @@ class YabsIngestService
             'disk' => $disk_f,
             'disk_gb' => ($data['mem']['disk'] / 1024 / 1024),
             'disk_type' => $disk_type,
-            'output_date' => $this->formatRunTime($data->time),
+            'output_date' => $this->formatRunTime($data['time']),
         ] + $this->geekbenchScores($data['geekbench']));
     }
 

@@ -162,4 +162,58 @@ class YabsIngestTest extends TestCase
             'cpu_model' => 'Intel Xeon E5-2680 v4',
         ]);
     }
+
+    public function test_guests_cannot_paste_yabs_json()
+    {
+        $server = $this->makeServer();
+
+        $this->post(route('yabs.store'), [
+            'server_id' => $server->id,
+            'yabs_json' => json_encode($this->yabsPayload()),
+        ])->assertRedirect(route('login'));
+    }
+
+    public function test_yabs_can_be_added_by_pasting_json()
+    {
+        $server = $this->makeServer();
+
+        $response = $this->actingAs(User::factory()->create())->post(route('yabs.store'), [
+            'server_id' => $server->id,
+            'yabs_json' => json_encode($this->yabsPayload()),
+        ]);
+
+        $response->assertRedirect(route('yabs.index'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('yabs', [
+            'server_id' => $server->id,
+            'cpu_model' => 'AMD EPYC 7642 48-Core Processor',
+        ]);
+        $this->assertDatabaseHas('servers', ['id' => $server->id, 'has_yabs' => 1]);
+    }
+
+    public function test_pasting_invalid_json_is_rejected()
+    {
+        $server = $this->makeServer();
+
+        $response = $this->actingAs(User::factory()->create())->post(route('yabs.store'), [
+            'server_id' => $server->id,
+            'yabs_json' => 'this is not json',
+        ]);
+
+        $response->assertSessionHasErrors('yabs_json');
+        $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
+    }
+
+    public function test_pasting_incomplete_yabs_json_is_rejected()
+    {
+        $server = $this->makeServer();
+
+        $response = $this->actingAs(User::factory()->create())->post(route('yabs.store'), [
+            'server_id' => $server->id,
+            'yabs_json' => json_encode(['time' => '20260705-120000']),
+        ]);
+
+        $response->assertSessionHasErrors('yabs_json');
+        $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
+    }
 }
