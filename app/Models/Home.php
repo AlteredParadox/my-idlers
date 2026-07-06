@@ -157,7 +157,7 @@ class Home extends Model
      * Forget the list + per-item caches for a service type whose pricing changed.
      * (No DB foreign keys / cascades; cache fan-out is manual.)
      */
-    private static function forgetServiceCacheByType(int $type, string $service_id): void
+    public static function forgetServiceCacheByType(int $type, string $service_id): void
     {
         switch ($type) {
             case 1: // server

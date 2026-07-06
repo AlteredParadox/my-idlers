@@ -137,6 +137,11 @@ class ImportServersCommand extends Command
         // Atomic per row: without this, a failure on the pricing/IP writes
         // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
         DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $data, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate) {
+            // Pricing FIRST: servers.id has an FK to pricings.service_id
+            // (servers_fk_pricing), checked immediately by InnoDB. SQLite
+            // silently drops ALTER TABLE FKs, so it hides the wrong order.
+            (new Pricing())->insertPricing(1, $serverId, $currency, $price, $term, $nextDueDate, $active);
+
             Server::create([
                 'id' => $serverId,
                 'hostname' => $hostname,
@@ -162,8 +167,6 @@ class ImportServersCommand extends Command
             foreach ($disks as $d) {
                 Disk::insertDisk($serverId, $d['size'], $d['unit'], $d['media']);
             }
-
-            (new Pricing())->insertPricing(1, $serverId, $currency, $price, $term, $nextDueDate, $active);
 
             $this->resolveAndInsertIPs($serverId, $hostname);
         });

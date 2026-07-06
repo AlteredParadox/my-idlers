@@ -18,8 +18,8 @@ class Process
     }
 
     public function getTimeTaken(): float
-    {//In seconds
-        return ($this->endTime - $this->startTime) * 100;
+    {//In seconds (microtime(true) deltas are already seconds)
+        return round($this->endTime - $this->startTime, 3);
     }
 
     // Guards the per-USD compare rows: usd_per_month is 0 for one-time/lifetime

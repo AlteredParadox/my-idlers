@@ -280,6 +280,7 @@ class ServerController extends Controller
             Yabs::deleteForServer($server->id);
 
             Server::serverRelatedCacheForget();
+            Server::serverSpecificCacheForget($server->id);
 
             return redirect()->route('servers.index')
                 ->with('success', 'Server was deleted Successfully.');

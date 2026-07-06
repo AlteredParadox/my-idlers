@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Disk;
+use App\Models\Home;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Note;
@@ -126,7 +127,11 @@ class ServerManagementController extends Controller
     {
         $items = Server::find($request->id);
 
-        (!is_null($items)) ? $result = $items->delete() : $result = false;
+        if (is_null($items)) {
+            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+        }
+
+        $result = $items->delete();
 
         $p = new Pricing();
         $p->deletePricing($request->id);
@@ -240,18 +245,26 @@ class ServerManagementController extends Controller
             $updateData['next_due_date'] = $validated['next_due_date'];
         }
 
-        $service_id = Pricing::where('id', $id)->value('service_id');
-        if (is_null($service_id)) {
+        if (array_key_exists('active', $validated)) {
+            $updateData['active'] = $validated['active'];
+        }
+
+        $row = Pricing::where('id', $id)->first(['service_id', 'service_type']);
+        if (is_null($row)) {
             return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
         }
+        $service_id = $row->service_id;
 
         // Success is keyed on existence, not update()'s changed-row count (0 on
         // an idempotent re-save under MySQL).
         Pricing::where('id', $id)->update($updateData);
 
+        // This route takes any pricing row, not just a server's — fan out to
+        // the owning type's caches plus the home-page keys embedding prices.
         Cache::forget("all_pricing");
-        Server::serverRelatedCacheForget();
-        Server::serverSpecificCacheForget($service_id);
+        Cache::forget('due_soon');
+        Cache::forget('pricing_breakdown');
+        Home::forgetServiceCacheByType((int) $row->service_type, $service_id);
 
         return response()->json(array('result' => 'success', 'server_id' => $id), 200);
     }
