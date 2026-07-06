@@ -45,7 +45,7 @@ class IPsController extends Controller
                         return;
                     }
                 }
-                $fail('The selected service does not exist.');
+                $fail("The selected {$attribute} does not exist.");
             }],
         ]);
 

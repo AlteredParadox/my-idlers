@@ -47,7 +47,7 @@ class NoteController extends Controller
                     return;
                 }
             }
-            $fail('The selected service does not exist or cannot have notes.');
+            $fail("The selected {$attribute} does not exist or cannot have notes.");
         };
     }
 

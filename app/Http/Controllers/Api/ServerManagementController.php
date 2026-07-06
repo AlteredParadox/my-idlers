@@ -20,6 +20,11 @@ use Illuminate\Support\Str;
 
 class ServerManagementController extends Controller
 {
+    private function notFound(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(['result' => 'fail', 'error' => 'Not found'], 404);
+    }
+
     private const VALIDATION_MESSAGES = [
         'required' => ':attribute is required',
         'min' => ':attribute must be longer than 3',
@@ -137,7 +142,7 @@ class ServerManagementController extends Controller
         $items = Server::find($id);
 
         if (is_null($items)) {
-            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+            return $this->notFound();
         }
 
         $result = $items->delete();
@@ -206,13 +211,37 @@ class ServerManagementController extends Controller
 
         $server_row = Server::find($id);
         if (is_null($server_row)) {
-            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+            return $this->notFound();
         }
 
-        // Derive the _as_ columns like storeServer does — the index and
-        // public pages render RAM/disk exclusively from them, so a partial
-        // update would otherwise show the old size forever. An explicitly
-        // provided _as_ value still wins.
+        $updateData = $this->deriveAsColumns($updateData, $validated, $server_row);
+
+
+        // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
+        // reports 0 for an idempotent re-save, so success is keyed on existence,
+        // not the dirty count.
+        Server::where('id', $id)->update($updateData);
+
+        $this->syncDiskParityRow($id, $validated, $server_row);
+
+        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date', 'active'])) {
+            $this->applyPricingFields($id, $validated);
+        }
+
+        Server::serverRelatedCacheForget();
+        Server::serverSpecificCacheForget($id);
+
+        return response()->json(array('result' => 'success', 'server_id' => $id), 200);
+    }
+
+
+    /**
+     * Derive the _as_ columns like storeServer does — the index and public
+     * pages render RAM/disk exclusively from them, so a partial update would
+     * otherwise show the old size forever. An explicit _as_ value still wins.
+     */
+    private function deriveAsColumns(array $updateData, array $validated, Server $server_row): array
+    {
         if (!array_key_exists('ram_as_mb', $validated)
             && (array_key_exists('ram', $validated) || array_key_exists('ram_type', $validated))) {
             $ram = (int) ($validated['ram'] ?? $server_row->ram);
@@ -226,56 +255,58 @@ class ServerManagementController extends Controller
             $updateData['disk_as_gb'] = ($disk_type === 'GB') ? $disk : ($disk * 1024);
         }
 
-
-        // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
-        // reports 0 for an idempotent re-save, so success is keyed on existence,
-        // not the dirty count.
-        Server::where('id', $id)->update($updateData);
-
-        // The UI disk totals prefer server_disks rows when they exist —
-        // updating only servers.disk left the old size showing forever.
-        // Multi-disk servers are left alone: the API's single disk field
-        // can't represent them, and rewriting destroyed per-disk media.
-        if (array_key_exists('disk', $validated) || array_key_exists('disk_type', $validated)) {
-            $size = (int) ($validated['disk'] ?? $server_row->disk);
-            $unit = $validated['disk_type'] ?? $server_row->disk_type;
-            $disk_rows = Disk::where('server_id', $id)->get();
-
-            if ($disk_rows->count() === 1) {
-                $disk_rows->first()->update([
-                    'disk_size' => $size,
-                    'disk_unit' => $unit,
-                    'disk_as_gb' => ($unit === 'TB') ? ($size * 1024) : $size,
-                ]);
-            } elseif ($disk_rows->isEmpty()) {
-                Disk::insertDisk($id, $size, $unit, 'SSD');
-            }
-        }
-
-        // currency/price/payment_term/next_due_date live on the pricing row —
-        // apply them rather than silently dropping them; 'active' must fan in
-        // too or a reactivated server stays hidden from the cost breakdown
-        // and due-soon feed (both filter pricings.active = 1).
-        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date', 'active'])) {
-            $pricing_row = Pricing::where('service_id', $id)->first();
-            if (!is_null($pricing_row)) {
-                (new Pricing())->updatePricing(
-                    $id,
-                    $validated['currency'] ?? $pricing_row->currency,
-                    (float) ($validated['price'] ?? $pricing_row->price),
-                    (int) ($validated['payment_term'] ?? $pricing_row->term),
-                    $validated['next_due_date'] ?? $pricing_row->next_due_date,
-                    (int) ($validated['active'] ?? $pricing_row->active)
-                );
-            }
-        }
-
-        Server::serverRelatedCacheForget();
-        Server::serverSpecificCacheForget($id);
-
-        return response()->json(array('result' => 'success', 'server_id' => $id), 200);
+        return $updateData;
     }
 
+    /**
+     * The UI disk totals prefer server_disks rows when they exist — updating
+     * only servers.disk left the old size showing forever. Multi-disk servers
+     * are left alone: the API's single disk field can't represent them, and
+     * rewriting destroyed per-disk media.
+     */
+    private function syncDiskParityRow(string $id, array $validated, Server $server_row): void
+    {
+        if (!array_key_exists('disk', $validated) && !array_key_exists('disk_type', $validated)) {
+            return;
+        }
+
+        $size = (int) ($validated['disk'] ?? $server_row->disk);
+        $unit = $validated['disk_type'] ?? $server_row->disk_type;
+        $disk_rows = Disk::where('server_id', $id)->get();
+
+        if ($disk_rows->count() === 1) {
+            $disk_rows->first()->update([
+                'disk_size' => $size,
+                'disk_unit' => $unit,
+                'disk_as_gb' => ($unit === 'TB') ? ($size * 1024) : $size,
+            ]);
+        } elseif ($disk_rows->isEmpty()) {
+            Disk::insertDisk($id, $size, $unit, 'SSD');
+        }
+    }
+
+    /**
+     * currency/price/payment_term/next_due_date live on the pricing row —
+     * apply them rather than silently dropping them; 'active' must fan in too
+     * or a reactivated server stays hidden from the cost breakdown and
+     * due-soon feed (both filter pricings.active = 1).
+     */
+    private function applyPricingFields(string $id, array $validated): void
+    {
+        $pricing_row = Pricing::where('service_id', $id)->first();
+        if (is_null($pricing_row)) {
+            return;
+        }
+
+        (new Pricing())->updatePricing(
+            $id,
+            $validated['currency'] ?? $pricing_row->currency,
+            (float) ($validated['price'] ?? $pricing_row->price),
+            (int) ($validated['payment_term'] ?? $pricing_row->term),
+            $validated['next_due_date'] ?? $pricing_row->next_due_date,
+            (int) ($validated['active'] ?? $pricing_row->active)
+        );
+    }
 
     public function updatePricing(Request $request, string $id)
     {
@@ -318,7 +349,7 @@ class ServerManagementController extends Controller
 
         $row = Pricing::where('id', $id)->first(['service_id', 'service_type']);
         if (is_null($row)) {
-            return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
+            return $this->notFound();
         }
         $service_id = $row->service_id;
 
