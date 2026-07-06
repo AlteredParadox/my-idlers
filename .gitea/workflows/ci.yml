@@ -47,6 +47,10 @@ jobs:
       # Production is MySQL; several bug classes (int columns as strings,
       # changed-vs-matched row counts) are invisible under SQLite.
       - name: Run tests (MySQL)
+        # The job runs inside a container on the Gitea runner, so the service
+        # is reachable via its alias, not 127.0.0.1 (which works locally).
+        env:
+          DB_HOST: mariadb
         run: vendor/bin/phpunit -c phpunit.mysql.xml
 
       - name: SonarQube scan
