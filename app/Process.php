@@ -52,18 +52,23 @@ class Process
         if ($is_int) {
             $val1 = (int)$val1;
             $val2 = (int)$val2;
+        } else {
+            // Float mode: int-casting 4.50 vs 4.90 rendered "0 equal".
+            $val1 = (float)$val1;
+            $val2 = (float)$val2;
         }
+        $diff = $is_int ? abs($val1 - $val2) : round(abs($val1 - $val2), 2);
         if ($val1 > $val2) {//val1 is greater than val2
-            $result = '+' . ($val1 - $val2);
+            $result = '+' . $diff;
             if (!empty($value_type)) {
-                $result = '+' . ($val1 - $val2) . $value_append;
+                $result = '+' . $diff . $value_append;
 
             }
             $str .= 'plus-td">' . $result . '</td>';
         } elseif ($val1 < $val2) {//val1 is less than val2
-            $result = '-' . ($val2 - $val1);
+            $result = '-' . $diff;
             if (!empty($value_type)) {
-                $result = '-' . ($val2 - $val1) . $value_append;
+                $result = '-' . $diff . $value_append;
             }
             $str .= 'neg-td">' . $result . '</td>';
         } else {//Equal

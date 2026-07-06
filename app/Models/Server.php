@@ -144,7 +144,6 @@ class Server extends Model
         Cache::forget('non_active_servers');//all non active servers cache
         Cache::forget('servers_summary');//servers summary cache
         Cache::forget('public_server_data');//public servers
-        Cache::forget('all_pricing');//All pricing
         Cache::forget('services_count_all');
         Cache::forget('pricing_breakdown');
         Cache::forget('all_active_pricing');

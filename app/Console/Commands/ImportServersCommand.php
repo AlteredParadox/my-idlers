@@ -265,9 +265,9 @@ class ImportServersCommand extends Command
         $date = Carbon::parse($nextDueDate);
 
         return match ($term) {
-            1 => $date->subMonth()->format('Y-m-d'),
-            2 => $date->subMonths(3)->format('Y-m-d'),
-            3 => $date->subMonths(6)->format('Y-m-d'),
+            1 => $date->subMonthsNoOverflow(1)->format('Y-m-d'),
+            2 => $date->subMonthsNoOverflow(3)->format('Y-m-d'),
+            3 => $date->subMonthsNoOverflow(6)->format('Y-m-d'),
             4 => $date->subYear()->format('Y-m-d'),
             5 => $date->subYears(2)->format('Y-m-d'),
             6 => $date->subYears(3)->format('Y-m-d'),
