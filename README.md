@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.2.0-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.1-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -26,6 +26,12 @@ Proudly sponsored by [PikaPods](https://www.pikapods.com/) - Deploy your own My 
 ## Changes from upstream (this fork)
 
 This is a modified fork of [cp6/my-idlers](https://github.com/cp6/my-idlers) with the following additions:
+
+> **Versioning:** this fork publishes its releases as `4.1.0+ap.N` — the upstream base version it
+> was in sync with (`4.1.0`) plus an incrementing AlteredParadox fork revision (`ap.1`, `ap.2`, …).
+> This keeps fork releases distinct from any version number upstream cp6/my-idlers may later ship.
+> The dated `4.0.0` / `4.1.0` sections further down are the shared baseline changelog the fork
+> builds on; everything under a **Fork revision** heading is specific to this fork.
 
 ### Prometheus live monitoring (optional)
 
@@ -66,7 +72,9 @@ settings page — with it disabled the app behaves like upstream.
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
 
-## 4.2.0 changes (July 2026):
+## Fork revision `ap.1` — July 2026
+
+_This fork's first dedicated release, built on the `4.1.0` baseline below._
 
 **Framework upgrade — Laravel 11 → 13**
 
@@ -105,6 +113,12 @@ An extensive multi-pass review (internal + cross-model) hardened every write pat
   missing IDs are all resolved
 * **Modern `yabs.sh` compatibility** — Geekbench 6-only runs, auto-skipped fio/iperf blocks,
   numeric uptime, and 128+ thread machines all ingest and display correctly
+
+---
+
+# Baseline changelog (`4.1.0`, shared with upstream cp6/my-idlers)
+
+_The history below is the `4.1.0` baseline the fork's `+ap` revisions build on._
 
 ## 4.1.0 changes (February 2026):
 
@@ -165,7 +179,7 @@ An extensive multi-pass review (internal + cross-model) hardened every write pat
 
 ### Test Suite
 
-The application includes a comprehensive test suite — 489 tests / 1488 assertions as of 4.2.0 —
+The application includes a comprehensive test suite — 489 tests / 1488 assertions as of ap.1 —
 run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
 under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
@@ -432,7 +446,7 @@ Body content template
 }
 ```
 
-Validation notes (as of 4.2.0):
+Validation notes (as of ap.1):
 
 * `ram_as_mb` / `disk_as_gb` / `as_usd` / `usd_per_month` are **derived server-side** from
   `ram`/`ram_type`, `disk`/`disk_type` and `price`/`currency` — don't send them (any supplied
