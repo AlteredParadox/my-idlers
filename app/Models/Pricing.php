@@ -81,10 +81,20 @@ class Pricing extends Model
         'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL',
     ];
 
-    /** Validation fragment for currency fields: 'in:AED,AFN,...' */
+    /**
+     * Validation fragment for currency fields: only currencies we can
+     * actually CONVERT — the rated codes when the exchange API is reachable
+     * (rates are cached for a week, so a brief outage keeps the full list),
+     * else the explicit FALLBACK_CURRENCIES. Accepting any ISO code let a
+     * valid-but-unrated currency (e.g. JPY with no rates configured) be
+     * stored and silently converted 1:1 as USD, corrupting every total.
+     * The ISO list still filters out junk keys from the rates API itself.
+     */
     public static function currencyRule(): string
     {
-        return 'in:' . implode(',', self::ISO_CURRENCIES);
+        $accepted = array_values(array_intersect(self::getCurrencyList(), self::ISO_CURRENCIES));
+
+        return 'in:' . implode(',', $accepted ?: self::FALLBACK_CURRENCIES);
     }
 
     public static function getCurrencyList(): array
