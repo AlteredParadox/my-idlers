@@ -317,7 +317,7 @@
 
             function matchHost(hostname, promHost) {
                 // If either side is an IP, only exact equality counts — mirrors
-                // PrometheusService::hostMatches so the list and detail agree.
+                // PromQL::hostMatches so the list and detail agree.
                 if (isIpAddress(hostname) || isIpAddress(promHost)) {
                     return hostname === promHost;
                 }

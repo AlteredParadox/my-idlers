@@ -74,18 +74,12 @@ class ServerController extends Controller
             'os_id' => 'required|integer|exists:os,id',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'cpu' => 'required|integer|min:1|max:1024',
             'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer|in:0,1',
-            'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $this->assertDiskArraysAligned($request);
@@ -190,18 +184,12 @@ class ServerController extends Controller
             'os_id' => 'required|integer|exists:os,id',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'cpu' => 'required|integer|min:1|max:1024',
             'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer|in:0,1',
-            'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $this->assertDiskArraysAligned($request);

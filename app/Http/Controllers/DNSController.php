@@ -60,10 +60,7 @@ class DNSController extends Controller
             'shared_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('shared_hosting')],
             'reseller_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('reseller_hosting')],
             'domain_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('domains')],
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $dns_id = Str::random(8);
@@ -124,10 +121,7 @@ class DNSController extends Controller
             'shared_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('shared_hosting')],
             'reseller_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('reseller_hosting')],
             'domain_id' => ['sometimes', 'nullable', 'string', $this->serviceIdRule('domains')],
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $dn->update([

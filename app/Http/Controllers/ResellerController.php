@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
 
 class ResellerController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ValidatesHostingQuotas;
+
     public function index()
     {
         $resellers = Reseller::allActiveResellerHosting();
@@ -32,30 +34,17 @@ class ResellerController extends Controller
         $request->validate([
             'domain' => 'required|min:4|max:255',
             'reseller_type' => 'required|string|max:255',
-            'disk' => 'integer|min:0|max:1000000',
+            ...$this->hostingQuotaRules(),
             'os_id' => 'integer',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'was_promo' => 'integer|in:0,1',
             'owned_since' => 'sometimes|nullable|date',
             'accounts' => 'integer|min:0|max:1000000',
-            'domains' => 'integer|min:0|max:1000000',
-            'sub_domains' => 'integer|min:0|max:1000000',
-            'bandwidth' => 'integer|min:0|max:100000000',
-            'link_speed' => 'sometimes|nullable|numeric|min:0|max:1000000',
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
-            'email' => 'integer|min:0|max:1000000',
-            'ftp' => 'integer|min:0|max:1000000',
-            'db' => 'integer|min:0|max:1000000',
             'dedicated_ip' => 'sometimes|nullable|ip',
-            'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $link_speed_mbps = null;
@@ -124,30 +113,17 @@ class ResellerController extends Controller
         $request->validate([
             'domain' => 'required|min:4|max:255',
             'reseller_type' => 'required|string|max:255',
-            'disk' => 'integer|min:0|max:1000000',
+            ...$this->hostingQuotaRules(),
             'os_id' => 'integer',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'was_promo' => 'integer|in:0,1',
             'owned_since' => 'sometimes|nullable|date',
             'accounts' => 'integer|min:0|max:1000000',
-            'domains' => 'integer|min:0|max:1000000',
-            'sub_domains' => 'integer|min:0|max:1000000',
-            'bandwidth' => 'integer|min:0|max:100000000',
-            'link_speed' => 'sometimes|nullable|numeric|min:0|max:1000000',
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
-            'email' => 'integer|min:0|max:1000000',
-            'ftp' => 'integer|min:0|max:1000000',
-            'db' => 'integer|min:0|max:1000000',
             'dedicated_ip' => 'sometimes|nullable|ip',
-            'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         // Validate BEFORE any write: failing after $reseller->update()

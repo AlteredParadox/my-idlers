@@ -35,11 +35,8 @@ class MiscController extends Controller
     {
         $request->validate([
             'name' => 'required|string|min:3|max:255',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
+            ...\App\Models\Pricing::webValidationRules(),
             'owned_since' => 'sometimes|nullable|date',
-            'next_due_date' => 'sometimes|nullable|date'
         ]);
 
         $misc_id = Str::random(8);
@@ -75,11 +72,8 @@ class MiscController extends Controller
     {
         $request->validate([
             'name' => 'required|string|min:3|max:255',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
+            ...\App\Models\Pricing::webValidationRules(),
             'owned_since' => 'sometimes|nullable|date',
-            'next_due_date' => 'sometimes|nullable|date'
         ]);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;

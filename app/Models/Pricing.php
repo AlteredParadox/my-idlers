@@ -82,6 +82,20 @@ class Pricing extends Model
     ];
 
     /**
+     * The web-form pricing rules shared by every service type's store and
+     * update (the API uses date_format variants and its own optionality).
+     */
+    public static function webValidationRules(): array
+    {
+        return [
+            'price' => 'required|numeric|min:0|max:99999999',
+            'currency' => 'required|string|size:3|' . self::currencyRule(),
+            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            'next_due_date' => 'sometimes|nullable|date',
+        ];
+    }
+
+    /**
      * Validation fragment for currency fields: only currencies we can
      * actually CONVERT — the rated codes when the exchange API is reachable
      * (rates are cached for a week, so a brief outage keeps the full list),

@@ -109,11 +109,11 @@ class PrometheusService
     {
         foreach ($upResults as $result) {
             $instance = $result['metric']['instance'] ?? '';
-            if ($this->isUp($result) || isset($hostnames[$instance])) {
+            if (PromQL::isUp($result) || isset($hostnames[$instance])) {
                 continue;
             }
 
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $this->promQuote($instance) . '"}[30d])');
+            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . PromQL::quote($instance) . '"}[30d])');
             if (isset($data[0]['metric']['nodename'])) {
                 $hostnames[$instance] = $data[0]['metric']['nodename'];
             }
@@ -137,7 +137,7 @@ class PrometheusService
     private function addOfflineSince(array $upResults, array &$metrics): void
     {
         foreach ($upResults as $result) {
-            if ($this->isUp($result)) {
+            if (PromQL::isUp($result)) {
                 continue;
             }
             $instance = $result['metric']['instance'] ?? '';
@@ -151,7 +151,7 @@ class PrometheusService
         $now = time();
         foreach (self::OFFLINE_TIERS as [$lookback, $step]) {
             $offlineSince = null;
-            $results = $this->client->rangeQuery('up{job="node",instance="' . $this->promQuote($instance) . '"}', $now - $lookback, $now, $step);
+            $results = $this->client->rangeQuery('up{job="node",instance="' . PromQL::quote($instance) . '"}', $now - $lookback, $now, $step);
             foreach ($results[0]['values'] ?? [] as [$ts, $val]) {
                 if ($val === '1') {
                     $offlineSince = (float)$ts;
@@ -172,7 +172,7 @@ class PrometheusService
         $metricsOut = [];
         foreach ($upResults as $result) {
             $instance = $result['metric']['instance'] ?? '';
-            $isUp = $this->isUp($result);
+            $isUp = PromQL::isUp($result);
             $instanceMetrics = $metrics[$instance] ?? [];
 
             $keys = [preg_replace('/:\d+$/', '', $instance)];
@@ -189,11 +189,6 @@ class PrometheusService
         }
 
         return [$statuses, $metricsOut];
-    }
-
-    private function isUp(array $result): bool
-    {
-        return isset($result['value'][1]) && $result['value'][1] === '1';
     }
 
     /**
@@ -228,91 +223,15 @@ class PrometheusService
         ];
     }
 
+    /** Thin wrapper: resolution lives in PrometheusInstanceResolver. */
     private function resolveInstance(string $hostname): ?string
     {
-        // Try matching by nodename via node_uname_info
-        foreach ($this->client->query('node_uname_info{job="node"}') as $r) {
-            $nodename = $r['metric']['nodename'] ?? '';
-            if ($this->hostMatches($hostname, $nodename)) {
-                return $r['metric']['instance'] ?? null;
-            }
-        }
-
-        return $this->instanceFromScrapeTargets($hostname);
-    }
-
-    private function instanceFromScrapeTargets(string $hostname): ?string
-    {
-        // Try matching by instance directly (hostname might be an IP or the
-        // scrape target may be an FQDN while the tracker stores a short name)
-        $up_results = $this->client->query('up{job="node"}');
-        foreach ($up_results as $r) {
-            $instance = $r['metric']['instance'] ?? '';
-            if ($this->hostMatches($hostname, preg_replace('/:\d+$/', '', $instance))) {
-                return $instance;
-            }
-        }
-
-        // Offline nodes vanish from instant uname queries after Prometheus's
-        // staleness window, but the LIST still tracks them via last_over_time
-        // (resolveOfflineHostnames) — without this pass a down node's detail
-        // page 404s ("Failed to load monitoring data") while its history
-        // exists and the index shows the downtime counter.
-        foreach ($up_results as $r) {
-            $instance = $r['metric']['instance'] ?? '';
-            if ($instance === '' || $this->isUp($r)) {
-                continue;
-            }
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . $this->promQuote($instance) . '"}[30d])');
-            if (isset($data[0]['metric']['nodename']) && $this->hostMatches($hostname, $data[0]['metric']['nodename'])) {
-                return $instance;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * The single host-matching truth table, mirrored by the list views' JS:
-     * full equality or whole-short-label equality on either side. Exact-label
-     * semantics only — a prefix test would let web10 answer for web1, and
-     * label-vs-label would reduce IPs to first-octet equality. The list and
-     * this resolver MUST accept the same shapes or the index shows live
-     * monitoring while the detail page 404s.
-     */
-    private function hostMatches(string $stored, string $candidate): bool
-    {
-        if ($stored === '' || $candidate === '') {
-            return false;
-        }
-
-        // If either side is an IP, only exact equality counts: short-label
-        // logic would let a bare-first-label candidate ('192') match a dotted
-        // IP ('192.168.1.6') and bleed one host's metrics onto another.
-        if (filter_var($stored, FILTER_VALIDATE_IP) !== false
-            || filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
-            return $stored === $candidate;
-        }
-
-        return $candidate === $stored
-            || $candidate === explode('.', $stored)[0]
-            || $stored === explode('.', $candidate)[0]
-            || str_starts_with($stored, $candidate . '.');
-    }
-
-    /**
-     * Escape a label value for safe embedding in a PromQL `instance="..."`
-     * string literal. Prometheus instance labels are admin-controlled in
-     * practice, but a stray quote or backslash would break the selector.
-     */
-    private function promQuote(string $value): string
-    {
-        return str_replace(['\\', '"', "\n"], ['\\\\', '\\"', '\\n'], $value);
+        return (new PrometheusInstanceResolver($this->client))->resolve($hostname);
     }
 
     private function detailQueries(string $inst, int $step): array
     {
-        $inst = $this->promQuote($inst);
+        $inst = PromQL::quote($inst);
         $ri = max($step * 2, 120) . 's';
         $fstypes = self::FSTYPES;
         $netExclude = self::NET_DEVICE_EXCLUDE;
@@ -380,7 +299,7 @@ class PrometheusService
 
     private function filesystemInfo(string $inst): array
     {
-        $inst = $this->promQuote($inst);
+        $inst = PromQL::quote($inst);
         $fstypes = self::FSTYPES;
         $sizeResults = $this->client->query("node_filesystem_size_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"{$fstypes}\"}");
         $availResults = $this->client->query("node_filesystem_avail_bytes{job=\"node\",instance=\"{$inst}\",fstype=~\"{$fstypes}\"}");

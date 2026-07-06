@@ -29,6 +29,14 @@ class Labels extends Model
         LabelsAssigned::where('label_id', $label_id)->delete();
     }
 
+    /** The label1..4 rules shared by every labelled type's store and update */
+    public static function validationRules(): array
+    {
+        $rule = 'sometimes|nullable|string|exists:labels,id';
+
+        return ['label1' => $rule, 'label2' => $rule, 'label3' => $rule, 'label4' => $rule];
+    }
+
     public static function insertLabelsAssigned(array $labels_array, string $service_id): void
     {
         $seen = [];
