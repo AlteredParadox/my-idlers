@@ -90,9 +90,11 @@ class PricingModelTest extends TestCase
         $this->assertEquals(0, $this->pricing->termAsMonths(7));
     }
 
-    public function test_term_as_months_returns_62_for_unknown_term()
+    public function test_term_as_months_returns_0_for_unknown_term()
     {
-        $this->assertEquals(62, $this->pricing->termAsMonths(99));
+        // Unknown terms must NOT advance a due date (was 62 months — a
+        // forged/legacy payment_term=99 would jump the date 5+ years).
+        $this->assertEquals(0, $this->pricing->termAsMonths(99));
     }
 
     public function test_active_is_mass_assignable()

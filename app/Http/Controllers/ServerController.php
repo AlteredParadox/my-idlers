@@ -76,7 +76,7 @@ class ServerController extends Controller
             'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
-            'payment_term' => 'required|integer',
+            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
             'cpu' => 'required|integer',
             'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer',
@@ -87,6 +87,8 @@ class ServerController extends Controller
             'label3' => 'sometimes|nullable|string|exists:labels,id',
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
+
+        $this->assertDiskArraysAligned($request);
 
         $link_speed_mbps = $this->linkSpeedAsMbps($request);
 
@@ -190,7 +192,7 @@ class ServerController extends Controller
             'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
-            'payment_term' => 'required|integer',
+            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
             'cpu' => 'required|integer',
             'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer',
@@ -201,6 +203,8 @@ class ServerController extends Controller
             'label3' => 'sometimes|nullable|string|exists:labels,id',
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
+
+        $this->assertDiskArraysAligned($request);
 
         $ip_fields = $this->collectAndValidateIpFields($request);
 
@@ -325,6 +329,22 @@ class ServerController extends Controller
         $request->validate(array_fill_keys(array_keys($ip_fields), 'ip'));
 
         return $ip_fields;
+    }
+
+    /**
+     * disk[], disk_type[], disk_media[] are validated as independent arrays;
+     * the insert loop assumes identical indexes. A forged request with
+     * unequal counts otherwise 500s mid-loop AFTER the server/pricing/labels
+     * writes (a partial update). Reject the mismatch before any write.
+     */
+    private function assertDiskArraysAligned(Request $request): void
+    {
+        $count = count((array) $request->disk);
+        if (count((array) $request->disk_type) !== $count || count((array) $request->disk_media) !== $count) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'disk' => 'Each disk must have a matching type and media.',
+            ]);
+        }
     }
 
     public function chooseCompare()
