@@ -285,6 +285,10 @@ Example yabs.sh call to POST the result:
 
 `curl -sL yabs.sh | bash -s -- -s "https://yourdomain.com/api/yabs/SERVERID?expires=...&signature=..."`
 
+If the instance is not reachable from the benchmarked server (private/LAN-only deployments),
+use **Add YABS** on the YABS page instead: run `curl -sL yabs.sh | bash -s -- -j` on the
+server and paste the JSON it prints.
+
 ## Credits
 
 IP who is data provided by [ipwhois.io](https://ipwhois.io/documentation)

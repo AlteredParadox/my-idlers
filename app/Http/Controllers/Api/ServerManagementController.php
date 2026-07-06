@@ -248,7 +248,7 @@ class ServerManagementController extends Controller
             'iperf' => ['required', 'array'],
         ]);
 
-        $insert = $ingest->ingest($request, $server->id);
+        $insert = $ingest->ingest($request->all(), $server->id);
 
         if ($insert) {
             Cache::forget('all_active_servers');//all servers cache

@@ -5,6 +5,7 @@
             <h2 class="page-title">YABS Results</h2>
             <div class="page-actions">
                 <a href="{{ route('yabs.compare-choose') }}" class="btn btn-outline-secondary">Compare YABS</a>
+                <a href="{{ route('yabs.create') }}" class="btn btn-primary">Add YABS</a>
             </div>
         </div>
 
