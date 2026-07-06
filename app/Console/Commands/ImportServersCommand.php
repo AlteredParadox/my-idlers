@@ -43,9 +43,6 @@ class ImportServersCommand extends Command
         // headers mis-key array_combine and every row then fails.
         $headers = array_map(fn ($h) => trim($h, "\xEF\xBB\xBF \t\r"), array_shift($rows));
 
-        // Pre-create Debian 13 OS
-        $os = OS::firstOrCreate(['name' => 'Debian 13']);
-
         $count = 0;
         $errors = 0;
 
@@ -59,7 +56,7 @@ class ImportServersCommand extends Command
             $data = array_combine($headers, $row);
 
             try {
-                $this->importServer($data, $os);
+                $this->importServer($data);
                 $count++;
             } catch (\Exception $e) {
                 $this->error("Row " . ($i + 2) . " (" . ($data['HOSTNAME'] ?? '?') . "): " . $e->getMessage());
@@ -88,6 +85,11 @@ class ImportServersCommand extends Command
             'ram_as_mb' => 'required|integer|min:0|max:100000000',
             'disk_as_gb' => 'required|integer|min:0|max:100000000',
             'bandwidth' => 'required|integer|min:0|max:100000000',
+            // Text fields mirror the web rules: import could otherwise create
+            // provider/location/hostname values the UI itself would reject
+            'provider_name' => 'required|string|min:2|max:255',
+            'location_name' => 'required|string|min:2|max:255',
+            'hostname' => 'required|string|min:5|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -95,7 +97,7 @@ class ImportServersCommand extends Command
         }
     }
 
-    private function importServer(array $data, OS $os): void
+    private function importServer(array $data): void
     {
         // Provider/location NAMES only — the rows are created inside the
         // per-row transaction after validation, so a rejected row can't
@@ -176,6 +178,9 @@ class ImportServersCommand extends Command
             'ram_as_mb' => $ramAsMb,
             'disk_as_gb' => $totalDiskGb,
             'bandwidth' => $bandwidth,
+            'provider_name' => $providerName,
+            'location_name' => $locName,
+            'hostname' => $hostname,
         ]);
 
         // Create server
@@ -183,9 +188,11 @@ class ImportServersCommand extends Command
 
         // Atomic per row: without this, a failure on the pricing/IP writes
         // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
-        DB::transaction(function () use ($serverId, $hostname, $os, $providerName, $locName, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
+        DB::transaction(function () use ($serverId, $hostname, $providerName, $locName, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
             $provider = Providers::firstOrCreate(['name' => $providerName]);
             $location = Locations::firstOrCreate(['name' => $locName]);
+            // Lazy: a completely invalid import must not add the OS row either
+            $os = OS::firstOrCreate(['name' => 'Debian 13']);
 
             // Pricing FIRST: servers.id has an FK to pricings.service_id
             // (servers_fk_pricing), checked immediately by InnoDB. SQLite
