@@ -74,12 +74,12 @@
                                     </td>
                                     <td class="text-nowrap">
                                         @if((int) $settings->show_server_value_location === 1)
-                                            {{ $s->location->name }}
+                                            {{ $s->location->name ?? '-' }}
                                         @endif
                                     </td>
                                     <td class="text-nowrap">
                                         @if((int) $settings->show_server_value_provider === 1)
-                                            {{ $s->provider->name }}
+                                            {{ $s->provider->name ?? '-' }}
                                         @endif
                                     </td>
                                     <td class="text-nowrap">

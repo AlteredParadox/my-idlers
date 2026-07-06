@@ -34,8 +34,8 @@ class SharedController extends Controller
             'shared_type' => 'required|string',
             'disk' => 'integer',
             'os_id' => 'integer',
-            'provider_id' => 'required|integer',
-            'location_id' => 'required|integer',
+            'provider_id' => 'required|integer|exists:providers,id',
+            'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
             'payment_term' => 'required|integer',
@@ -124,8 +124,8 @@ class SharedController extends Controller
             'shared_type' => 'required|string',
             'disk' => 'integer',
             'os_id' => 'integer',
-            'provider_id' => 'required|integer',
-            'location_id' => 'required|integer',
+            'provider_id' => 'required|integer|exists:providers,id',
+            'location_id' => 'required|integer|exists:locations,id',
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
             'payment_term' => 'required|integer',
@@ -146,6 +146,20 @@ class SharedController extends Controller
             'label3' => 'sometimes|nullable|string|exists:labels,id',
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
+
+        // Validate BEFORE any write: failing after $shared->update()
+        // left persisted changes with every cache forget skipped.
+        // Collect the dedicated IP plus any ipN fields (IPs assigned via the
+        // IPs page round-trip through the edit form) — syncing only the one
+        // dedicated_ip slot silently deleted the others and their notes.
+        $submitted_ips = is_null($request->dedicated_ip) ? [] : [$request->dedicated_ip];
+        $extra_ip_fields = [];
+        foreach ($request->all() as $key => $value) {
+            if (preg_match('/^ip\d+$/', $key) && !is_null($value)) {
+                $extra_ip_fields[$key] = $value;
+            }
+        }
+        $request->validate(array_fill_keys(array_keys($extra_ip_fields), 'ip'));
 
         $link_speed_mbps = null;
         if ($request->link_speed) {

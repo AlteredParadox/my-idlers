@@ -414,19 +414,19 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">OS</span>
-                                    <span class="detail-value">{{ $server_data->os->name }}</span>
+                                    <span class="detail-value">{{ $server_data->os->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Location</span>
-                                    <span class="detail-value">{{ $server_data->location->name }}</span>
+                                    <span class="detail-value">{{ $server_data->location->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Provider</span>
-                                    <span class="detail-value">{{ $server_data->provider->name }}</span>
+                                    <span class="detail-value">{{ $server_data->provider->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">
