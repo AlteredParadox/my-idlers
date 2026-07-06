@@ -119,7 +119,6 @@ class Home extends Model
     {
         $pricing = new Pricing();
         $count = $altered_due_soon = 0;
-        $server_due_date_changed = false;
         foreach ($due_soon as $service) {
             if (is_null($service->next_due_date)) {
                 $count++;
@@ -137,18 +136,13 @@ class Home extends Model
                     ->update(['next_due_date' => $new_due_date]);
                 $due_soon[$count]->next_due_date = $new_due_date;//Update array being sent to view
                 $altered_due_soon = 1;
-                if ((int) $service->service_type === 1) {
-                    $server_due_date_changed = true;
-                    Server::serverSpecificCacheForget($service->service_id);
-                }
+                // The advanced date lives in the service's cached `price` relation
+                // for every type, not just servers — clear the right caches.
+                self::forgetServiceCacheByType((int) $service->service_type, $service->service_id);
             } else {
                 break;//Break because if this date isnt past than the ones after it in the loop wont be either
             }
             $count++;
-        }
-
-        if ($server_due_date_changed) {
-            Server::serverRelatedCacheForget();
         }
 
         if ($altered_due_soon === 1) {//Made changes to due soon so re-write it
@@ -156,6 +150,48 @@ class Home extends Model
         }
 
         return $due_soon;
+    }
+
+    /**
+     * Forget the list + per-item caches for a service type whose pricing changed.
+     * (No DB foreign keys / cascades; cache fan-out is manual.)
+     */
+    private static function forgetServiceCacheByType(int $type, string $service_id): void
+    {
+        switch ($type) {
+            case 1: // server
+                Server::serverSpecificCacheForget($service_id);
+                Server::serverRelatedCacheForget();
+                break;
+            case 2: // shared
+                Cache::forget('all_shared');
+                Cache::forget('all_active_shared');
+                Cache::forget('non_active_shared');
+                Cache::forget("shared_hosting.$service_id");
+                break;
+            case 3: // reseller
+                Cache::forget('all_reseller');
+                Cache::forget('all_active_reseller');
+                Cache::forget('non_active_reseller');
+                Cache::forget("reseller_hosting.$service_id");
+                break;
+            case 4: // domains
+                Cache::forget('all_domains');
+                Cache::forget('all_active_domains');
+                Cache::forget('non_active_domains');
+                Cache::forget("domain.$service_id");
+                break;
+            case 5: // misc
+                Cache::forget('all_misc');
+                Cache::forget('all_active_misc');
+                Cache::forget('non_active_misc');
+                Cache::forget("misc.$service_id");
+                break;
+            case 6: // seedbox
+                Cache::forget('all_seedboxes');
+                Cache::forget("seedbox.$service_id");
+                break;
+        }
     }
 
     public static function breakdownPricing($all_pricing): array
