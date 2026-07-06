@@ -54,6 +54,9 @@ class GptRound8RegressionTest extends TestCase
 
         $this->assertSame(0, Server::count());
         $this->assertSame(0, Pricing::count());
+        // GPT round 12: rejected rows must not strand provider/location rows.
+        $this->assertSame(0, \App\Models\Providers::count());
+        $this->assertSame(0, \App\Models\Locations::count());
 
         // A valid row still imports (empty currency defaults to USD).
         $this->importCsv('C1,L1,goodrow1.invalid,4 GB,2,80 GB,,10TB,1M,$5.00,,12/01/26,');

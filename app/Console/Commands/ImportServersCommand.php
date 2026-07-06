@@ -97,13 +97,13 @@ class ImportServersCommand extends Command
 
     private function importServer(array $data, OS $os): void
     {
-        // Provider
-        $provider = Providers::firstOrCreate(['name' => trim($data['COMPANY'])]);
-
-        // Location (normalize)
+        // Provider/location NAMES only — the rows are created inside the
+        // per-row transaction after validation, so a rejected row can't
+        // strand orphan catalog entries (a bad CSV used to populate the
+        // provider/location dropdowns while importing zero servers).
+        $providerName = trim($data['COMPANY']);
         $locName = trim($data['LOCATION']);
         $locName = $this->locationMap[$locName] ?? $locName;
-        $location = Locations::firstOrCreate(['name' => $locName]);
 
         // Hostname
         $hostname = trim($data['HOSTNAME']);
@@ -183,7 +183,10 @@ class ImportServersCommand extends Command
 
         // Atomic per row: without this, a failure on the pricing/IP writes
         // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
-        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
+        DB::transaction(function () use ($serverId, $hostname, $os, $providerName, $locName, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
+            $provider = Providers::firstOrCreate(['name' => $providerName]);
+            $location = Locations::firstOrCreate(['name' => $locName]);
+
             // Pricing FIRST: servers.id has an FK to pricings.service_id
             // (servers_fk_pricing), checked immediately by InnoDB. SQLite
             // silently drops ALTER TABLE FKs, so it hides the wrong order.
