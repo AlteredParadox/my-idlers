@@ -313,6 +313,8 @@
 
         function fetchDetail() {
             var loading = document.getElementById('prom-loading');
+            // Reset to the spinner each poll so a prior error doesn't linger/re-flash
+            loading.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading monitoring data...';
             loading.style.display = '';
 
             fetch('/tools/prometheus/detail/' + encodeURIComponent(hostname) + '/' + currentPeriod + '/' + currentBack, {
