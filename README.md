@@ -311,9 +311,14 @@ docker run \
   -e DB_PASSWORD=... \
   -e MAX_USERS=0 \
   -e SEED_DEMO_DATA=false \
-  ghcr.io/cp6/my-idlers:latest
+  ghcr.io/alteredparadox/my-idlers:latest
 docker exec ... php artisan migrate:fresh --seed --force  # Set up database one time
 ```
+
+Images are published to GitHub Container Registry on each tagged release:
+`ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.1` — note the Docker tag uses `-ap.1` since `+` is not
+a valid Docker tag character).
 
 Notes:
 
