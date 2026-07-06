@@ -88,6 +88,30 @@ class LabelsTest extends TestCase
         $this->assertDatabaseMissing('labels', ['label' => 'Test Label']);
     }
 
+    public function test_deleting_a_label_clears_the_assigned_server_cache()
+    {
+        $label = Labels::create(['id' => 'lbldel01', 'label' => 'To Delete']);
+        \App\Models\Providers::create(['name' => 'P']);
+        \App\Models\Locations::create(['name' => 'L']);
+        \App\Models\OS::create(['name' => 'Ubuntu']);
+        \App\Models\Settings::create(['id' => 1]);
+        (new \App\Models\Pricing)->insertPricing(1, 'srv00001', 'USD', 5, 1, '2027-01-01');
+        \App\Models\Server::create([
+            'id' => 'srv00001', 'hostname' => 'h', 'server_type' => 1, 'os_id' => 1, 'provider_id' => 1,
+            'location_id' => 1, 'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024, 'disk' => 10,
+            'disk_type' => 'GB', 'disk_as_gb' => 10, 'cpu' => 1, 'has_yabs' => 0, 'was_promo' => 0,
+            'active' => 1, 'show_public' => 0, 'bandwidth' => 1, 'owned_since' => '2024-01-01',
+        ]);
+        Labels::insertLabelsAssigned([$label->id, null, null, null], 'srv00001');
+        \Illuminate\Support\Facades\Cache::put('server.srv00001', 'stale');
+
+        $this->actingAs($this->user)->delete(route('labels.destroy', $label));
+
+        // The server show cache embeds the labels relation; a stale one would
+        // lazy-load the deleted label and 500 the show page
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('server.srv00001'));
+    }
+
     public function test_label_page_shows_seedbox_assignment()
     {
         $label = Labels::create(['id' => 'sblabel1', 'label' => 'Seedbox Label']);

@@ -230,4 +230,30 @@ class YabsIngestTest extends TestCase
         // Server caches embed the yabs relation and must be cleared on delete
         $this->assertFalse(\Illuminate\Support\Facades\Cache::has("server.{$server->id}"));
     }
+
+    public function test_deleting_a_yabs_removes_its_disk_and_network_speed_rows()
+    {
+        $server = $this->makeServer();
+        app(\App\Services\YabsIngestService::class)->ingest($this->yabsPayload(), $server->id);
+        $yab = \App\Models\Yabs::where('server_id', $server->id)->firstOrFail();
+
+        $this->actingAs(User::factory()->create())->delete(route('yabs.destroy', $yab));
+
+        $this->assertDatabaseMissing('disk_speed', ['id' => $yab->id]);
+        $this->assertDatabaseMissing('network_speed', ['id' => $yab->id]);
+    }
+
+    public function test_deleting_a_server_removes_its_yabs_and_speed_rows()
+    {
+        $server = $this->makeServer();
+        app(\App\Services\YabsIngestService::class)->ingest($this->yabsPayload(), $server->id);
+        $yab = \App\Models\Yabs::where('server_id', $server->id)->firstOrFail();
+
+        $this->actingAs(User::factory()->create())->delete(route('servers.destroy', $server->id));
+
+        // Server delete used to orphan the yabs + disk_speed + network_speed rows
+        $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
+        $this->assertDatabaseMissing('disk_speed', ['id' => $yab->id]);
+        $this->assertDatabaseMissing('network_speed', ['id' => $yab->id]);
+    }
 }

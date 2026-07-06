@@ -111,4 +111,19 @@ class Yabs extends Model
             ],
         ];
     }
+
+    /**
+     * Delete every YABS for a server plus their disk_speed/network_speed
+     * children (there are no DB cascades) and clear the yabs caches.
+     */
+    public static function deleteForServer(string $server_id): void
+    {
+        foreach (self::where('server_id', $server_id)->pluck('id') as $yabs_id) {
+            DiskSpeed::where('id', $yabs_id)->delete();
+            NetworkSpeed::where('id', $yabs_id)->delete();
+            Cache::forget("yabs.$yabs_id");
+        }
+        self::where('server_id', $server_id)->delete();
+        Cache::forget('all_yabs');
+    }
 }

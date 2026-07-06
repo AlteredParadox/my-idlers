@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Labels;
+use App\Models\LabelsAssigned;
+use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -66,12 +68,30 @@ class LabelsController extends Controller
 
     public function destroy(Labels $label)
     {
+        // Capture affected services before the assignment rows are removed;
+        // their caches embed the labels relation and must be cleared or the
+        // show pages lazy-load the now-deleted label and 500.
+        $serviceIds = LabelsAssigned::where('label_id', $label->id)->pluck('service_id');
+
         if ($label->delete()) {
             Cache::forget('labels_count');
 
             Labels::deleteLabelAssignedAs($label->id);
 
             Cache::forget('all_labels');
+
+            foreach ($serviceIds as $sid) {
+                Cache::forget("server.$sid");
+                Cache::forget("shared_hosting.$sid");
+                Cache::forget("reseller_hosting.$sid");
+                Cache::forget("domain.$sid");
+            }
+            Server::serverRelatedCacheForget();
+            foreach (['shared', 'reseller', 'domains'] as $type) {
+                Cache::forget("all_{$type}");
+                Cache::forget("all_active_{$type}");
+                Cache::forget("non_active_{$type}");
+            }
 
             return redirect()->route('labels.index')
                 ->with('success', 'Label was deleted Successfully.');
