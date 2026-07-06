@@ -10,7 +10,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('disk_speed', function (Blueprint $table) {
-            if (env('DB_CONNECTION') !== 'sqlite') {
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
                 $table->dropForeign('ds_fk_yabs');
             }
 
@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::table('network_speed', function (Blueprint $table) {
-            if (env('DB_CONNECTION') !== 'sqlite') {
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
                 $table->dropForeign('ns_fk_yabs');
             }
 
