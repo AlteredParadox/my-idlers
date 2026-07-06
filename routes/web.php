@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Api\ToolsController;
 use App\Http\Controllers\DNSController;
 use App\Http\Controllers\DomainsController;
 use App\Http\Controllers\ExportController;
@@ -70,18 +70,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
     $hostnameRegex = '[a-zA-Z0-9._-]+';
-    Route::get('tools/online/{hostname}', [ApiController::class, 'checkHostIsUp'])
+    Route::get('tools/online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
         ->where('hostname', $hostnameRegex)
         ->middleware(['throttle:10,1'])
         ->name('tools.online');
-    Route::get('tools/dns/{domainName}/{type}', [ApiController::class, 'getIpForDomain'])
+    Route::get('tools/dns/{domainName}/{type}', [ToolsController::class, 'getIpForDomain'])
         ->where(['domainName' => $hostnameRegex, 'type' => 'A|AAAA'])
         ->middleware(['throttle:20,1'])
         ->name('tools.dns');
-    Route::get('tools/prometheus/status', [ApiController::class, 'prometheusStatus'])
+    Route::get('tools/prometheus/status', [ToolsController::class, 'prometheusStatus'])
         ->middleware(['throttle:30,1'])
         ->name('tools.prometheus.status');
-    Route::get('tools/prometheus/detail/{hostname}/{period}/{back}', [ApiController::class, 'prometheusDetail'])
+    Route::get('tools/prometheus/detail/{hostname}/{period}/{back}', [ToolsController::class, 'prometheusDetail'])
         ->where(['hostname' => $hostnameRegex, 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+'])
         ->middleware(['throttle:30,1'])
         ->name('tools.prometheus.detail');

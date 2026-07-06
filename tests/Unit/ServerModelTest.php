@@ -46,21 +46,21 @@ class ServerModelTest extends TestCase
 
     public function test_table_row_compare_returns_plus_when_val1_greater()
     {
-        $result = Server::tableRowCompare('100', '50', 'MB');
+        $result = \App\Process::tableRowCompare('100', '50', 'MB');
         $this->assertStringContainsString('plus-td', $result);
         $this->assertStringContainsString('+50', $result);
     }
 
     public function test_table_row_compare_returns_neg_when_val1_less()
     {
-        $result = Server::tableRowCompare('50', '100', 'MB');
+        $result = \App\Process::tableRowCompare('50', '100', 'MB');
         $this->assertStringContainsString('neg-td', $result);
         $this->assertStringContainsString('-50', $result);
     }
 
     public function test_table_row_compare_returns_equal_when_values_same()
     {
-        $result = Server::tableRowCompare('100', '100', 'MB');
+        $result = \App\Process::tableRowCompare('100', '100', 'MB');
         $this->assertStringContainsString('equal-td', $result);
         $this->assertStringContainsString('0', $result);
     }
