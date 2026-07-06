@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -26,29 +27,33 @@ class Pricing extends Model
         if (Cache::has("currency_rates")) {
             return Cache::get("currency_rates");
         }
-        $response_json = file_get_contents(config('services.exchange_rates.url'));
-        if (false === $response_json) {
-            Log::error("do file_get_contents failed");
+
+        $url = config('services.exchange_rates.url');
+        if (empty($url)) {
             return (object)null;
         }
+
         try {
-            $response = json_decode($response_json);
-            if ('success' === $response->result) {
+            $response = Http::timeout(5)->get($url)->throw()->object();
+            if ('success' === ($response->result ?? null)) {
                 return Cache::remember("currency_rates", now()->addWeek(1), function () use ($response) {
                     return $response->rates;
                 });
             }
-            Log::error("server response is " . $response->result . ", expecting success");
+            Log::error("exchange rate response is " . ($response->result ?? 'unknown') . ", expecting success");
         } catch (Exception $e) {
-            Log::error("failed to request v6.exchangerate-api.com", ['err' => $e]);
+            Log::error("failed to fetch exchange rates", ['err' => $e]);
         }
+
         return (object)null;
     }
 
     private static function getRates($currency): float
     {
-        $rate = self::refreshRates()->$currency;
-        return $rate ?? 1.00;
+        // Null coalescing on the property access itself: without it, a missing
+        // currency (e.g. rates fetch failed) raises ErrorException before any
+        // fallback can apply.
+        return self::refreshRates()->$currency ?? 1.00;
     }
 
     public static function getCurrencyList(): array

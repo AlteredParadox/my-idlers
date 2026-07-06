@@ -83,8 +83,10 @@
                                         @endif
                                     </td>
                                     <td class="text-nowrap">
-                                        {{ $s->price->price }} {{ $s->currency }}
-                                        <small class="text-muted">{{ \App\Process::paymentTermIntToString($s->price->term) }}</small>
+                                        @if(Session::get('show_server_value_price') === 1)
+                                            {{ $s->price->price }} {{ $s->price->currency }}
+                                            <small class="text-muted">{{ \App\Process::paymentTermIntToString($s->price->term) }}</small>
+                                        @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $s->owned_since }}</td>
                                     <td class="text-center text-nowrap">

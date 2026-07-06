@@ -23,8 +23,11 @@ class ServiceQueryController extends Controller
 
     protected function getServer($id)
     {
-        $server = Server::server($id)->toJson(JSON_PRETTY_PRINT);
-        return response($server, 200);
+        $record = Server::server($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -37,8 +40,11 @@ class ServiceQueryController extends Controller
 
     protected function getShared($id)
     {
-        $shared = Shared::sharedHosting($id)->toJson(JSON_PRETTY_PRINT);
-        return response($shared, 200);
+        $record = Shared::sharedHosting($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -51,8 +57,11 @@ class ServiceQueryController extends Controller
 
     protected function getReseller($id)
     {
-        $reseller = Reseller::resellerHosting($id)->toJson(JSON_PRETTY_PRINT);
-        return response($reseller, 200);
+        $record = Reseller::resellerHosting($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -65,8 +74,11 @@ class ServiceQueryController extends Controller
 
     protected function getSeedbox($id)
     {
-        $reseller = SeedBoxes::seedbox($id)->toJson(JSON_PRETTY_PRINT);
-        return response($reseller, 200);
+        $record = SeedBoxes::seedbox($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -79,8 +91,11 @@ class ServiceQueryController extends Controller
 
     protected function getDomains($id)
     {
-        $domain = Domains::domain($id)->toJson(JSON_PRETTY_PRINT);
-        return response($domain, 200);
+        $record = Domains::domain($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -93,8 +108,11 @@ class ServiceQueryController extends Controller
 
     protected function getMisc($id)
     {
-        $misc = Misc::misc($id)->toJson(JSON_PRETTY_PRINT);
-        return response($misc, 200);
+        $record = Misc::misc($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
@@ -107,14 +125,17 @@ class ServiceQueryController extends Controller
 
     protected function getYabs($id)
     {
-        $yabs = Yabs::yabs($id)->toJson(JSON_PRETTY_PRINT);
-        return response($yabs, 200);
+        $record = Yabs::yabs($id);
+        if (is_null($record)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response($record->toJson(JSON_PRETTY_PRINT), 200);
     }
 
 
     protected function getNote($id)
     {
-        $note = Note::where('id', $id)->firstOrFail('note')->pluck('note');
+        $note = Note::where('id', $id)->firstOrFail(['note'])->note;
         return response($note, 200)->header('Content-Type', 'text/plain');
     }
 }

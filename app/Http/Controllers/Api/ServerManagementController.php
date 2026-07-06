@@ -81,7 +81,7 @@ class ServerManagementController extends Controller
             'hostname' => $request->hostname,
             'server_type' => $request->server_type,
             'os_id' => $request->os_id,
-            'ssh_port' => $request->ssh_port,
+            'ssh' => $request->ssh_port,
             'provider_id' => $request->provider_id,
             'location_id' => $request->location_id,
             'ram' => $request->ram,
@@ -97,7 +97,8 @@ class ServerManagementController extends Controller
             'cpu' => $request->cpu,
             'was_promo' => $request->was_promo,
             'transferrable' => $request->transferrable,
-            'show_public' => (isset($request->show_public)) ? 1 : 0
+            'active' => $request->boolean('active') ? 1 : 0,
+            'show_public' => $request->boolean('show_public') ? 1 : 0
         ]);
 
         Server::serverRelatedCacheForget();
