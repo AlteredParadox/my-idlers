@@ -55,13 +55,15 @@ class ToolsController extends Controller
 
     public function getIpForDomain(string $domainname, string $type)
     {//Gets IP from A record for a domain
+        // @-suppressed: dns_get_record raises E_WARNING (→ ErrorException →
+        // 500) on SERVFAIL — exactly the broken domains this tool diagnoses.
         if ($type === "A") {
-            $data = dns_get_record($domainname, DNS_A);
+            $data = @dns_get_record($domainname, DNS_A) ?: [];
             if (isset($data['0']['ip'])) {
                 return response(array('ip' => $data['0']['ip']), 200);
             }
         } elseif ($type === "AAAA") {
-            $data = dns_get_record($domainname, DNS_AAAA);
+            $data = @dns_get_record($domainname, DNS_AAAA) ?: [];
             if (isset($data['0']['ipv6'])) {
                 return response(array('ip' => $data['0']['ipv6']), 200);
             }

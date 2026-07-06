@@ -29,6 +29,7 @@ class ServerManagementController extends Controller
         'numeric' => ':attribute must be a float',
         'ip' => ':attribute must be a valid IP address',
         'date' => ':attribute must be a date Y-m-d',
+        'date_format' => ':attribute must be a date Y-m-d',
     ];
 
 
@@ -53,13 +54,13 @@ class ServerManagementController extends Controller
             'show_public' => 'required|integer',
             'ip1' => 'ip',
             'ip2' => 'ip',
-            'owned_since' => 'required|date',
+            'owned_since' => 'required|date_format:Y-m-d',
             'ram_type' => 'required|string|size:2',
             'disk_type' => 'required|string|size:2',
             'currency' => 'required|string|size:3',
             'price' => 'required|numeric',
             'payment_term' => 'required|integer',
-            'next_due_date' => 'date',
+            'next_due_date' => 'date_format:Y-m-d',
         ];
 
         $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
@@ -173,13 +174,13 @@ class ServerManagementController extends Controller
             'transferrable' => 'integer',
             'active' => 'integer',
             'show_public' => 'integer',
-            'owned_since' => 'date',
+            'owned_since' => 'date_format:Y-m-d',
             'ram_type' => 'string|size:2',
             'disk_type' => 'string|size:2',
             'currency' => 'string|size:3',
             'price' => 'numeric',
             'payment_term' => 'integer',
-            'next_due_date' => 'date',
+            'next_due_date' => 'date_format:Y-m-d',
         ];
 
         $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
@@ -219,7 +220,7 @@ class ServerManagementController extends Controller
             'currency' => 'required|string|size:3',
             'term' => 'required|integer',
             'active' => 'integer',
-            'next_due_date' => 'date',
+            'next_due_date' => 'date_format:Y-m-d',
         ];
 
         $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);

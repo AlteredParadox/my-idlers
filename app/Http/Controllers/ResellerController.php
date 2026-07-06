@@ -10,6 +10,7 @@ use App\Models\Pricing;
 use App\Models\Reseller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ResellerController extends Controller
@@ -29,7 +30,7 @@ class ResellerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'domain' => 'required|min:4',
+            'domain' => 'required|min:4|max:255',
             'reseller_type' => 'required|string',
             'disk' => 'integer',
             'os_id' => 'integer',
@@ -64,16 +65,17 @@ class ResellerController extends Controller
 
         $reseller_id = Str::random(8);
 
-        $pricing = new Pricing();
-        $pricing->insertPricing(3, $reseller_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
+        // Atomic: a failed reseller insert must not orphan pricing/IP rows.
+        DB::transaction(function () use ($request, $reseller_id, $link_speed_mbps) {
+            (new Pricing())->insertPricing(3, $reseller_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        if (!is_null($request->dedicated_ip)) {
-            IPs::insertIP($reseller_id, $request->dedicated_ip);
-        }
+            if (!is_null($request->dedicated_ip)) {
+                IPs::insertIP($reseller_id, $request->dedicated_ip);
+            }
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $reseller_id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $reseller_id);
 
-        Reseller::create([
+            Reseller::create([
             'id' => $reseller_id,
             'main_domain' => $request->domain,
             'accounts' => $request->accounts,
@@ -90,10 +92,11 @@ class ResellerController extends Controller
             'transferrable' => (isset($request->transferrable)) ? 1 : 0,
             'domains_limit' => $request->domains,
             'subdomains_limit' => $request->sub_domains,
-            'email_limit' => $request->email,
-            'ftp_limit' => $request->ftp,
-            'db_limit' => $request->db
-        ]);
+                'email_limit' => $request->email,
+                'ftp_limit' => $request->ftp,
+                'db_limit' => $request->db
+            ]);
+        });
 
         Cache::forget("all_reseller");
         Cache::forget("all_active_reseller");
@@ -119,7 +122,7 @@ class ResellerController extends Controller
     public function update(Request $request, Reseller $reseller)
     {
         $request->validate([
-            'domain' => 'required|min:4',
+            'domain' => 'required|min:4|max:255',
             'reseller_type' => 'required|string',
             'disk' => 'integer',
             'os_id' => 'integer',

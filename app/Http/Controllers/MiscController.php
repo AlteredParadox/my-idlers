@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Home;
 use App\Models\Misc;
+use App\Models\Note;
 use App\Models\Pricing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class MiscController extends Controller
@@ -32,7 +34,7 @@ class MiscController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|min:3',
+            'name' => 'required|string|min:3|max:255',
             'price' => 'required|numeric',
             'payment_term' => 'required|integer',
             'currency' => 'required|string|size:3',
@@ -42,14 +44,17 @@ class MiscController extends Controller
 
         $misc_id = Str::random(8);
 
-        $pricing = new Pricing();
-        $pricing->insertPricing(5, $misc_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
+        // Atomic: pricing must insert first (FK), so a failed service insert
+        // would otherwise orphan an active pricing row.
+        DB::transaction(function () use ($request, $misc_id) {
+            (new Pricing())->insertPricing(5, $misc_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        Misc::create([
-            'id' => $misc_id,
-            'name' => $request->name,
-            'owned_since' => $request->owned_since
-        ]);
+            Misc::create([
+                'id' => $misc_id,
+                'name' => $request->name,
+                'owned_since' => $request->owned_since
+            ]);
+        });
 
         Cache::forget("all_misc");
         Cache::forget("all_active_misc");
@@ -69,7 +74,7 @@ class MiscController extends Controller
     public function update(Request $request, Misc $misc)
     {
         $request->validate([
-            'name' => 'required|string|min:3',
+            'name' => 'required|string|min:3|max:255',
             'price' => 'required|numeric',
             'payment_term' => 'required|integer',
             'currency' => 'required|string|size:3',
@@ -103,6 +108,9 @@ class MiscController extends Controller
         if ($misc->delete()) {
             $p = new Pricing();
             $p->deletePricing($misc->id);
+
+            // Legacy/forged notes keyed to this id would linger as ghost rows
+            Note::deleteForService($misc->id);
 
             Cache::forget("all_misc");
         Cache::forget("all_active_misc");
