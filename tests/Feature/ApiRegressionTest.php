@@ -124,6 +124,21 @@ class ApiRegressionTest extends TestCase
         ], $this->apiHeaders())->assertStatus(404);
     }
 
+    public function test_api_update_pricing_with_unchanged_values_returns_200()
+    {
+        // MySQL-meaningful (the SQLite suite can't catch this): re-saving the
+        // SAME values yields 0 CHANGED rows under MySQL, which the old code
+        // reported as a 500. Must be 200.
+        $pricing = \App\Models\Pricing::create([
+            'service_id' => 'srv00001', 'service_type' => 1, 'currency' => 'USD',
+            'price' => 5.00, 'term' => 1, 'as_usd' => 5.00, 'usd_per_month' => 5.00,
+        ]);
+
+        $this->putJson("/api/pricing/{$pricing->id}", [
+            'price' => 5.00, 'currency' => 'USD', 'term' => 1,
+        ], $this->apiHeaders())->assertStatus(200);
+    }
+
     public function test_api_missing_records_return_404_not_500()
     {
         foreach (['servers', 'shared', 'reseller', 'seedbox', 'domains', 'misc', 'yabs'] as $resource) {

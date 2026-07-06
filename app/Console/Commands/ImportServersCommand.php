@@ -12,6 +12,7 @@ use App\Models\Server;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ImportServersCommand extends Command
@@ -113,8 +114,12 @@ class ImportServersCommand extends Command
         // Price (from COST column)
         $price = floatval(str_replace(['$', ','], '', trim($data['COST'])));
 
-        // Currency
-        $currency = trim($data['CURRENCY']);
+        // Currency — pricings.currency is char(3); normalize and fall back to
+        // USD for anything that isn't a 3-letter code (would overflow on MySQL).
+        $currency = strtoupper(trim($data['CURRENCY'] ?? ''));
+        if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+            $currency = 'USD';
+        }
 
         // Active/Cancelled
         $cancelled = strtolower(trim($data['Cancelled'] ?? ''));
@@ -129,38 +134,39 @@ class ImportServersCommand extends Command
         // Create server
         $serverId = Str::random(8);
 
-        Server::create([
-            'id' => $serverId,
-            'hostname' => $hostname,
-            'server_type' => 1, // KVM
-            'os_id' => $os->id,
-            'provider_id' => $provider->id,
-            'location_id' => $location->id,
-            'ram' => $ram,
-            'ram_type' => $ramType,
-            'ram_as_mb' => $ramAsMb,
-            'disk' => $firstDisk['size'],
-            'disk_type' => $firstDisk['unit'],
-            'disk_as_gb' => $totalDiskGb,
-            'cpu' => intval($data['VCPU']),
-            'bandwidth' => $bandwidth,
-            'ssh' => 22,
-            'active' => $active,
-            'show_public' => 0,
-            'was_promo' => 1,
-            'owned_since' => $ownedSince,
-        ]);
+        // Atomic per row: without this, a failure on the pricing/IP writes
+        // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
+        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $data, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate) {
+            Server::create([
+                'id' => $serverId,
+                'hostname' => $hostname,
+                'server_type' => 1, // KVM
+                'os_id' => $os->id,
+                'provider_id' => $provider->id,
+                'location_id' => $location->id,
+                'ram' => $ram,
+                'ram_type' => $ramType,
+                'ram_as_mb' => $ramAsMb,
+                'disk' => $firstDisk['size'],
+                'disk_type' => $firstDisk['unit'],
+                'disk_as_gb' => $totalDiskGb,
+                'cpu' => intval($data['VCPU']),
+                'bandwidth' => $bandwidth,
+                'ssh' => 22,
+                'active' => $active,
+                'show_public' => 0,
+                'was_promo' => 1,
+                'owned_since' => $ownedSince,
+            ]);
 
-        // Insert disks
-        foreach ($disks as $d) {
-            Disk::insertDisk($serverId, $d['size'], $d['unit'], $d['media']);
-        }
+            foreach ($disks as $d) {
+                Disk::insertDisk($serverId, $d['size'], $d['unit'], $d['media']);
+            }
 
-        // Insert pricing
-        (new Pricing())->insertPricing(1, $serverId, $currency, $price, $term, $nextDueDate, $active);
+            (new Pricing())->insertPricing(1, $serverId, $currency, $price, $term, $nextDueDate, $active);
 
-        // DNS resolution for IPs
-        $this->resolveAndInsertIPs($serverId, $hostname);
+            $this->resolveAndInsertIPs($serverId, $hostname);
+        });
 
         $status = $active ? 'active' : 'inactive';
         $this->line("  Imported: $hostname ($status)");
