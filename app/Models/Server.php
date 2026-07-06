@@ -98,8 +98,11 @@ class Server extends Model
         };
     }
 
-    public static function osIntToIcon(int $os, string $os_name): string
+    public static function osIntToIcon(?int $os, ?string $os_name): string
     {
+        // Tolerate a null OS (e.g. its record was deleted while a server still
+        // references it) so the servers index / public page don't fatal.
+        $os_name = (string) $os_name;
         $name = strtolower(str_replace(' ', '', $os_name));
         $icon = match (true) {
             $name === "none" => "fas fa-expand",

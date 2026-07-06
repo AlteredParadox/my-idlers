@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Mockery\Exception;
+use Illuminate\Database\QueryException;
 
 class Labels extends Model
 {
@@ -31,16 +31,20 @@ class Labels extends Model
 
     public static function insertLabelsAssigned(array $labels_array, string $service_id): void
     {
+        $seen = [];
         for ($i = 1; $i <= 4; $i++) {
-            if (!is_null($labels_array[($i - 1)])) {
-                try {
-                    LabelsAssigned::create([
-                        'label_id' => $labels_array[($i - 1)],
-                        'service_id' => $service_id
-                    ]);
-                } catch (Exception $exception) {
-                    // Ignore duplicate label assignments
-                }
+            $label_id = $labels_array[($i - 1)];
+            if (is_null($label_id) || in_array($label_id, $seen, true)) {
+                continue;
+            }
+            $seen[] = $label_id;
+            try {
+                LabelsAssigned::create([
+                    'label_id' => $label_id,
+                    'service_id' => $service_id
+                ]);
+            } catch (QueryException $exception) {
+                // Ignore duplicate (label_id, service_id) assignments
             }
         }
     }

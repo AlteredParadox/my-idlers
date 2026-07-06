@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OS;
+use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -37,6 +38,11 @@ class OsController extends Controller
 
     public function destroy(OS $o)
     {
+        if (Server::where('os_id', $o->id)->exists()) {
+            return redirect()->route('os.index')
+                ->with('error', 'Cannot delete an OS that is assigned to servers.');
+        }
+
         if ($o->delete()) {
             Cache::forget('operating_systems');
 

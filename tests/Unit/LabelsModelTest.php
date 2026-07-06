@@ -59,4 +59,15 @@ class LabelsModelTest extends TestCase
 
         $this->assertEquals(3, $count);
     }
+
+    public function test_duplicate_label_in_two_slots_does_not_throw_and_inserts_once()
+    {
+        $label = Labels::create(['id' => 'label001', 'label' => 'Production']);
+
+        // The create forms let a user pick the same label in two slots; this
+        // used to hit the unique index and throw an uncaught QueryException.
+        Labels::insertLabelsAssigned([$label->id, $label->id, null, null], 'service01');
+
+        $this->assertSame(1, LabelsAssigned::where('service_id', 'service01')->count());
+    }
 }
