@@ -130,7 +130,6 @@ class DomainsController extends Controller
         Cache::forget("all_active_domains");
         Cache::forget("non_active_domains");
         Cache::forget("domain.{$domain->id}");
-        Cache::forget("labels_for_service.{$domain->id}");
         Cache::forget("note.{$domain->id}");//embeds the domain relation
         Cache::forget('all_notes');
         Home::homePageCacheForget();

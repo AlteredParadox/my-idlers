@@ -142,7 +142,6 @@ class SeedBoxesController extends Controller
 
         Cache::forget("all_seedboxes");
         Cache::forget("seedbox.{$seedbox->id}");
-        Cache::forget("labels_for_service.{$seedbox->id}");
         Home::homePageCacheForget();
 
         return redirect()->route('seedboxes.index')

@@ -29,7 +29,7 @@ require __DIR__ . '/auth.php';
 Route::get('servers/public', [ServerController::class, 'showServersPublic'])->name('servers/public');
 
 Route::middleware(['auth'])->group(function () {
-    Route::resource('account', AccountController::class);
+    Route::resource('account', AccountController::class)->only(['index', 'update']);
 
     Route::resource('dns', DNSController::class);
 
@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('servers', ServerController::class);
 
-    Route::resource('settings', SettingsController::class);
+    Route::resource('settings', SettingsController::class)->only(['index', 'update']);
 
     Route::resource('seedboxes', SeedBoxesController::class);
 

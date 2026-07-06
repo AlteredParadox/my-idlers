@@ -45,7 +45,9 @@ class IPs extends Model
      */
     public static function syncForService(string $service_id, array $addresses): void
     {
-        $submitted = array_values($addresses);
+        // Dedupe: (service_id, address) is unique — inserting the same
+        // address twice would be a QueryException 500.
+        $submitted = array_values(array_unique($addresses));
         $existing = self::where('service_id', $service_id)->pluck('address')->all();
 
         $a = $submitted;

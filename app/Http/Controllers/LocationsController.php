@@ -58,7 +58,13 @@ class LocationsController extends Controller
             ->get(['r.id', 'r.main_domain as main_domain_reseller'])
             ->toArray();
 
-        $data = array_merge($servers, $shared, $reseller);
+        // Seedboxes also block location deletion — list them as blockers too.
+        $seedboxes = DB::table('seedboxes as sb')
+            ->where('sb.location_id', $location->id)
+            ->get(['sb.id', 'sb.title as seedbox_title'])
+            ->toArray();
+
+        $data = array_merge($servers, $shared, $reseller, $seedboxes);
 
         return view('locations.show', compact(['location', 'data']));
     }

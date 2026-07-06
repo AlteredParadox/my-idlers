@@ -49,7 +49,9 @@ class ServerController extends Controller
         $request->validate([
             'hostname' => 'required|min:5',
             'ip1' => 'sometimes|nullable|ip',
-            'ip2' => 'sometimes|nullable|ip',
+            // different:ip1 — the (service_id, address) unique index makes a
+            // duplicate a QueryException 500 (leaving an orphaned pricing row)
+            'ip2' => 'sometimes|nullable|ip|different:ip1',
             'ns1' => 'sometimes|nullable|string',
             'ns2' => 'sometimes|nullable|string',
             'server_type' => 'integer',
@@ -198,6 +200,17 @@ class ServerController extends Controller
             'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
+        // The edit form renders one ipN field per assigned IP (not just two):
+        // validate them ALL so garbage in ip3+ is rejected, and collect them
+        // all so a 9th+ IP isn't silently deleted on save.
+        $ip_fields = [];
+        foreach ($request->all() as $key => $value) {
+            if (preg_match('/^ip\d+$/', $key) && !is_null($value)) {
+                $ip_fields[$key] = $value;
+            }
+        }
+        $request->validate(array_fill_keys(array_keys($ip_fields), 'ip'));
+
         $link_speed_mbps = null;
         if ($request->link_speed) {
             $link_speed_mbps = (int)($request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed);
@@ -251,14 +264,7 @@ class ServerController extends Controller
             Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
         }
 
-        $submitted_ips = [];
-        for ($i = 1; $i <= 8; $i++) {//Max of 8 ips
-            $obj = 'ip' . $i;
-            if (isset($request->$obj) && !is_null($request->$obj)) {
-                $submitted_ips[] = $request->$obj;
-            }
-        }
-        IPs::syncForService($server->id, $submitted_ips);
+        IPs::syncForService($server->id, array_values($ip_fields));
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($server->id);

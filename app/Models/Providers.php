@@ -41,6 +41,18 @@ class Providers extends Model
             ->get(['r.id', 'r.main_domain as main_domain_reseller'])
             ->toArray();
 
-        return array_merge($servers, $shared, $reseller);
+        // Domains and seedboxes also block provider deletion — the page must
+        // list them or a refused delete shows no visible blocker.
+        $domains = DB::table('domains as d')
+            ->where('d.provider_id', $provider)
+            ->get(['d.id', 'd.domain as domain_name', 'd.extension as domain_extension'])
+            ->toArray();
+
+        $seedboxes = DB::table('seedboxes as sb')
+            ->where('sb.provider_id', $provider)
+            ->get(['sb.id', 'sb.title as seedbox_title'])
+            ->toArray();
+
+        return array_merge($servers, $shared, $reseller, $domains, $seedboxes);
     }
 }

@@ -49,6 +49,7 @@ class ResellerController extends Controller
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
+            'dedicated_ip' => 'sometimes|nullable|ip',
             'next_due_date' => 'sometimes|nullable|date',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
@@ -138,6 +139,7 @@ class ResellerController extends Controller
             'email' => 'integer',
             'ftp' => 'integer',
             'db' => 'integer',
+            'dedicated_ip' => 'sometimes|nullable|ip',
             'next_due_date' => 'sometimes|nullable|date',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
@@ -188,7 +190,6 @@ class ResellerController extends Controller
         Cache::forget("all_active_reseller");
         Cache::forget("non_active_reseller");
         Cache::forget("reseller_hosting.{$reseller->id}");
-        Cache::forget("labels_for_service.{$reseller->id}");
 
         Home::homePageCacheForget();
 
