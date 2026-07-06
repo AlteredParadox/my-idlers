@@ -43,7 +43,7 @@ class Round34RegressionTest extends TestCase
                 || str_starts_with($hostname, $promHost . '.');
         };
 
-        // Must match: the shapes resolveInstance supports.
+        // Must match: the shared list/detail truth table (PrometheusService::hostMatches).
         $this->assertTrue($match('web1.example.com', 'web1'));
         $this->assertTrue($match('web1', 'web1.example.com'));
         $this->assertTrue($match('192.168.1.6', '192.168.1.6'));
