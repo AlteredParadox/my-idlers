@@ -8,6 +8,7 @@ use App\Models\Locations;
 use App\Models\OS;
 use App\Models\Pricing;
 use App\Models\Providers;
+use App\Exceptions\ImportRowException;
 use App\Models\Server;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -90,7 +91,7 @@ class ImportServersCommand extends Command
         ]);
 
         if ($validator->fails()) {
-            throw new \RuntimeException($validator->errors()->first());
+            throw new ImportRowException($validator->errors()->first());
         }
     }
 
@@ -133,7 +134,7 @@ class ImportServersCommand extends Command
         // floatval('abc') is 0.00, which satisfies price|min:0.
         $rawCost = str_replace(['$', ','], '', trim($data['COST'] ?? ''));
         if (!preg_match('/^\d+(\.\d+)?$/', $rawCost)) {
-            throw new \RuntimeException("unparseable COST '" . trim($data['COST'] ?? '') . "'");
+            throw new ImportRowException("unparseable COST '" . trim($data['COST'] ?? '') . "'");
         }
         $price = (float) $rawCost;
 
@@ -159,7 +160,7 @@ class ImportServersCommand extends Command
         // intval('') is 0, both hiding a malformed cell.
         $rawCpu = trim($data['VCPU'] ?? '');
         if (!preg_match('/^\d+$/', $rawCpu)) {
-            throw new \RuntimeException("unparseable VCPU '$rawCpu'");
+            throw new ImportRowException("unparseable VCPU '$rawCpu'");
         }
         $cpu = (int) $rawCpu;
 
@@ -182,7 +183,7 @@ class ImportServersCommand extends Command
 
         // Atomic per row: without this, a failure on the pricing/IP writes
         // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
-        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $data, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
+        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
             // Pricing FIRST: servers.id has an FK to pricings.service_id
             // (servers_fk_pricing), checked immediately by InnoDB. SQLite
             // silently drops ALTER TABLE FKs, so it hides the wrong order.
@@ -235,7 +236,7 @@ class ImportServersCommand extends Command
             return [intval($ram), 'MB', intval($ram)];
         }
 
-        throw new \RuntimeException("unparseable RAM '$ram'");
+        throw new ImportRowException("unparseable RAM '$ram'");
     }
 
     private function parseDisks(string $ssd, string $hdd): array
@@ -247,7 +248,7 @@ class ImportServersCommand extends Command
         if ($ssd !== '') {
             $parsed = $this->parseDiskValue($ssd);
             if (!$parsed) {
-                throw new \RuntimeException("unparseable SSD DISK '$ssd'");
+                throw new ImportRowException("unparseable SSD DISK '$ssd'");
             }
             $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'SSD'];
         }
@@ -255,7 +256,7 @@ class ImportServersCommand extends Command
         if ($hdd !== '') {
             $parsed = $this->parseDiskValue($hdd);
             if (!$parsed) {
-                throw new \RuntimeException("unparseable HDD DISK '$hdd'");
+                throw new ImportRowException("unparseable HDD DISK '$hdd'");
             }
             $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'HDD'];
         }
@@ -286,7 +287,7 @@ class ImportServersCommand extends Command
             return 0;
         }
 
-        throw new \RuntimeException("unparseable BANDWIDTH '$bw'");
+        throw new ImportRowException("unparseable BANDWIDTH '$bw'");
     }
 
     private function parseTerm(string $period): int
@@ -299,7 +300,7 @@ class ImportServersCommand extends Command
             '2Y' => 5,
             '3Y' => 6,
             '1 TIME' => 7,
-            default => throw new \RuntimeException("unparseable PERIOD '" . trim($period) . "'"),
+            default => throw new ImportRowException("unparseable PERIOD '" . trim($period) . "'"),
         };
     }
 
@@ -315,7 +316,7 @@ class ImportServersCommand extends Command
         // pass the nullable date rule (hasFormat also rejects overflow dates
         // like 13/45/26 that createFromFormat would roll over).
         if (!Carbon::hasFormat($renews, 'm/d/y')) {
-            throw new \RuntimeException("unparseable Renews '$renews'");
+            throw new ImportRowException("unparseable Renews '$renews'");
         }
 
         return Carbon::createFromFormat('m/d/y', $renews)->format('Y-m-d');
