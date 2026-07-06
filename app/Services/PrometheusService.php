@@ -233,22 +233,41 @@ class PrometheusService
         // Try matching by nodename via node_uname_info
         foreach ($this->client->query('node_uname_info{job="node"}') as $r) {
             $nodename = $r['metric']['nodename'] ?? '';
-            // Exact short-name match only: a prefix test would let web10
-            // answer for web1 depending on Prometheus response order.
-            if ($nodename === $hostname || str_starts_with($hostname, $nodename . '.') || $nodename === explode('.', $hostname)[0]) {
+            if ($this->hostMatches($hostname, $nodename)) {
                 return $r['metric']['instance'] ?? null;
             }
         }
 
-        // Try matching by instance directly (hostname might be an IP)
+        // Try matching by instance directly (hostname might be an IP or the
+        // scrape target may be an FQDN while the tracker stores a short name)
         foreach ($this->client->query('up{job="node"}') as $r) {
             $instance = $r['metric']['instance'] ?? '';
-            if (preg_replace('/:\d+$/', '', $instance) === $hostname) {
+            if ($this->hostMatches($hostname, preg_replace('/:\d+$/', '', $instance))) {
                 return $instance;
             }
         }
 
         return null;
+    }
+
+    /**
+     * The single host-matching truth table, mirrored by the list views' JS:
+     * full equality or whole-short-label equality on either side. Exact-label
+     * semantics only — a prefix test would let web10 answer for web1, and
+     * label-vs-label would reduce IPs to first-octet equality. The list and
+     * this resolver MUST accept the same shapes or the index shows live
+     * monitoring while the detail page 404s.
+     */
+    private function hostMatches(string $stored, string $candidate): bool
+    {
+        if ($stored === '' || $candidate === '') {
+            return false;
+        }
+
+        return $candidate === $stored
+            || $candidate === explode('.', $stored)[0]
+            || $stored === explode('.', $candidate)[0]
+            || str_starts_with($stored, $candidate . '.');
     }
 
     private function detailQueries(string $inst, int $step): array
