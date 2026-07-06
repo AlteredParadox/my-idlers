@@ -12,6 +12,7 @@ use App\Models\Shared;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class NoteController extends Controller
 {
@@ -83,9 +84,13 @@ class NoteController extends Controller
     public function update(Request $request, Note $note)
     {
         $request->validate([
-            'service_id' => 'required|string|size:8',
+            // notes.service_id is unique; without this, re-pointing a note at a
+            // service that already has one throws an uncaught QueryException (500)
+            'service_id' => ['required', 'string', 'size:8', Rule::unique('notes', 'service_id')->ignore($note->id)],
             'note' => 'required|string'
         ]);
+
+        $old_service_id = $note->service_id;
 
         $note->update([
             'service_id' => $request->service_id,
@@ -93,6 +98,7 @@ class NoteController extends Controller
         ]);
 
         Cache::forget('all_notes');
+        Cache::forget("note.$old_service_id");
         Cache::forget("note.$note->service_id");
 
         return redirect()->route('notes.index')
