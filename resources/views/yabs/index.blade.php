@@ -52,14 +52,22 @@
                                 {{ $yab->disk }}<small class="text-muted">{{ $yab->disk_type }}</small>
                             </td>
                             <td class="text-center">
-                                <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">
-                                    {{ $yab->gb5_single }}
-                                </a>
+                                @if($yab->gb5_id)
+                                    <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb5_single }}</a>
+                                @elseif($yab->gb6_id)
+                                    <a href="https://browser.geekbench.com/v6/cpu/{{ $yab->gb6_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb6_single }}<small class="text-muted">v6</small></a>
+                                @else
+                                    —
+                                @endif
                             </td>
                             <td class="text-center">
-                                <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">
-                                    {{ $yab->gb5_multi }}
-                                </a>
+                                @if($yab->gb5_id)
+                                    <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb5_multi }}</a>
+                                @elseif($yab->gb6_id)
+                                    <a href="https://browser.geekbench.com/v6/cpu/{{ $yab->gb6_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb6_multi }}<small class="text-muted">v6</small></a>
+                                @else
+                                    —
+                                @endif
                             </td>
                             <td class="text-center">
                                 @if($yab->has_ipv6 === 1)

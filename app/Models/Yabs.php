@@ -86,6 +86,8 @@ class Yabs extends Model
                 'vm' => $data->vm === 1,
                 'GB5_single' => $data->gb5_single,
                 'GB5_multi' => $data->gb5_multi,
+                'GB6_single' => $data->gb6_single,
+                'GB6_multi' => $data->gb6_multi,
             ],
             'ram' => [
                 'amount' => $data->ram . ' ' . $data->ram_type,

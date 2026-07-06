@@ -129,18 +129,23 @@
                                             <span class="price-term">{{ \App\Process::paymentTermIntToString($server->price->term) }}</span>
                                         </div>
                                         <div class="server-due">
-                                            @php
-                                                $daysUntilDue = (int) now()->diffInDays(\Carbon\Carbon::parse($server->price->next_due_date), false);
-                                            @endphp
-                                            <span class="due-badge {{ $daysUntilDue <= 7 ? 'due-soon' : ($daysUntilDue <= 14 ? 'due-warning' : '') }}">
-                                                @if($daysUntilDue < 0)
-                                                    {{ abs($daysUntilDue) }}d overdue
-                                                @elseif($daysUntilDue == 0)
-                                                    Due today
-                                                @else
-                                                    {{ $daysUntilDue }}d until due
-                                                @endif
-                                            </span>
+                                            {{-- null next_due_date (one-time term / import) parsed as "now" and showed a permanent red "Due today" --}}
+                                            @if($server->price->next_due_date !== null)
+                                                @php
+                                                    $daysUntilDue = (int) now()->diffInDays(\Carbon\Carbon::parse($server->price->next_due_date), false);
+                                                @endphp
+                                                <span class="due-badge {{ $daysUntilDue <= 7 ? 'due-soon' : ($daysUntilDue <= 14 ? 'due-warning' : '') }}">
+                                                    @if($daysUntilDue < 0)
+                                                        {{ abs($daysUntilDue) }}d overdue
+                                                    @elseif($daysUntilDue == 0)
+                                                        Due today
+                                                    @else
+                                                        {{ $daysUntilDue }}d until due
+                                                    @endif
+                                                </span>
+                                            @else
+                                                <span class="due-badge">-</span>
+                                            @endif
                                         </div>
                                     </div>
 
