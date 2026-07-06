@@ -56,9 +56,14 @@ class Pricing extends Model
         return self::refreshRates()->$currency ?? 1.00;
     }
 
+    // Keeps currency selects usable when the exchange-rate API is unavailable
+    public const FALLBACK_CURRENCIES = ['USD', 'EUR', 'GBP'];
+
     public static function getCurrencyList(): array
     {
-        return array_keys((array)self::refreshRates());
+        $currencies = array_keys((array)self::refreshRates());
+
+        return $currencies ?: self::FALLBACK_CURRENCIES;
     }
 
     public static function convertFromUSD(string $amount, string $convert_to): float

@@ -10,6 +10,7 @@ use App\Models\Server;
 use App\Services\YabsIngestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -30,7 +31,7 @@ class ServerManagementController extends Controller
     protected function storeServer(Request $request)
     {
         $rules = [
-            'hostname' => 'min:3',
+            'hostname' => 'required|min:3',
             'server_type' => 'required|integer',
             'os_id' => 'required|integer',
             'provider_id' => 'required|integer',
@@ -65,41 +66,42 @@ class ServerManagementController extends Controller
 
         $server_id = Str::random(8);
 
-        $pricing = new Pricing();
-        $pricing->insertPricing(1, $server_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
+        $insert = DB::transaction(function () use ($request, $server_id) {
+            (new Pricing())->insertPricing(1, $server_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        if (!is_null($request->ip1)) {
-            IPs::insertIP($server_id, $request->ip1);
-        }
+            if (!is_null($request->ip1)) {
+                IPs::insertIP($server_id, $request->ip1);
+            }
 
-        if (!is_null($request->ip2)) {
-            IPs::insertIP($server_id, $request->ip2);
-        }
+            if (!is_null($request->ip2)) {
+                IPs::insertIP($server_id, $request->ip2);
+            }
 
-        $insert = Server::create([
-            'id' => $server_id,
-            'hostname' => $request->hostname,
-            'server_type' => $request->server_type,
-            'os_id' => $request->os_id,
-            'ssh' => $request->ssh_port,
-            'provider_id' => $request->provider_id,
-            'location_id' => $request->location_id,
-            'ram' => $request->ram,
-            'ram_type' => $request->ram_type,
-            'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
-            'disk' => $request->disk,
-            'disk_type' => $request->disk_type,
-            'disk_as_gb' => ($request->disk_type === 'GB') ? $request->disk : ($request->disk * 1024),
-            'owned_since' => $request->owned_since,
-            'ns1' => $request->ns1,
-            'ns2' => $request->ns2,
-            'bandwidth' => $request->bandwidth,
-            'cpu' => $request->cpu,
-            'was_promo' => $request->was_promo,
-            'transferrable' => $request->transferrable,
-            'active' => $request->boolean('active') ? 1 : 0,
-            'show_public' => $request->boolean('show_public') ? 1 : 0
-        ]);
+            return Server::create([
+                'id' => $server_id,
+                'hostname' => $request->hostname,
+                'server_type' => $request->server_type,
+                'os_id' => $request->os_id,
+                'ssh' => $request->ssh_port,
+                'provider_id' => $request->provider_id,
+                'location_id' => $request->location_id,
+                'ram' => $request->ram,
+                'ram_type' => $request->ram_type,
+                'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
+                'disk' => $request->disk,
+                'disk_type' => $request->disk_type,
+                'disk_as_gb' => ($request->disk_type === 'GB') ? $request->disk : ($request->disk * 1024),
+                'owned_since' => $request->owned_since,
+                'ns1' => $request->ns1,
+                'ns2' => $request->ns2,
+                'bandwidth' => $request->bandwidth,
+                'cpu' => $request->cpu,
+                'was_promo' => $request->was_promo,
+                'transferrable' => $request->transferrable,
+                'active' => $request->boolean('active') ? 1 : 0,
+                'show_public' => $request->boolean('show_public') ? 1 : 0
+            ]);
+        });
 
         Server::serverRelatedCacheForget();
 
