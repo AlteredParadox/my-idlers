@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Home;
+use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
 use App\Models\SeedBoxes;
@@ -155,6 +156,10 @@ class SeedBoxesController extends Controller
             $p->deletePricing($seedbox->id);
 
             Labels::deleteLabelsAssignedTo($seedbox->id);
+
+            // IPs can be assigned to seedboxes (ips.create lists them) —
+            // every other IP-capable type deletes them on destroy.
+            IPs::deleteIPsAssignedTo($seedbox->id);
 
             Cache::forget("all_seedboxes");
             Cache::forget("seedbox.{$seedbox->id}");

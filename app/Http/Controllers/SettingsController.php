@@ -46,7 +46,14 @@ class SettingsController extends Controller
         if ($request->favicon) {//Has a favicon upload
 
             $file = $request->favicon;
-            $extension = $file->getClientOriginalExtension();
+            // Content-derived extension, never the client filename: the file
+            // lands in the webroot, so a PNG/PHP polyglot named x.php would
+            // otherwise be stored as favicon.php and be executable.
+            $extension = strtolower($file->guessExtension() ?? '');
+            if (!in_array($extension, ['ico', 'png', 'jpg', 'jpeg'], true)) {
+                return redirect()->route('settings.index')
+                    ->with('error', 'Favicon must be an ico, png or jpg file.');
+            }
             $favicon_filename = "favicon.$extension";
 
             if ($favicon_filename !== $settings->favicon && $settings->favicon !== 'favicon.ico') {
@@ -92,10 +99,18 @@ class SettingsController extends Controller
         Cache::forget('non_active_servers');
         Cache::forget('public_server_data');
         Cache::forget('all_shared');
+        Cache::forget('all_active_shared');
+        Cache::forget('non_active_shared');
         Cache::forget('all_seedboxes');
         Cache::forget('all_reseller');
+        Cache::forget('all_active_reseller');
+        Cache::forget('non_active_reseller');
         Cache::forget('all_misc');
+        Cache::forget('all_active_misc');
+        Cache::forget('non_active_misc');
         Cache::forget('all_domains');
+        Cache::forget('all_active_domains');
+        Cache::forget('non_active_domains');
 
         Settings::setSettingsToSession(Settings::getSettings());
 
