@@ -6,7 +6,7 @@
                 <h2 class="page-title">{{ $reseller->main_domain }}</h2>
                 <div class="mt-2">
                     @foreach($reseller->labels as $label)
-                        <span class="badge bg-primary">{{$label->label->label}}</span>
+                        <span class="badge bg-primary">{{$label->label?->label}}</span>
                     @endforeach
                     @if($reseller->active !== 1)
                         <span class="badge bg-danger">Not Active</span>

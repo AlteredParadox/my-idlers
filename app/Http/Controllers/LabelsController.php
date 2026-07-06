@@ -27,7 +27,9 @@ class LabelsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'label' => 'required|string|min:2'
+            // unique + max: the column is unique/varchar(255); without the
+            // rules a duplicate or over-length name is a QueryException 500
+            'label' => 'required|string|min:2|max:255|unique:labels,label'
         ]);
 
         Labels::create([

@@ -6,7 +6,7 @@
                 <h2 class="page-title">{{ $domain_info->domain }}.{{ $domain_info->extension }}</h2>
                 <div class="mt-2">
                     @foreach($domain_info->labels as $label)
-                        <span class="badge bg-primary">{{$label->label->label}}</span>
+                        <span class="badge bg-primary">{{$label->label?->label}}</span>
                     @endforeach
                     @if($domain_info->active !== 1)
                         <span class="badge bg-danger">Not Active</span>

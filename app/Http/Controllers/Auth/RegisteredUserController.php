@@ -33,7 +33,7 @@ class RegisteredUserController extends Controller
      */
     private function registrationClosed(): bool
     {
-        $maxUsers = (int) env('MAX_USERS', 1);
+        $maxUsers = (int) config('custom.max_users', 1);
 
         return $maxUsers > 0 && User::count() >= $maxUsers;
     }

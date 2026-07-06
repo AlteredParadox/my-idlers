@@ -381,7 +381,7 @@
                 <h2 class="page-title">{{ $server_data->hostname }}</h2>
                 <div class="mt-2">
                     @foreach($server_data->labels as $label)
-                        <span class="badge bg-primary">{{$label->label->label}}</span>
+                        <span class="badge bg-primary">{{$label->label?->label}}</span>
                     @endforeach
                     @if($server_data->active !== 1)
                         <span class="badge bg-danger">Not Active</span>

@@ -95,7 +95,10 @@ class YabsIngestService
             // The public servers page renders YABS data too; the delete path
             // clears this via serverRelatedCacheForget, the add path must match.
             Cache::forget("public_server_data");
-        } catch (Exception $e) {//Not a valid YABS payload
+        } catch (\Throwable $e) {//Not a valid YABS payload
+            // Throwable, not Exception: the parse helpers raise Error/TypeError
+            // on malformed input (createFromFormat false, non-geekbench URLs,
+            // non-numeric mem values) and those must hit this path too.
             return false;
         }
         return true;

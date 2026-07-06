@@ -47,10 +47,10 @@ class DomainsController extends Controller
             'currency' => 'required|string|size:3',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $domain_id = Str::random(8);
@@ -100,10 +100,10 @@ class DomainsController extends Controller
             'currency' => 'required|string|size:3',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
@@ -131,6 +131,8 @@ class DomainsController extends Controller
         Cache::forget("non_active_domains");
         Cache::forget("domain.{$domain->id}");
         Cache::forget("labels_for_service.{$domain->id}");
+        Cache::forget("note.{$domain->id}");//embeds the domain relation
+        Cache::forget('all_notes');
         Home::homePageCacheForget();
 
         return redirect()->route('domains.index')

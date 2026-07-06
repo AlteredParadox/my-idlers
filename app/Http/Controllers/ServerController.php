@@ -28,9 +28,13 @@ class ServerController extends Controller
 
     public function showServersPublic()
     {
-        if (Session::get('show_servers_public') === 1) {
+        // Gate on live settings, not the per-session snapshot: session copies
+        // are written once per visitor and never re-synced, so toggling the
+        // setting off left existing anonymous sessions with full access.
+        $settings = Settings::getSettings();
+        if ((int) $settings->show_servers_public === 1) {
             $servers = Server::allPublicServers();
-            return view('servers.public-index', compact('servers'));
+            return view('servers.public-index', compact('servers', 'settings'));
         }
         abort(404);
     }
@@ -72,10 +76,10 @@ class ServerController extends Controller
             'was_promo' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $link_speed_mbps = null;
@@ -188,10 +192,10 @@ class ServerController extends Controller
             'was_promo' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
             'owned_since' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $link_speed_mbps = null;
@@ -247,14 +251,14 @@ class ServerController extends Controller
             Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
         }
 
-        IPs::deleteIPsAssignedTo($server->id);
-
+        $submitted_ips = [];
         for ($i = 1; $i <= 8; $i++) {//Max of 8 ips
             $obj = 'ip' . $i;
             if (isset($request->$obj) && !is_null($request->$obj)) {
-                IPs::insertIP($server->id, $request->$obj);
+                $submitted_ips[] = $request->$obj;
             }
         }
+        IPs::syncForService($server->id, $submitted_ips);
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($server->id);

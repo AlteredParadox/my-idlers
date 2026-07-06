@@ -11,7 +11,7 @@
                     <table class="table data-table mb-0">
                         <thead>
                             <tr>
-                                @if(Session::get('show_server_value_hostname') === 1)
+                                @if((int) $settings->show_server_value_hostname === 1)
                                     <th>Hostname</th>
                                 @endif
                                 <th class="text-center">Type</th>
@@ -30,7 +30,7 @@
                                 <th class="text-center">64K</th>
                                 <th class="text-center">512K</th>
                                 <th class="text-center">1M</th>
-                                @if(Session::get('show_server_value_ip') === 1)
+                                @if((int) $settings->show_server_value_ip === 1)
                                     <th>IPv4</th>
                                     <th>IPv6</th>
                                 @endif
@@ -40,7 +40,7 @@
                         @if(!empty($servers[0]))
                             @foreach($servers as $s)
                                 <tr>
-                                    @if(Session::get('show_server_value_hostname') === 1)
+                                    @if((int) $settings->show_server_value_hostname === 1)
                                         <td class="fw-medium">{{ $s->hostname }}</td>
                                     @endif
                                     <td class="text-center">
@@ -73,53 +73,53 @@
                                         @endif
                                     </td>
                                     <td class="text-nowrap">
-                                        @if(Session::get('show_server_value_location') === 1)
+                                        @if((int) $settings->show_server_value_location === 1)
                                             {{ $s->location->name }}
                                         @endif
                                     </td>
                                     <td class="text-nowrap">
-                                        @if(Session::get('show_server_value_provider') === 1)
+                                        @if((int) $settings->show_server_value_provider === 1)
                                             {{ $s->provider->name }}
                                         @endif
                                     </td>
                                     <td class="text-nowrap">
-                                        @if(Session::get('show_server_value_price') === 1)
+                                        @if((int) $settings->show_server_value_price === 1)
                                             {{ $s->price->price }} {{ $s->price->currency }}
                                             <small class="text-muted">{{ \App\Process::paymentTermIntToString($s->price->term) }}</small>
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">{{ $s->owned_since }}</td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->gb6_single ?? '—' }}
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->gb6_multi ?? '—' }}
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->disk_speed->d_4k ?? '—' }}<small class="text-muted">{{ $s->yabs[0]->disk_speed->d_4k_type ?? '' }}</small>
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->disk_speed->d_64k ?? '—' }}<small class="text-muted">{{ $s->yabs[0]->disk_speed->d_64k_type ?? '' }}</small>
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->disk_speed->d_512k ?? '—' }}<small class="text-muted">{{ $s->yabs[0]->disk_speed->d_512k_type ?? '' }}</small>
                                         @endif
                                     </td>
                                     <td class="text-center text-nowrap">
-                                        @if(Session::get('show_server_value_yabs') === 1)
+                                        @if((int) $settings->show_server_value_yabs === 1)
                                             {{ $s->yabs[0]->disk_speed->d_1m ?? '—' }}<small class="text-muted">{{ $s->yabs[0]->disk_speed->d_1m_type ?? '' }}</small>
                                         @endif
                                     </td>
-                                    @if(Session::get('show_server_value_ip') === 1)
+                                    @if((int) $settings->show_server_value_ip === 1)
                                         <td class="text-nowrap">
                                             @if(isset($s->ips[0]) && $s->ips[0]->is_ipv4 === 1)
                                                 {{ $s->ips[0]->address }}

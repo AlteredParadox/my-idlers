@@ -6,7 +6,7 @@
                 <h2 class="page-title">{{ $seedbox_data->title }}</h2>
                 <div class="mt-2">
                     @foreach($seedbox_data->labels as $label)
-                        <span class="badge bg-primary">{{$label->label->label}}</span>
+                        <span class="badge bg-primary">{{$label->label?->label}}</span>
                     @endforeach
                     @if($seedbox_data->active !== 1)
                         <span class="badge bg-danger">Not Active</span>
