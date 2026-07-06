@@ -71,27 +71,49 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
-                                <td class="text-center">{{ $yabs1_data->gb5_single ?? ($yabs1_data->gb6_single !== null ? $yabs1_data->gb6_single . ' (v6)' : '—') }}</td>
-                                @if($yabs1_data->gb5_single !== null && $yabs2_data->gb5_single !== null)
-                                    {!! \App\Process::tableRowCompare($yabs1_data->gb5_single, $yabs2_data->gb5_single, '') !!}
-                                @elseif($yabs1_data->gb6_single !== null && $yabs2_data->gb6_single !== null)
-                                    {!! \App\Process::tableRowCompare($yabs1_data->gb6_single, $yabs2_data->gb6_single, '') !!}
+                                @php
+                                    // version-paired: displayed values and the diff must come
+                                    // from the SAME GB version
+                                    if ($yabs1_data->gb5_single !== null && $yabs2_data->gb5_single !== null) {
+                                        $ycmp1_single = $yabs1_data->gb5_single; $ycmp2_single = $yabs2_data->gb5_single; $ytag_single = '';
+                                    } elseif ($yabs1_data->gb6_single !== null && $yabs2_data->gb6_single !== null) {
+                                        $ycmp1_single = $yabs1_data->gb6_single; $ycmp2_single = $yabs2_data->gb6_single; $ytag_single = ' (v6)';
+                                    } else {
+                                        $ycmp1_single = $ycmp2_single = null; $ytag_single = '';
+                                    }
+                                @endphp
+                                @if($ycmp1_single !== null && $ycmp2_single !== null)
+                                    <td class="text-center">{{ $ycmp1_single }}{{ $ytag_single }}</td>
+                                    {!! \App\Process::tableRowCompare($ycmp1_single, $ycmp2_single, '') !!}
+                                    <td class="text-center">{{ $ycmp2_single }}{{ $ytag_single }}</td>
                                 @else
+                                    <td class="text-center">{{ $yabs1_data->gb5_single ?? ($yabs1_data->gb6_single !== null ? $yabs1_data->gb6_single . ' (v6)' : '—') }}</td>
                                     <td class="text-center equal-td">—</td>
+                                    <td class="text-center">{{ $yabs2_data->gb5_single ?? ($yabs2_data->gb6_single !== null ? $yabs2_data->gb6_single . ' (v6)' : '—') }}</td>
                                 @endif
-                                <td class="text-center">{{ $yabs2_data->gb5_single ?? ($yabs2_data->gb6_single !== null ? $yabs2_data->gb6_single . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
-                                <td class="text-center">{{ $yabs1_data->gb5_multi ?? ($yabs1_data->gb6_multi !== null ? $yabs1_data->gb6_multi . ' (v6)' : '—') }}</td>
-                                @if($yabs1_data->gb5_multi !== null && $yabs2_data->gb5_multi !== null)
-                                    {!! \App\Process::tableRowCompare($yabs1_data->gb5_multi, $yabs2_data->gb5_multi, '') !!}
-                                @elseif($yabs1_data->gb6_multi !== null && $yabs2_data->gb6_multi !== null)
-                                    {!! \App\Process::tableRowCompare($yabs1_data->gb6_multi, $yabs2_data->gb6_multi, '') !!}
+                                @php
+                                    // version-paired: displayed values and the diff must come
+                                    // from the SAME GB version
+                                    if ($yabs1_data->gb5_multi !== null && $yabs2_data->gb5_multi !== null) {
+                                        $ycmp1_multi = $yabs1_data->gb5_multi; $ycmp2_multi = $yabs2_data->gb5_multi; $ytag_multi = '';
+                                    } elseif ($yabs1_data->gb6_multi !== null && $yabs2_data->gb6_multi !== null) {
+                                        $ycmp1_multi = $yabs1_data->gb6_multi; $ycmp2_multi = $yabs2_data->gb6_multi; $ytag_multi = ' (v6)';
+                                    } else {
+                                        $ycmp1_multi = $ycmp2_multi = null; $ytag_multi = '';
+                                    }
+                                @endphp
+                                @if($ycmp1_multi !== null && $ycmp2_multi !== null)
+                                    <td class="text-center">{{ $ycmp1_multi }}{{ $ytag_multi }}</td>
+                                    {!! \App\Process::tableRowCompare($ycmp1_multi, $ycmp2_multi, '') !!}
+                                    <td class="text-center">{{ $ycmp2_multi }}{{ $ytag_multi }}</td>
                                 @else
+                                    <td class="text-center">{{ $yabs1_data->gb5_multi ?? ($yabs1_data->gb6_multi !== null ? $yabs1_data->gb6_multi . ' (v6)' : '—') }}</td>
                                     <td class="text-center equal-td">—</td>
+                                    <td class="text-center">{{ $yabs2_data->gb5_multi ?? ($yabs2_data->gb6_multi !== null ? $yabs2_data->gb6_multi . ' (v6)' : '—') }}</td>
                                 @endif
-                                <td class="text-center">{{ $yabs2_data->gb5_multi ?? ($yabs2_data->gb6_multi !== null ? $yabs2_data->gb6_multi . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
