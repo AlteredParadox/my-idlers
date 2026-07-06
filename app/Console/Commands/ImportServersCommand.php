@@ -129,8 +129,13 @@ class ImportServersCommand extends Command
         // Term
         $term = $this->parseTerm(trim($data['PERIOD']));
 
-        // Price (from COST column)
-        $price = floatval(str_replace(['$', ','], '', trim($data['COST'])));
+        // Price (from COST column) — validate the RAW string before casting:
+        // floatval('abc') is 0.00, which satisfies price|min:0.
+        $rawCost = str_replace(['$', ','], '', trim($data['COST'] ?? ''));
+        if (!preg_match('/^\d+(\.\d+)?$/', $rawCost)) {
+            throw new \RuntimeException("unparseable COST '" . trim($data['COST'] ?? '') . "'");
+        }
+        $price = (float) $rawCost;
 
         // Currency — empty defaults to USD (sparse CSVs); anything else must
         // pass the shared convertible-currency validation below. Silently
@@ -150,6 +155,14 @@ class ImportServersCommand extends Command
         // Owned since
         $ownedSince = $this->calcOwnedSince($nextDueDate, $term);
 
+        // VCPU — strict digits before casting: intval('2 cores') is 2 and
+        // intval('') is 0, both hiding a malformed cell.
+        $rawCpu = trim($data['VCPU'] ?? '');
+        if (!preg_match('/^\d+$/', $rawCpu)) {
+            throw new \RuntimeException("unparseable VCPU '$rawCpu'");
+        }
+        $cpu = (int) $rawCpu;
+
         // The web/API paths validate these invariants; import must not be a
         // bypass. Rejects the row (reported + counted) instead of persisting
         // 1:1 currency conversions or out-of-domain specs.
@@ -158,7 +171,7 @@ class ImportServersCommand extends Command
             'currency' => $currency,
             'payment_term' => $term,
             'next_due_date' => $nextDueDate,
-            'cpu' => intval($data['VCPU']),
+            'cpu' => $cpu,
             'ram_as_mb' => $ramAsMb,
             'disk_as_gb' => $totalDiskGb,
             'bandwidth' => $bandwidth,
@@ -169,7 +182,7 @@ class ImportServersCommand extends Command
 
         // Atomic per row: without this, a failure on the pricing/IP writes
         // (e.g. a bad value MySQL rejects) left an orphaned server + disks.
-        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $data, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate) {
+        DB::transaction(function () use ($serverId, $hostname, $os, $provider, $location, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $data, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
             // Pricing FIRST: servers.id has an FK to pricings.service_id
             // (servers_fk_pricing), checked immediately by InnoDB. SQLite
             // silently drops ALTER TABLE FKs, so it hides the wrong order.
@@ -188,7 +201,7 @@ class ImportServersCommand extends Command
                 'disk' => $firstDisk['size'],
                 'disk_type' => $firstDisk['unit'],
                 'disk_as_gb' => $totalDiskGb,
-                'cpu' => intval($data['VCPU']),
+                'cpu' => $cpu,
                 'bandwidth' => $bandwidth,
                 'ssh' => 22,
                 'active' => $active,
@@ -217,26 +230,34 @@ class ImportServersCommand extends Command
             return [$value, $type, $asMb];
         }
 
-        // Default fallback
-        return [intval($ram), 'MB', intval($ram)];
+        // Plain number = MB; anything else is a malformed cell, not 0 MB
+        if (preg_match('/^\d+$/', $ram)) {
+            return [intval($ram), 'MB', intval($ram)];
+        }
+
+        throw new \RuntimeException("unparseable RAM '$ram'");
     }
 
     private function parseDisks(string $ssd, string $hdd): array
     {
         $disks = [];
 
+        // Non-empty unparseable cells reject the row: silently dropping them
+        // imported zero-disk servers.
         if ($ssd !== '') {
             $parsed = $this->parseDiskValue($ssd);
-            if ($parsed) {
-                $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'SSD'];
+            if (!$parsed) {
+                throw new \RuntimeException("unparseable SSD DISK '$ssd'");
             }
+            $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'SSD'];
         }
 
         if ($hdd !== '') {
             $parsed = $this->parseDiskValue($hdd);
-            if ($parsed) {
-                $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'HDD'];
+            if (!$parsed) {
+                throw new \RuntimeException("unparseable HDD DISK '$hdd'");
             }
+            $disks[] = ['size' => $parsed['size'], 'unit' => $parsed['unit'], 'media' => 'HDD'];
         }
 
         return $disks;

@@ -61,6 +61,28 @@ class GptRound8RegressionTest extends TestCase
         $this->assertDatabaseHas('pricings', ['currency' => 'USD', 'price' => 5.00]);
     }
 
+    public function test_import_rejects_lossy_parsed_cells()
+    {
+        // GPT round 9: validation ran AFTER lossy casts, so these all
+        // previously imported as plausible-looking zero/partial values.
+        $bad = [
+            'C1,L1,lossy001.invalid,4 GB,2,80 GB,,10TB,1M,abc,USD,12/01/26,',        // floatval('abc') = 0
+            'C1,L1,lossy002.invalid,4 GB,2 cores,80 GB,,10TB,1M,$5.00,USD,12/01/26,',// intval('2 cores') = 2
+            'C1,L1,lossy003.invalid,lots,2,80 GB,,10TB,1M,$5.00,USD,12/01/26,',      // intval('lots') = 0 MB
+            'C1,L1,lossy004.invalid,4 GB,2,big,,10TB,1M,$5.00,USD,12/01/26,',        // dropped disk -> 0-disk server
+        ];
+        foreach ($bad as $row) {
+            $this->importCsv($row);
+        }
+
+        $this->assertSame(0, Server::count());
+        $this->assertSame(0, Pricing::count());
+
+        // Plain-numeric RAM (MB) is a legitimate shape and still imports.
+        $this->importCsv('C1,L1,plainram.invalid,2048,2,80 GB,,10TB,1M,$5.00,USD,12/01/26,');
+        $this->assertDatabaseHas('servers', ['hostname' => 'plainram.invalid', 'ram_as_mb' => 2048]);
+    }
+
     public function test_catalog_get_by_id_returns_404_for_missing_rows()
     {
         foreach (['/api/pricing/999999', '/api/labels/zzzzzz99', '/api/dns/zzzzzz99',
