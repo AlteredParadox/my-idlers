@@ -110,11 +110,11 @@ class Round24RegressionTest extends TestCase
         $server = $this->makeServer('apiprice');
 
         $this->putJson("/api/servers/{$server->id}", [
-            'price' => 9.99, 'currency' => 'EUR', 'payment_term' => 4,
+            'price' => 9.99, 'currency' => 'USD', 'payment_term' => 4,
         ], $this->apiHeaders())->assertStatus(200);
 
         $this->assertDatabaseHas('pricings', [
-            'service_id' => 'apiprice', 'price' => 9.99, 'currency' => 'EUR', 'term' => 4,
+            'service_id' => 'apiprice', 'price' => 9.99, 'currency' => 'USD', 'term' => 4,
         ]);
     }
 

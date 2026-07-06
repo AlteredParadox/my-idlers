@@ -49,11 +49,28 @@ class Pricing extends Model
         // Null coalescing on the property access itself: without it, a missing
         // currency (e.g. rates fetch failed) raises ErrorException before any
         // fallback can apply.
-        return self::refreshRates()->$currency ?? 1.00;
+        $rate = self::refreshRates()->$currency ?? null;
+        if ($rate === null) {
+            if ($currency !== 'USD') {
+                // Reachable only for legacy/stale rows: validation blocks new
+                // writes with unrated currencies. Display paths must not 500,
+                // so degrade to 1:1 — but loudly.
+                Log::warning("no exchange rate available for $currency; converting 1:1");
+            }
+
+            return 1.00;
+        }
+
+        return $rate;
     }
 
-    // Keeps currency selects usable when the exchange-rate API is unavailable
-    public const FALLBACK_CURRENCIES = ['USD', 'EUR', 'GBP'];
+    /**
+     * With no rate data there is nothing we can CONVERT, so only USD (the
+     * app's normalization currency, rate 1 by definition) is offered and
+     * accepted. Offering EUR/GBP here stored amounts silently converted 1:1
+     * as USD — the exact corruption the currency rule exists to stop.
+     */
+    public const FALLBACK_CURRENCIES = ['USD'];
 
     /**
      * ISO 4217 active alpha codes. Validation uses this FIXED list rather

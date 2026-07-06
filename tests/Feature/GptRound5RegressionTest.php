@@ -128,16 +128,15 @@ class GptRound5RegressionTest extends TestCase
         $this->assertSame(0, Server::count());
     }
 
-    public function test_fallback_currency_and_zero_price_still_accepted()
+    public function test_usd_and_zero_price_still_accepted_offline()
     {
-        // With rates unavailable (test env), the explicit fallbacks stay
-        // accepted; zero price is legitimate (free service). GPT round 6
-        // overruled the earlier accept-any-ISO stance: valid-but-unrated
-        // codes (JPY here) are rejected — see GptRound6RegressionTest.
+        // With rates unavailable (test env) only USD is convertible — GPT
+        // round 7 closed the EUR/GBP 1:1 fallback hole, so the earlier
+        // EUR-accepted pin flipped again. Zero price stays legitimate.
         $this->actingAs($this->user)->post(route('servers.store'), $this->webServerPayload([
-            'currency' => 'EUR', 'price' => 0,
+            'currency' => 'USD', 'price' => 0,
         ]))->assertRedirect(route('servers.index'));
 
-        $this->assertDatabaseHas('pricings', ['currency' => 'EUR', 'price' => 0.00]);
+        $this->assertDatabaseHas('pricings', ['currency' => 'USD', 'price' => 0.00]);
     }
 }
