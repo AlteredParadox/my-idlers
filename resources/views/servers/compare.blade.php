@@ -235,15 +235,15 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Location</td>
-                                <td class="text-center">{{ $server1_data[0]->location->name }}</td>
+                                <td class="text-center">{{ $server1_data[0]->location->name ?? '-' }}</td>
                                 <td class="text-center equal-td">—</td>
-                                <td class="text-center">{{ $server2_data[0]->location->name }}</td>
+                                <td class="text-center">{{ $server2_data[0]->location->name ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Provider</td>
-                                <td class="text-center">{{ $server1_data[0]->provider->name }}</td>
+                                <td class="text-center">{{ $server1_data[0]->provider->name ?? '-' }}</td>
                                 <td class="text-center equal-td">—</td>
-                                <td class="text-center">{{ $server2_data[0]->provider->name }}</td>
+                                <td class="text-center">{{ $server2_data[0]->provider->name ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Owned Since</td>

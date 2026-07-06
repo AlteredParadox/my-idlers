@@ -36,8 +36,8 @@
                         <tr>
                             <td class="fw-medium">{{ $row->title }}</td>
                             <td><span class="badge badge-type">{{ $row->seed_box_type }}</span></td>
-                            <td class="text-nowrap">{{ $row->location->name }}</td>
-                            <td class="text-nowrap">{{ $row->provider->name }}</td>
+                            <td class="text-nowrap">{{ $row->location->name ?? '-' }}</td>
+                            <td class="text-nowrap">{{ $row->provider->name ?? '-' }}</td>
                             <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                             <td class="text-center text-nowrap">
                                 @if($row->disk_as_gb >= 1000)

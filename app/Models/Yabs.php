@@ -73,8 +73,8 @@ class Yabs extends Model
         }
         return [
             'date_time' => $data->output_date,
-            'location' => $data->server->location->name,
-            'provider' => $data->server->provider->name,
+            'location' => $data->server->location->name ?? null,
+            'provider' => $data->server->provider->name ?? null,
             'uptime' => $data->uptime,
             'distro' => $data->distro,
             'kernel' => $data->kernel,

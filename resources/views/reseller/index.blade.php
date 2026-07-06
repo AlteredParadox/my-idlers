@@ -57,8 +57,8 @@
                                     <td class="fw-medium">{{ $row->main_domain }}</td>
                                     <td><span class="badge badge-type">{{ $row->reseller_type }}</span></td>
                                     <td class="text-center">{{ $row->accounts }}</td>
-                                    <td class="text-nowrap">{{ $row->location->name }}</td>
-                                    <td class="text-nowrap">{{ $row->provider->name }}</td>
+                                    <td class="text-nowrap">{{ $row->location->name ?? '-' }}</td>
+                                    <td class="text-nowrap">{{ $row->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>
@@ -133,8 +133,8 @@
                                     <td class="fw-medium">{{ $row->main_domain }}</td>
                                     <td><span class="badge badge-type">{{ $row->reseller_type }}</span></td>
                                     <td class="text-center">{{ $row->accounts }}</td>
-                                    <td class="text-nowrap">{{ $row->location->name }}</td>
-                                    <td class="text-nowrap">{{ $row->provider->name }}</td>
+                                    <td class="text-nowrap">{{ $row->location->name ?? '-' }}</td>
+                                    <td class="text-nowrap">{{ $row->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-center text-nowrap">{{ $row->disk_as_gb }}<small class="text-muted">GB</small></td>
                                     <td class="text-center">{{ $row->domains_limit }}</td>

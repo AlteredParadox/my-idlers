@@ -38,7 +38,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Location</span>
-                                    <span class="detail-value">{{ $seedbox_data->location->name }}</span>
+                                    <span class="detail-value">{{ $seedbox_data->location->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -50,7 +50,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Provider</span>
-                                    <span class="detail-value">{{ $seedbox_data->provider->name }}</span>
+                                    <span class="detail-value">{{ $seedbox_data->provider->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">
