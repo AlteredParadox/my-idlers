@@ -5,7 +5,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header py-1">
-                            <h4 class="modal-title" id="modal-title" v-html="modal_hostname"></h4>
+                            <h4 class="modal-title" id="modal-title" v-text="modal_hostname"></h4>
                         </div>
                         <div class="modal-body text-center">
                             Are you sure you want to delete this?
@@ -23,8 +23,8 @@
                                     </div>
                                     <div class="col-6">
 
-                                        <button type="submit" title="delete"
-                                                class="btn btn-success px-3 py-1 mt-2 ms-4" @click="showModal=false">
+                                        <button type="button" title="cancel"
+                                                class="btn btn-success px-3 py-1 mt-2 ms-4" @click.prevent="showModal=false">
                                             No
                                         </button>
                                     </div>
