@@ -9,6 +9,15 @@ class ToolsController extends Controller
 {
     public function checkHostIsUp(string $hostname)
     {//Check if host/ip is "up" via ping
+        // escapeshellarg stops metacharacter injection, but a leading-dash
+        // value ('-V', '-f') is still consumed by ping as an OPTION, altering
+        // behaviour / faking "online". Accept only real host/IP labels — the
+        // web route's regex permits a leading dash and the API route had no
+        // constraint at all, so enforce it here for both.
+        if (!preg_match('/^[A-Za-z0-9]([A-Za-z0-9._:-]*[A-Za-z0-9])?$/', $hostname)) {
+            return response(array('is_online' => false, 'error' => 'Invalid hostname'), 422);
+        }
+
         $exitCode = 1;
         $pingCmd = stripos(PHP_OS, 'WIN') === 0
             ? "ping -n 1 -w 2000 " . escapeshellarg($hostname)

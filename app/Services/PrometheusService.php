@@ -286,6 +286,14 @@ class PrometheusService
             return false;
         }
 
+        // If either side is an IP, only exact equality counts: short-label
+        // logic would let a bare-first-label candidate ('192') match a dotted
+        // IP ('192.168.1.6') and bleed one host's metrics onto another.
+        if (filter_var($stored, FILTER_VALIDATE_IP) !== false
+            || filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
+            return $stored === $candidate;
+        }
+
         return $candidate === $stored
             || $candidate === explode('.', $stored)[0]
             || $stored === explode('.', $candidate)[0]
