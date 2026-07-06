@@ -19,7 +19,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // The app is only used same-origin (which never involves CORS), so no
+    // cross-origin callers are allowed. If a browser-side dashboard widget on
+    // another origin ever needs the API, add that origin here.
+    'allowed_origins' => array_filter([env('APP_URL')]),
 
     'allowed_origins_patterns' => [],
 
