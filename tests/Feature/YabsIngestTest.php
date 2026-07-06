@@ -217,6 +217,16 @@ class YabsIngestTest extends TestCase
         $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
     }
 
+    public function test_ingest_stores_vm_as_integer_flag_not_the_virt_string()
+    {
+        $server = $this->makeServer();
+        // payload cpu.virt is 'KVM'; vm is a boolean column, so it must become 1.
+        // The raw string broke every ingest on MySQL (integer column rejects it).
+        app(\App\Services\YabsIngestService::class)->ingest($this->yabsPayload(), $server->id);
+
+        $this->assertDatabaseHas('yabs', ['server_id' => $server->id, 'vm' => 1]);
+    }
+
     public function test_normal_vps_disk_is_stored_in_gb_not_fractional_tb()
     {
         $server = $this->makeServer();

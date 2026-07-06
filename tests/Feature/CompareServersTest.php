@@ -18,12 +18,18 @@ class CompareServersTest extends TestCase
 {
     use RefreshDatabase;
 
+    private int $providerId;
+    private int $locationId;
+    private int $osId;
+
     protected function setUp(): void
     {
         parent::setUp();
-        Providers::create(['name' => 'P']);
-        Locations::create(['name' => 'L']);
-        OS::create(['name' => 'Ubuntu 22.04']);
+        // Capture real ids — MySQL auto-increment doesn't reset on rollback, so
+        // hardcoding 1 points at a non-existent row across the full suite.
+        $this->providerId = Providers::create(['name' => 'P'])->id;
+        $this->locationId = Locations::create(['name' => 'L'])->id;
+        $this->osId = OS::create(['name' => 'Ubuntu 22.04'])->id;
         Settings::create(['id' => 1]);
     }
 
@@ -35,8 +41,8 @@ class CompareServersTest extends TestCase
         (new Pricing)->insertPricing(1, $server_id, 'USD', 15.00, 7, null);
 
         Server::create([
-            'id' => $server_id, 'hostname' => $hostname, 'server_type' => 1, 'os_id' => 1,
-            'provider_id' => 1, 'location_id' => 1, 'ram' => 2, 'ram_type' => 'GB', 'ram_as_mb' => 2048,
+            'id' => $server_id, 'hostname' => $hostname, 'server_type' => 1, 'os_id' => $this->osId,
+            'provider_id' => $this->providerId, 'location_id' => $this->locationId, 'ram' => 2, 'ram_type' => 'GB', 'ram_as_mb' => 2048,
             'disk' => 40, 'disk_type' => 'GB', 'disk_as_gb' => 40, 'cpu' => 2, 'has_yabs' => 0,
             'was_promo' => 0, 'active' => 1, 'show_public' => 0, 'bandwidth' => 1000, 'owned_since' => '2024-01-01',
         ]);

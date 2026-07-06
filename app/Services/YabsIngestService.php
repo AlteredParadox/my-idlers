@@ -107,12 +107,18 @@ class YabsIngestService
         [$ram_f, $ram_type] = $this->scaleRam($data['mem']['ram']);
         [$disk_f, $disk_type] = $this->scaleDisk($data['mem']['disk']);
 
+        // `vm` is a boolean column, but YABS reports cpu.virt as a string
+        // ("KVM"/"none"/...). Store the is-virtualized flag; the raw string
+        // would fail to insert on MySQL (integer column) and break every ingest.
+        $virt = strtolower((string) ($data['cpu']['virt'] ?? ''));
+        $is_vm = ($virt === '' || $virt === 'none') ? 0 : 1;
+
         Yabs::create([
             'id' => $yabs_id,
             'server_id' => $server_id,
             'has_ipv6' => $data['net']['ipv6'],
             'aes' => $data['cpu']['aes'],
-            'vm' => $data['cpu']['virt'],
+            'vm' => $is_vm,
             'distro' => $data['os']['distro'],
             'kernel' => $data['os']['kernel'],
             'uptime' => $data['os']['uptime'],
