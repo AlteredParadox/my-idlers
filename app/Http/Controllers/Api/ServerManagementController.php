@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Disk;
 use App\Models\IPs;
 use App\Models\Labels;
+use App\Models\Note;
 use App\Models\Pricing;
 use App\Models\Server;
+use App\Models\Yabs;
 use App\Services\YabsIngestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -131,7 +133,11 @@ class ServerManagementController extends Controller
 
         Labels::deleteLabelsAssignedTo($request->id);
         IPs::deleteIPsAssignedTo($request->id);
+        Disk::deleteDisksForServer($request->id);
+        Note::deleteForService($request->id);
+        Yabs::deleteForServer($request->id);
         Server::serverRelatedCacheForget();
+        Server::serverSpecificCacheForget($request->id);
 
         if ($result) {
             return response()->json(array('result' => 'success'), 200);
@@ -231,10 +237,14 @@ class ServerManagementController extends Controller
             $updateData['next_due_date'] = $validated['next_due_date'];
         }
 
+        $service_id = Pricing::where('id', $id)->value('service_id');
         $price_update = Pricing::where('id', $id)->update($updateData);
 
         Cache::forget("all_pricing");
         Server::serverRelatedCacheForget();
+        if ($service_id) {
+            Server::serverSpecificCacheForget($service_id);
+        }
 
         if ($price_update) {
             return response()->json(array('result' => 'success', 'server_id' => $id), 200);

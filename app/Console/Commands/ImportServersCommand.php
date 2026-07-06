@@ -11,6 +11,7 @@ use App\Models\Providers;
 use App\Models\Server;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class ImportServersCommand extends Command
@@ -63,6 +64,11 @@ class ImportServersCommand extends Command
         }
 
         Server::serverRelatedCacheForget();
+        // New OS/providers/locations created during import must not stay hidden
+        // behind warm lookup caches.
+        Cache::forget('operating_systems');
+        Cache::forget('providers');
+        Cache::forget('locations');
 
         $this->info("Imported $count servers." . ($errors > 0 ? " $errors errors." : ""));
 

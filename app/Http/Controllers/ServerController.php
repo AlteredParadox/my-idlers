@@ -9,6 +9,7 @@ use App\Models\Labels;
 use App\Models\Pricing;
 use App\Models\Server;
 use App\Models\Settings;
+use App\Models\Yabs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -271,6 +272,8 @@ class ServerController extends Controller
             Disk::deleteDisksForServer($server->id);
 
             Note::deleteForService($server->id);
+
+            Yabs::deleteForServer($server->id);
 
             Server::serverRelatedCacheForget();
 

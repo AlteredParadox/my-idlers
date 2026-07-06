@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DiskSpeed;
+use App\Models\NetworkSpeed;
 use App\Models\Server;
 use App\Models\Yabs;
 use App\Services\YabsIngestService;
@@ -54,6 +56,11 @@ class YabsController extends Controller
     public function destroy(Yabs $yab)
     {
         if ($yab->delete()) {
+            // Delete the disk_speed/network_speed rows created with this YABS
+            // (keyed on the yabs id; no DB cascades).
+            DiskSpeed::where('id', $yab->id)->delete();
+            NetworkSpeed::where('id', $yab->id)->delete();
+
             if (Server::serverYabsAmount($yab->server_id) === 0) {
                 DB::table('servers')
                     ->where('id', $yab->server_id)
