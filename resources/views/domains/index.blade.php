@@ -53,7 +53,7 @@
                                             {{ $domain->domain }}.{{ $domain->extension }}
                                         </a>
                                     </td>
-                                    <td class="text-nowrap">{{ $domain->provider->name }}</td>
+                                    <td class="text-nowrap">{{ $domain->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap">
                                         {{ $domain->price->price }}
@@ -111,7 +111,7 @@
                                     <td class="fw-medium">
                                         {{ $domain->domain }}.{{ $domain->extension }}
                                     </td>
-                                    <td class="text-nowrap">{{ $domain->provider->name }}</td>
+                                    <td class="text-nowrap">{{ $domain->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
                                     <td class="text-nowrap">
                                         {{ $domain->price->price }}

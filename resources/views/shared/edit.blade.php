@@ -59,7 +59,7 @@
                             <label class="form-label">Provider</label>
                             <select class="form-select" name="provider_id">
                                 @foreach (App\Models\Providers::all() as $provider)
-                                    <option value="{{ $provider->id }}" {{ $shared->provider->id == $provider->id ? 'selected' : '' }}>{{ $provider->name }}</option>
+                                    <option value="{{ $provider->id }}" {{ $shared->provider_id == $provider->id ? 'selected' : '' }}>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -91,7 +91,7 @@
                             <label class="form-label">Location</label>
                             <select class="form-select" name="location_id">
                                 @foreach (App\Models\Locations::all() as $location)
-                                    <option value="{{ $location->id }}" {{ $shared->location->id == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
+                                    <option value="{{ $location->id }}" {{ $shared->location_id == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
                                 @endforeach
                             </select>
                         </div>

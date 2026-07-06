@@ -38,7 +38,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Provider</span>
-                                    <span class="detail-value">{{ $domain_info->provider->name }}</span>
+                                    <span class="detail-value">{{ $domain_info->provider->name ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6">

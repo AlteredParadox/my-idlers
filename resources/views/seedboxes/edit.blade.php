@@ -52,7 +52,7 @@
                             <label class="form-label">Provider</label>
                             <select class="form-select" name="provider_id">
                                 @foreach (App\Models\Providers::all() as $provider)
-                                    <option value="{{ $provider->id }}" {{ $seedbox_data->provider->id == $provider->id ? 'selected' : '' }}>{{ $provider->name }}</option>
+                                    <option value="{{ $provider->id }}" {{ $seedbox_data->provider_id == $provider->id ? 'selected' : '' }}>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
                         </div>
