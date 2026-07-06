@@ -112,7 +112,7 @@
                             <select class="form-select" name="shared_id">
                                 <option value="null"></option>
                                 @foreach ($shareds as $shared)
-                                    <option value="{{ $shared['id'] }}" {{ $shared['id'] == $dn->shared_id ? 'selected' : '' }}>{{ $shared['hostname'] }}</option>
+                                    <option value="{{ $shared['id'] }}" {{ $shared['id'] == $dn->shared_id ? 'selected' : '' }}>{{ $shared['main_domain'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -121,7 +121,7 @@
                             <select class="form-select" name="reseller_id">
                                 <option value="null"></option>
                                 @foreach ($resellers as $reseller)
-                                    <option value="{{ $reseller['id'] }}" {{ $reseller['id'] == $dn->reseller_id ? 'selected' : '' }}>{{ $reseller['hostname'] }}</option>
+                                    <option value="{{ $reseller['id'] }}" {{ $reseller['id'] == $dn->reseller_id ? 'selected' : '' }}>{{ $reseller['main_domain'] }}</option>
                                 @endforeach
                             </select>
                         </div>

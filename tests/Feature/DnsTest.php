@@ -39,6 +39,21 @@ class DnsTest extends TestCase
         $response->assertViewIs('dns.create');
     }
 
+    public function test_dns_form_shows_shared_reseller_by_main_domain()
+    {
+        // shared_hosting / reseller_hosting have FKs to pricings
+        (new \App\Models\Pricing)->insertPricing(2, 'shd00001', 'USD', 3, 1, '2027-01-01');
+        (new \App\Models\Pricing)->insertPricing(3, 'rsl00001', 'USD', 3, 1, '2027-01-01');
+        \App\Models\Shared::create(['id' => 'shd00001', 'main_domain' => 'shared.example.com', 'active' => 1]);
+        \App\Models\Reseller::create(['id' => 'rsl00001', 'main_domain' => 'reseller.example.com', 'active' => 1]);
+
+        // The option labels used ['hostname'] (no such column) -> blank options
+        $response = $this->actingAs($this->user)->get(route('dns.create'));
+
+        $response->assertSee('shared.example.com');
+        $response->assertSee('reseller.example.com');
+    }
+
     public function test_authenticated_user_can_create_dns_record()
     {
         $response = $this->actingAs($this->user)->post(route('dns.store'), [
