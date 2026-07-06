@@ -323,8 +323,9 @@ class ImportServersCommand extends Command
         }
 
         // Strict m/d/y: an invalid non-empty cell used to become null and
-        // pass the nullable date rule (hasFormat also rejects overflow dates
-        // like 13/45/26 that createFromFormat would roll over).
+        // pass the nullable date rule. hasFormat rejects out-of-range fields
+        // (e.g. month 13 in 13/45/26); a valid-but-rolling date like 02/30/25
+        // still normalizes, which is acceptable for this import.
         if (!Carbon::hasFormat($renews, 'm/d/y')) {
             throw new ImportRowException("unparseable Renews '$renews'");
         }
