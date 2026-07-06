@@ -70,7 +70,7 @@ class YabsIngestService
     }
 
 
-    public function KBstoMBs(int $kbs): float
+    public function kbsToMbs(int $kbs): float
     {
         return $kbs / 1000;
     }
@@ -186,7 +186,7 @@ class YabsIngestService
             $speed = $speeds[$bs];
             $row[$col] = ($speed > 999999) ? ($speed / 1000 / 1000) : $speed / 1000;
             $row["{$col}_type"] = ($speed > 999999) ? 'GB/s' : 'MB/s';
-            $row["{$col}_as_mbps"] = $this->KBstoMBs($speed);
+            $row["{$col}_as_mbps"] = $this->kbsToMbs($speed);
         }
 
         DiskSpeed::create($row);
