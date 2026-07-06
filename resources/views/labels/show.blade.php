@@ -27,6 +27,8 @@
                                 @elseif($item->service_type === 2) Shared
                                 @elseif($item->service_type === 3) Reseller
                                 @elseif($item->service_type === 4) Domain
+                                @elseif($item->service_type === 6) Seedbox
+                                @elseif($item->dns_hostname) DNS
                                 @endif
                             </span>
                             <span class="detail-value">
@@ -38,6 +40,10 @@
                                     <a href="{{ route('reseller.show', $item->service_id) }}">{{ $item->reseller }}</a>
                                 @elseif($item->service_type === 4)
                                     <a href="{{ route('domains.show', $item->service_id) }}">{{ $item->domain }}.{{ $item->extension }}</a>
+                                @elseif($item->service_type === 6)
+                                    <a href="{{ route('seedboxes.show', $item->service_id) }}">{{ $item->seedbox }}</a>
+                                @elseif($item->dns_hostname)
+                                    <a href="{{ route('dns.show', $item->service_id) }}">{{ $item->dns_hostname }}</a>
                                 @endif
                             </span>
                         </div>

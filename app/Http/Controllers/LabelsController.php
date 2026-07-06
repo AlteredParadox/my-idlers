@@ -48,8 +48,12 @@ class LabelsController extends Controller
             ->leftJoin('shared_hosting as sh', 'las.service_id', 'sh.id')
             ->leftJoin('reseller_hosting as r', 'las.service_id', 'r.id')
             ->leftJoin('domains as d', 'las.service_id', 'd.id')
+            ->leftJoin('seedboxes as sb', 'las.service_id', 'sb.id')
+            ->leftJoin('d_n_s as dns', 'las.service_id', 'dns.id')
             ->where('las.label_id', $label->id)
-            ->get(['p.service_type', 'p.service_id', 's.hostname', 'sh.main_domain as shared', 'r.main_domain as reseller', 'd.domain', 'd.extension'])
+            // las.service_id (not p.service_id) so DNS records, which have no
+            // pricing row, still carry a usable id.
+            ->get(['p.service_type', 'las.service_id as service_id', 's.hostname', 'sh.main_domain as shared', 'r.main_domain as reseller', 'd.domain', 'd.extension', 'sb.title as seedbox', 'dns.hostname as dns_hostname'])
             ->map(function ($row) {
                 // Raw DB rows arrive as strings under MySQL; the view compares
                 // service_type strictly (=== 1..4), so normalize to int here.
