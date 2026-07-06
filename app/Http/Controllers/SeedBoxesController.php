@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Home;
 use App\Models\IPs;
 use App\Models\Labels;
+use App\Models\Note;
 use App\Models\Pricing;
 use App\Models\SeedBoxes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SeedBoxesController extends Controller
@@ -27,8 +29,8 @@ class SeedBoxesController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|min:2',
-            'hostname' => 'sometimes|nullable|string|min:2',
+            'title' => 'required|string|min:2|max:255',
+            'hostname' => 'sometimes|nullable|string|min:2|max:255',
             'seed_box_type' => 'required|string',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -49,13 +51,13 @@ class SeedBoxesController extends Controller
 
         $seedbox_id = Str::random(8);
 
-        $pricing = new Pricing();
-        $pricing->insertPricing(6, $seedbox_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
+        // Atomic: a failed seedbox insert must not orphan the pricing row.
+        DB::transaction(function () use ($request, $seedbox_id) {
+            (new Pricing())->insertPricing(6, $seedbox_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        Labels::deleteLabelsAssignedTo($seedbox_id);
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $seedbox_id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $seedbox_id);
 
-        SeedBoxes::create([
+            SeedBoxes::create([
             'id' => $seedbox_id,
             'title' => $request->title,
             'hostname' => $request->hostname,
@@ -68,9 +70,10 @@ class SeedBoxesController extends Controller
             'owned_since' => $request->owned_since,
             'bandwidth' => $request->bandwidth,
             'port_speed' => $request->port_speed,
-            'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0
-        ]);
+                'was_promo' => $request->was_promo,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0
+            ]);
+        });
 
         Cache::forget("all_seedboxes");
         Home::homePageCacheForget();
@@ -95,8 +98,8 @@ class SeedBoxesController extends Controller
     public function update(Request $request, SeedBoxes $seedbox)
     {
         $request->validate([
-            'title' => 'required|string|min:2',
-            'hostname' => 'sometimes|nullable|string|min:2',
+            'title' => 'required|string|min:2|max:255',
+            'hostname' => 'sometimes|nullable|string|min:2|max:255',
             'seed_box_type' => 'required|string',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -159,6 +162,9 @@ class SeedBoxesController extends Controller
             // IPs can be assigned to seedboxes (ips.create lists them) —
             // every other IP-capable type deletes them on destroy.
             IPs::deleteIPsAssignedTo($seedbox->id);
+
+            // Legacy/forged notes keyed to this id would linger as ghost rows
+            Note::deleteForService($seedbox->id);
 
             Cache::forget("all_seedboxes");
             Cache::forget("seedbox.{$seedbox->id}");

@@ -34,10 +34,27 @@ class NoteController extends Controller
         return view('notes.create', compact(['servers', 'shareds', 'resellers', 'domains', 'dns', 'ips']));
     }
 
+    /**
+     * The six note-capable tables (the Note model's relations). Notes for any
+     * other id render as ghost rows with blank Service/Type cells.
+     */
+    private function noteServiceExistsRule(): \Closure
+    {
+        return function (string $attribute, $value, \Closure $fail) {
+            $tables = ['servers', 'shared_hosting', 'reseller_hosting', 'domains', 'd_n_s', 'ips'];
+            foreach ($tables as $table) {
+                if (\DB::table($table)->where('id', $value)->exists()) {
+                    return;
+                }
+            }
+            $fail('The selected service does not exist or cannot have notes.');
+        };
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'service_id' => 'required|string|size:8',
+            'service_id' => ['required', 'string', 'size:8', $this->noteServiceExistsRule()],
             'note' => 'required|string',
         ]);
 
@@ -86,7 +103,7 @@ class NoteController extends Controller
         $request->validate([
             // notes.service_id is unique; without this, re-pointing a note at a
             // service that already has one throws an uncaught QueryException (500)
-            'service_id' => ['required', 'string', 'size:8', Rule::unique('notes', 'service_id')->ignore($note->id)],
+            'service_id' => ['required', 'string', 'size:8', Rule::unique('notes', 'service_id')->ignore($note->id), $this->noteServiceExistsRule()],
             'note' => 'required|string'
         ]);
 

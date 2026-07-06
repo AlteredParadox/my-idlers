@@ -11,6 +11,7 @@ use App\Models\Server;
 use App\Models\Settings;
 use App\Models\Yabs;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
@@ -47,13 +48,13 @@ class ServerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'hostname' => 'required|min:5',
+            'hostname' => 'required|min:5|max:255',
             'ip1' => 'sometimes|nullable|ip',
             // different:ip1 — the (service_id, address) unique index makes a
             // duplicate a QueryException 500 (leaving an orphaned pricing row)
             'ip2' => 'sometimes|nullable|ip|different:ip1',
-            'ns1' => 'sometimes|nullable|string',
-            'ns2' => 'sometimes|nullable|string',
+            'ns1' => 'sometimes|nullable|string|max:255',
+            'ns2' => 'sometimes|nullable|string|max:255',
             'server_type' => 'integer',
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',
@@ -91,17 +92,6 @@ class ServerController extends Controller
 
         $server_id = Str::random(8);
 
-        $pricing = new Pricing();
-        $pricing->insertPricing(1, $server_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
-
-        if (!is_null($request->ip1)) {
-            IPs::insertIP($server_id, $request->ip1);
-        }
-
-        if (!is_null($request->ip2)) {
-            IPs::insertIP($server_id, $request->ip2);
-        }
-
         // Calculate total disk for backward compat columns
         $total_disk_gb = 0;
         foreach ($request->disk as $i => $disk_size) {
@@ -109,7 +99,20 @@ class ServerController extends Controller
             $total_disk_gb += ($unit === 'TB') ? ($disk_size * 1024) : $disk_size;
         }
 
-        Server::create([
+        // Atomic: pricing/IPs insert first (FK order), so a failed server
+        // insert would otherwise orphan them.
+        DB::transaction(function () use ($request, $server_id, $link_speed_mbps, $total_disk_gb) {
+            (new Pricing())->insertPricing(1, $server_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
+
+            if (!is_null($request->ip1)) {
+                IPs::insertIP($server_id, $request->ip1);
+            }
+
+            if (!is_null($request->ip2)) {
+                IPs::insertIP($server_id, $request->ip2);
+            }
+
+            Server::create([
             'id' => $server_id,
             'hostname' => $request->hostname,
             'server_type' => $request->server_type,
@@ -132,15 +135,16 @@ class ServerController extends Controller
             'cpu' => $request->cpu,
             'cpu_model' => $request->cpu_model,
             'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'show_public' => (isset($request->show_public)) ? 1 : 0
-        ]);
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'show_public' => (isset($request->show_public)) ? 1 : 0
+            ]);
 
-        foreach ($request->disk as $i => $disk_size) {
-            Disk::insertDisk($server_id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
-        }
+            foreach ($request->disk as $i => $disk_size) {
+                Disk::insertDisk($server_id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
+            }
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server_id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server_id);
+        });
 
         Server::serverRelatedCacheForget();
 
@@ -165,11 +169,11 @@ class ServerController extends Controller
     public function update(Request $request, Server $server)
     {
         $request->validate([
-            'hostname' => 'required|min:5',
+            'hostname' => 'required|min:5|max:255',
             'ip1' => 'sometimes|nullable|ip',
             'ip2' => 'sometimes|nullable|ip',
-            'ns1' => 'sometimes|nullable|string',
-            'ns2' => 'sometimes|nullable|string',
+            'ns1' => 'sometimes|nullable|string|max:255',
+            'ns2' => 'sometimes|nullable|string|max:255',
             'server_type' => 'integer',
             'ssh_port' => 'integer',
             'bandwidth' => 'integer',

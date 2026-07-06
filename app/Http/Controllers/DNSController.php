@@ -34,9 +34,13 @@ class DNSController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'hostname' => 'required|string|min:2',
-            'address' => 'required|string|min:2',
-            'dns_type' => 'required|string',
+            'hostname' => 'required|string|min:2|max:255',
+            'address' => 'required|string|min:2|max:255',
+            'dns_type' => 'required|string|max:255',
+            'server_id' => 'sometimes|nullable|string|max:8',
+            'shared_id' => 'sometimes|nullable|string|max:8',
+            'reseller_id' => 'sometimes|nullable|string|max:8',
+            'domain_id' => 'sometimes|nullable|string|max:8',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
             'label3' => 'sometimes|nullable|string|exists:labels,id',
@@ -94,9 +98,13 @@ class DNSController extends Controller
     public function update(Request $request, DNS $dn): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'hostname' => 'required|string|min:2',
-            'address' => 'required|string|min:2',
-            'dns_type' => 'required|string',
+            'hostname' => 'required|string|min:2|max:255',
+            'address' => 'required|string|min:2|max:255',
+            'dns_type' => 'required|string|max:255',
+            'server_id' => 'sometimes|nullable|string|max:8',
+            'shared_id' => 'sometimes|nullable|string|max:8',
+            'reseller_id' => 'sometimes|nullable|string|max:8',
+            'domain_id' => 'sometimes|nullable|string|max:8',
             'label1' => 'sometimes|nullable|string|exists:labels,id',
             'label2' => 'sometimes|nullable|string|exists:labels,id',
             'label3' => 'sometimes|nullable|string|exists:labels,id',

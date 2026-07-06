@@ -36,11 +36,11 @@ class DomainsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'domain' => 'required|string|min:2',
-            'extension' => 'required|string|min:2',
-            'ns1' => 'sometimes|nullable|min:2',
-            'ns2' => 'sometimes|nullable|min:2',
-            'ns3' => 'sometimes|nullable|min:2',
+            'domain' => 'required|string|min:2|max:255',
+            'extension' => 'required|string|min:2|max:255',
+            'ns1' => 'sometimes|nullable|min:2|max:255',
+            'ns2' => 'sometimes|nullable|min:2|max:255',
+            'ns3' => 'sometimes|nullable|min:2|max:255',
             'provider_id' => 'required|integer',
             'payment_term' => 'required|integer',
             'price' => 'required|numeric',
@@ -54,22 +54,26 @@ class DomainsController extends Controller
         ]);
 
         $domain_id = Str::random(8);
-        $pricing = new Pricing();
-        $pricing->insertPricing(4, $domain_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        Domains::create([
-            'id' => $domain_id,
-            'domain' => $request->domain,
-            'extension' => $request->extension,
-            'ns1' => $request->ns1,
-            'ns2' => $request->ns2,
-            'ns3' => $request->ns3,
-            'provider_id' => $request->provider_id,
-            'owned_since' => $request->owned_since,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0
-        ]);
+        // Atomic: pricing inserts first (FK order), so a failed domain insert
+        // would otherwise orphan an active pricing row.
+        DB::transaction(function () use ($request, $domain_id) {
+            (new Pricing())->insertPricing(4, $domain_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain_id);
+            Domains::create([
+                'id' => $domain_id,
+                'domain' => $request->domain,
+                'extension' => $request->extension,
+                'ns1' => $request->ns1,
+                'ns2' => $request->ns2,
+                'ns3' => $request->ns3,
+                'provider_id' => $request->provider_id,
+                'owned_since' => $request->owned_since,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0
+            ]);
+
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain_id);
+        });
 
         Cache::forget("all_domains");
         Cache::forget("all_active_domains");
@@ -89,11 +93,11 @@ class DomainsController extends Controller
     public function update(Request $request, Domains $domain)
     {
         $request->validate([
-            'domain' => 'required|string|min:2',
-            'extension' => 'required|string|min:2',
-            'ns1' => 'sometimes|nullable|min:2',
-            'ns2' => 'sometimes|nullable|min:2',
-            'ns3' => 'sometimes|nullable|min:2',
+            'domain' => 'required|string|min:2|max:255',
+            'extension' => 'required|string|min:2|max:255',
+            'ns1' => 'sometimes|nullable|min:2|max:255',
+            'ns2' => 'sometimes|nullable|min:2|max:255',
+            'ns3' => 'sometimes|nullable|min:2|max:255',
             'provider_id' => 'required|integer',
             'payment_term' => 'required|integer',
             'price' => 'required|numeric',
