@@ -41,10 +41,10 @@ class SeedBoxesController extends Controller
             'bandwidth' => 'integer',
             'port_speed' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $seedbox_id = Str::random(8);
@@ -109,10 +109,10 @@ class SeedBoxesController extends Controller
             'bandwidth' => 'integer',
             'port_speed' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;

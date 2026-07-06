@@ -49,10 +49,10 @@ class SharedController extends Controller
             'ftp' => 'integer',
             'db' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $link_speed_mbps = null;
@@ -138,10 +138,10 @@ class SharedController extends Controller
             'ftp' => 'integer',
             'db' => 'integer',
             'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $link_speed_mbps = null;
@@ -179,11 +179,10 @@ class SharedController extends Controller
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $shared->id);
         Cache::forget("labels_for_service.{$shared->id}");
 
-        IPs::deleteIPsAssignedTo($shared->id);
-        if (isset($request->dedicated_ip)) {
-            IPs::insertIP($shared->id, $request->dedicated_ip);
-        }
+        IPs::syncForService($shared->id, isset($request->dedicated_ip) ? [$request->dedicated_ip] : []);
 
+        Cache::forget("note.{$shared->id}");//embeds the shared relation
+        Cache::forget('all_notes');
         Cache::forget("shared_hosting.{$shared->id}");
         Cache::forget('all_shared');
         Cache::forget('all_active_shared');

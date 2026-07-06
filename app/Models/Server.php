@@ -153,6 +153,8 @@ class Server extends Model
     {
         Cache::forget("server.$server_id");//Will replace one below
         Cache::forget("service_pricing.$server_id");//Pricing
+        Cache::forget("note.$server_id");//note caches embed the server relation
+        Cache::forget('all_notes');
     }
 
     public static function serverYabsAmount(string $server_id): int

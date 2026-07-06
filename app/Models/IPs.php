@@ -30,7 +30,36 @@ class IPs extends Model
 
     public static function deleteIPsAssignedTo($service_id): void
     {
+        // Notes can attach to IPs; without this they linger as ghost rows
+        // with a blank Service column after the IP rows are bulk-deleted.
+        foreach (DB::table('ips')->where('service_id', $service_id)->pluck('id') as $ip_id) {
+            Note::deleteForService($ip_id);
+        }
         DB::table('ips')->where('service_id', $service_id)->delete();
+    }
+
+    /**
+     * Replace a service's IPs only when the address set actually changed:
+     * the old delete-all/reinsert on every edit regenerated row ids, threw
+     * away fetched whois data and orphaned notes attached to the IPs.
+     */
+    public static function syncForService(string $service_id, array $addresses): void
+    {
+        $submitted = array_values($addresses);
+        $existing = self::where('service_id', $service_id)->pluck('address')->all();
+
+        $a = $submitted;
+        $b = $existing;
+        sort($a);
+        sort($b);
+        if ($a === $b) {
+            return;
+        }
+
+        self::deleteIPsAssignedTo($service_id);
+        foreach ($submitted as $address) {
+            self::insertIP($service_id, $address);
+        }
     }
 
     public static function insertIP(string $service_id, string $address): IPs
@@ -44,15 +73,6 @@ class IPs extends Model
                 'active' => 1
             ]
         );
-    }
-
-    public static function ipsForServer(string $server_id)
-    {
-        return Cache::remember("ip_addresses.$server_id", now()->addHours(1), function () use ($server_id) {
-            return json_decode(DB::table('ips as i')
-                ->where('i.service_id', $server_id)
-                ->get(), true);
-        });
     }
 
     public function note(): \Illuminate\Database\Eloquent\Relations\HasOne

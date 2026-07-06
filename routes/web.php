@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('IPs', IPsController::class)->parameters(['IPs' => 'ip']);
 
-    Route::resource('labels', LabelsController::class);
+    Route::resource('labels', LabelsController::class)->only(['index', 'create', 'store', 'show', 'destroy']);//no edit/update methods exist
 
     Route::resource('locations', LocationsController::class);
 

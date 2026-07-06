@@ -37,10 +37,10 @@ class DNSController extends Controller
             'hostname' => 'required|string|min:2',
             'address' => 'required|string|min:2',
             'dns_type' => 'required|string',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $dns_id = Str::random(8);
@@ -97,10 +97,10 @@ class DNSController extends Controller
             'hostname' => 'required|string|min:2',
             'address' => 'required|string|min:2',
             'dns_type' => 'required|string',
-            'label1' => 'sometimes|nullable|string',
-            'label2' => 'sometimes|nullable|string',
-            'label3' => 'sometimes|nullable|string',
-            'label4' => 'sometimes|nullable|string',
+            'label1' => 'sometimes|nullable|string|exists:labels,id',
+            'label2' => 'sometimes|nullable|string|exists:labels,id',
+            'label3' => 'sometimes|nullable|string|exists:labels,id',
+            'label4' => 'sometimes|nullable|string|exists:labels,id',
         ]);
 
         $dn->update([
@@ -116,6 +116,9 @@ class DNSController extends Controller
         Labels::deleteLabelsAssignedTo($dn->id);
 
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $dn->id);
+
+        Cache::forget("note.{$dn->id}");//embeds the dns relation
+        Cache::forget('all_notes');
 
         return redirect()->route('dns.index')
             ->with('success', 'DNS updated Successfully.');
