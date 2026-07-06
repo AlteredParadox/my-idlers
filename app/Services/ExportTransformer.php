@@ -140,6 +140,14 @@ class ExportTransformer
             'name' => $seedbox->provider->name
         ] : null;
 
+        // Add IP addresses (assignable via the IPs page)
+        $data['ips'] = $seedbox->ips->map(function ($ip) {
+            return [
+                'address' => $ip->address,
+                'is_ipv4' => $ip->is_ipv4
+            ];
+        })->toArray();
+
         // Add pricing data
         $data['pricing'] = $seedbox->price ? [
             'price' => $seedbox->price->price,
@@ -180,6 +188,7 @@ class ExportTransformer
             'location_name',
             'provider_id',
             'provider_name',
+            'ips',
             'pricing_price',
             'pricing_currency',
             'pricing_term',

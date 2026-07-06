@@ -275,23 +275,31 @@ class ImportServersCommand extends Command
     {
         $bw = strtoupper(trim($bw));
 
-        // "25TB OUT (UNLIMITED IN)" → extract leading amount as GB; empty/UNLIMITED → 0
+        // "25TB OUT (UNLIMITED IN)" → extract leading amount as GB
         if (preg_match('/^(\d+)\s*(TB|GB)/', $bw, $m)) {
             return intval($m[1]) * ($m[2] === 'TB' ? 1000 : 1);
         }
 
-        return 0;
+        // Empty / unmetered variants legitimately mean "no cap" (stored 0);
+        // anything else is a malformed cell, not unlimited bandwidth.
+        if ($bw === '' || str_contains($bw, 'UNLIMITED') || str_contains($bw, 'UNMETERED')) {
+            return 0;
+        }
+
+        throw new \RuntimeException("unparseable BANDWIDTH '$bw'");
     }
 
     private function parseTerm(string $period): int
     {
+        // Unknown periods used to default to monthly — a '12M' typo silently
+        // became term 1 and doDueSoon advanced the due date every month.
         return match (strtoupper(trim($period))) {
             '1M' => 1,
             '1Y' => 4,
             '2Y' => 5,
             '3Y' => 6,
             '1 TIME' => 7,
-            default => 1,
+            default => throw new \RuntimeException("unparseable PERIOD '" . trim($period) . "'"),
         };
     }
 
@@ -303,11 +311,14 @@ class ImportServersCommand extends Command
             return null;
         }
 
-        try {
-            return Carbon::createFromFormat('m/d/y', $renews)->format('Y-m-d');
-        } catch (\Exception $e) {
-            return null;
+        // Strict m/d/y: an invalid non-empty cell used to become null and
+        // pass the nullable date rule (hasFormat also rejects overflow dates
+        // like 13/45/26 that createFromFormat would roll over).
+        if (!Carbon::hasFormat($renews, 'm/d/y')) {
+            throw new \RuntimeException("unparseable Renews '$renews'");
         }
+
+        return Carbon::createFromFormat('m/d/y', $renews)->format('Y-m-d');
     }
 
     private function calcOwnedSince(?string $nextDueDate, int $term): ?string

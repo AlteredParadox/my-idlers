@@ -113,8 +113,8 @@ class IPsController extends Controller
         Server::serverSpecificCacheForget($service_id);
         Server::serverRelatedCacheForget();
 
-        // The IP's service may instead be a shared or reseller service, which
-        // also cache their ips relation for a month.
+        // The IP's service may instead be a shared, reseller or seedbox
+        // service, which also cache their ips relation for a month.
         foreach (['shared', 'reseller'] as $type) {
             Cache::forget("all_{$type}");
             Cache::forget("all_active_{$type}");
@@ -122,6 +122,8 @@ class IPsController extends Controller
         }
         Cache::forget("shared_hosting.$service_id");
         Cache::forget("reseller_hosting.$service_id");
+        Cache::forget('all_seedboxes');
+        Cache::forget("seedbox.$service_id");
     }
 
 }

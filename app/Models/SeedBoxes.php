@@ -40,10 +40,15 @@ class SeedBoxes extends Model
         });
     }
 
+    public function ips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(IPs::class, 'service_id', 'id');
+    }
+
     public static function allSeedboxes()
     {//All seedboxes and relationships (no using joins)
         return Cache::remember("all_seedboxes", now()->addMonth(1), function () {
-            $query = SeedBoxes::with(['location', 'provider', 'price']);
+            $query = SeedBoxes::with(['location', 'provider', 'price', 'ips']);
             if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
                 $options = Settings::orderByProcess(Session::get('sort_on'));
                 $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "seedboxes.id"), $options[1]);
@@ -56,7 +61,7 @@ class SeedBoxes extends Model
     {//Single seedbox and relationships (no using joins)
         return Cache::remember("seedbox.$seedbox_id", now()->addMonth(1), function () use ($seedbox_id) {
             return SeedBoxes::where('id', $seedbox_id)
-                ->with(['location', 'provider', 'price'])->first();
+                ->with(['location', 'provider', 'price', 'ips'])->first();
         });
     }
 

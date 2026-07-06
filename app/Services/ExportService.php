@@ -212,7 +212,7 @@ class ExportService
         $format = strtolower($format);
 
         // Fetch all seedboxes with relationships
-        $seedboxes = SeedBoxes::with(['location', 'provider', 'price'])->get();
+        $seedboxes = SeedBoxes::with(['location', 'provider', 'price', 'ips'])->get();
 
         // Transform seedbox data
         $exportData = $seedboxes->map(function ($seedbox) {

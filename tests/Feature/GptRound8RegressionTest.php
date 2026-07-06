@@ -83,6 +83,47 @@ class GptRound8RegressionTest extends TestCase
         $this->assertDatabaseHas('servers', ['hostname' => 'plainram.invalid', 'ram_as_mb' => 2048]);
     }
 
+    public function test_import_rejects_lossy_bandwidth_period_and_renews()
+    {
+        // GPT round 10: the last silently-normalized cells.
+        $bad = [
+            'C1,L1,lossy005.invalid,4 GB,2,80 GB,,oops,1M,$5.00,USD,12/01/26,',      // 'oops' -> 0 = unlimited
+            'C1,L1,lossy006.invalid,4 GB,2,80 GB,,10TB,12M,$5.00,USD,12/01/26,',     // '12M' typo -> monthly
+            'C1,L1,lossy007.invalid,4 GB,2,80 GB,,10TB,1M,$5.00,USD,13/45/26,',      // overflow date -> null
+        ];
+        foreach ($bad as $row) {
+            $this->importCsv($row);
+        }
+
+        $this->assertSame(0, Server::count());
+
+        // Unmetered variants and N/A renewals remain legitimate shapes.
+        $this->importCsv('C1,L1,unmeter1.invalid,4 GB,2,80 GB,,Unmetered,1 TIME,$5.00,USD,N/A,');
+        $this->assertDatabaseHas('servers', ['hostname' => 'unmeter1.invalid', 'bandwidth' => 0]);
+        $this->assertDatabaseHas('pricings', ['term' => 7, 'next_due_date' => null]);
+    }
+
+    public function test_seedbox_ips_included_in_reads_and_exports()
+    {
+        // IPs were assignable to seedboxes but omitted from every read and
+        // export — attach-then-silently-drop data.
+        \App\Models\Pricing::create([
+            'service_id' => 'sbips001', 'service_type' => 6, 'currency' => 'USD',
+            'price' => 5.00, 'term' => 1, 'as_usd' => 5.00, 'usd_per_month' => 5.00,
+            'next_due_date' => now()->addMonth()->format('Y-m-d'),
+        ]);
+        \App\Models\SeedBoxes::create(['id' => 'sbips001', 'title' => 'IP Seedbox', 'active' => 1]);
+        \App\Models\IPs::insertIP('sbips001', '192.0.2.80');
+
+        $seedbox = \App\Models\SeedBoxes::seedbox('sbips001');
+        $this->assertSame('192.0.2.80', $seedbox->ips[0]->address);
+
+        $exported = (new \App\Services\ExportTransformer())
+            ->transformSeedboxForExport($seedbox);
+        $this->assertSame('192.0.2.80', $exported['ips'][0]['address']);
+        $this->assertContains('ips', (new \App\Services\ExportTransformer())->getSeedboxCsvHeaders());
+    }
+
     public function test_catalog_get_by_id_returns_404_for_missing_rows()
     {
         foreach (['/api/pricing/999999', '/api/labels/zzzzzz99', '/api/dns/zzzzzz99',
