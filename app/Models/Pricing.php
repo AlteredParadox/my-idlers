@@ -95,7 +95,10 @@ class Pricing extends Model
             5 => 24,
             6 => 36,
             7 => 0,
-            default => 62,
+            // Unknown term → don't auto-advance (0), never the old 62 months.
+            // Validation now rejects terms outside 1-7, but any legacy row
+            // with a bad term must not have its due date advanced 5+ years.
+            default => 0,
         };
     }
 

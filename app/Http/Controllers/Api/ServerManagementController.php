@@ -70,7 +70,7 @@ class ServerManagementController extends Controller
             'disk_type' => 'required|in:GB,TB',
             'currency' => 'required|string|size:3',
             'price' => 'required|numeric',
-            'payment_term' => 'required|integer',
+            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
 
@@ -190,7 +190,7 @@ class ServerManagementController extends Controller
             'disk_type' => 'in:GB,TB',
             'currency' => 'string|size:3',
             'price' => 'numeric',
-            'payment_term' => 'integer',
+            'payment_term' => 'integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
 
@@ -313,7 +313,7 @@ class ServerManagementController extends Controller
         $rules = [
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
-            'term' => 'required|integer',
+            'term' => 'required|integer|in:1,2,3,4,5,6,7',
             'active' => 'integer',
             'next_due_date' => 'date_format:Y-m-d',
         ];
