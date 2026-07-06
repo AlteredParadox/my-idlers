@@ -78,6 +78,22 @@ class ImportServersCommand extends Command
         return 0;
     }
 
+    /** Same invariants the controllers enforce (shared rule sources). */
+    private function assertRowValid(array $values): void
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($values, [
+            ...Pricing::webValidationRules(),
+            'cpu' => 'required|integer|min:1|max:1024',
+            'ram_as_mb' => 'required|integer|min:0|max:100000000',
+            'disk_as_gb' => 'required|integer|min:0|max:100000000',
+            'bandwidth' => 'required|integer|min:0|max:100000000',
+        ]);
+
+        if ($validator->fails()) {
+            throw new \RuntimeException($validator->errors()->first());
+        }
+    }
+
     private function importServer(array $data, OS $os): void
     {
         // Provider
@@ -116,10 +132,11 @@ class ImportServersCommand extends Command
         // Price (from COST column)
         $price = floatval(str_replace(['$', ','], '', trim($data['COST'])));
 
-        // Currency — pricings.currency is char(3); normalize and fall back to
-        // USD for anything that isn't a 3-letter code (would overflow on MySQL).
+        // Currency — empty defaults to USD (sparse CSVs); anything else must
+        // pass the shared convertible-currency validation below. Silently
+        // normalizing unknown codes to USD hid bad rows.
         $currency = strtoupper(trim($data['CURRENCY'] ?? ''));
-        if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+        if ($currency === '') {
             $currency = 'USD';
         }
 
@@ -132,6 +149,20 @@ class ImportServersCommand extends Command
 
         // Owned since
         $ownedSince = $this->calcOwnedSince($nextDueDate, $term);
+
+        // The web/API paths validate these invariants; import must not be a
+        // bypass. Rejects the row (reported + counted) instead of persisting
+        // 1:1 currency conversions or out-of-domain specs.
+        $this->assertRowValid([
+            'price' => $price,
+            'currency' => $currency,
+            'payment_term' => $term,
+            'next_due_date' => $nextDueDate,
+            'cpu' => intval($data['VCPU']),
+            'ram_as_mb' => $ramAsMb,
+            'disk_as_gb' => $totalDiskGb,
+            'bandwidth' => $bandwidth,
+        ]);
 
         // Create server
         $serverId = Str::random(8);
