@@ -36,7 +36,17 @@ class IPsController extends Controller
         $request->validate([
             'address' => 'required|ip|min:2',
             'ip_type' => 'required|string|size:4',
-            'service_id' => 'required|string'
+            // size:8 — a longer id hit MySQL strict truncation and surfaced
+            // as the misleading 'already assigned' duplicate error; existence
+            // check spans the four IP-capable types the create form offers
+            'service_id' => ['required', 'string', 'size:8', function (string $attribute, $value, \Closure $fail) {
+                foreach (['servers', 'shared_hosting', 'reseller_hosting', 'seedboxes'] as $table) {
+                    if (\DB::table($table)->where('id', $value)->exists()) {
+                        return;
+                    }
+                }
+                $fail('The selected service does not exist.');
+            }],
         ]);
 
         $ip_id = Str::random(8);

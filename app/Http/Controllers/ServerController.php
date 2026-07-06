@@ -62,12 +62,15 @@ class ServerController extends Controller
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'network_type' => 'sometimes|nullable|string|in:IPv4,IPv6,IPv4+IPv6,IPv4 NAT,IPv4 NAT + IPv6',
             'ram' => 'required|numeric',
+            // in: rules — these land in char(2)/varchar(4) columns, so a
+            // forged value is a MySQL-strict truncation 500 without them
+            'ram_type' => 'required|in:MB,GB',
             'disk' => 'required|array',
             'disk.*' => 'required|integer',
             'disk_type' => 'required|array',
-            'disk_type.*' => 'required|string',
+            'disk_type.*' => 'required|in:GB,TB',
             'disk_media' => 'required|array',
-            'disk_media.*' => 'required|string',
+            'disk_media.*' => 'required|in:SSD,HDD,NVMe',
             'os_id' => 'required|integer',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -181,12 +184,15 @@ class ServerController extends Controller
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'network_type' => 'sometimes|nullable|string|in:IPv4,IPv6,IPv4+IPv6,IPv4 NAT,IPv4 NAT + IPv6',
             'ram' => 'required|numeric',
+            // in: rules — these land in char(2)/varchar(4) columns, so a
+            // forged value is a MySQL-strict truncation 500 without them
+            'ram_type' => 'required|in:MB,GB',
             'disk' => 'required|array',
             'disk.*' => 'required|integer',
             'disk_type' => 'required|array',
-            'disk_type.*' => 'required|string',
+            'disk_type.*' => 'required|in:GB,TB',
             'disk_media' => 'required|array',
-            'disk_media.*' => 'required|string',
+            'disk_media.*' => 'required|in:SSD,HDD,NVMe',
             'os_id' => 'required|integer',
             'provider_id' => 'required|integer',
             'location_id' => 'required|integer',
@@ -263,10 +269,14 @@ class ServerController extends Controller
 
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server->id);
 
-        Disk::deleteDisksForServer($server->id);
-        foreach ($request->disk as $i => $disk_size) {
-            Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
-        }
+        // Atomic: a mid-loop failure after the delete would leave the server
+        // with only part of its disk rows.
+        DB::transaction(function () use ($request, $server) {
+            Disk::deleteDisksForServer($server->id);
+            foreach ($request->disk as $i => $disk_size) {
+                Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
+            }
+        });
 
         IPs::syncForService($server->id, array_values($ip_fields));
 

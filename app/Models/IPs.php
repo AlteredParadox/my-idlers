@@ -39,27 +39,25 @@ class IPs extends Model
     }
 
     /**
-     * Replace a service's IPs only when the address set actually changed:
-     * the old delete-all/reinsert on every edit regenerated row ids, threw
-     * away fetched whois data and orphaned notes attached to the IPs.
+     * Diff a service's IPs against the submitted set: rows whose address is
+     * unchanged keep their id, fetched whois data and attached notes; only
+     * genuinely removed addresses are deleted (with their notes) and only
+     * new addresses inserted. (Delete-all/reinsert wiped whois + notes on
+     * EVERY edit; replace-on-any-difference still wiped the untouched rows.)
      */
     public static function syncForService(string $service_id, array $addresses): void
     {
         // Dedupe: (service_id, address) is unique — inserting the same
         // address twice would be a QueryException 500.
         $submitted = array_values(array_unique($addresses));
-        $existing = self::where('service_id', $service_id)->pluck('address')->all();
+        $existing = self::where('service_id', $service_id)->pluck('address', 'id')->all(); // id => address
 
-        $a = $submitted;
-        $b = $existing;
-        sort($a);
-        sort($b);
-        if ($a === $b) {
-            return;
+        foreach (array_keys(array_diff($existing, $submitted)) as $ip_id) {
+            Note::deleteForService($ip_id);
+            self::where('id', $ip_id)->delete();
         }
 
-        self::deleteIPsAssignedTo($service_id);
-        foreach ($submitted as $address) {
+        foreach (array_diff($submitted, $existing) as $address) {
             self::insertIP($service_id, $address);
         }
     }

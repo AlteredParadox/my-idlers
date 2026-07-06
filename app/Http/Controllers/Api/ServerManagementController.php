@@ -53,7 +53,9 @@ class ServerManagementController extends Controller
             'active' => 'required|integer',
             'show_public' => 'required|integer',
             'ip1' => 'ip',
-            'ip2' => 'ip',
+            // different:ip1 — duplicate would hit the (service_id, address)
+            // unique index as a QueryException 500 instead of a 400
+            'ip2' => 'ip|different:ip1',
             'owned_since' => 'required|date_format:Y-m-d',
             'ram_type' => 'required|string|size:2',
             'disk_type' => 'required|string|size:2',
@@ -189,7 +191,8 @@ class ServerManagementController extends Controller
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
         }
 
-        $updateData = collect($validator->validated())
+        $validated = $validator->validated();
+        $updateData = collect($validated)
             ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port'])
             ->toArray();
 
@@ -205,6 +208,23 @@ class ServerManagementController extends Controller
         // reports 0 for an idempotent re-save, so success is keyed on existence,
         // not the dirty count.
         Server::where('id', $id)->update($updateData);
+
+        // currency/price/payment_term/next_due_date are validated above but
+        // live on the pricing row — apply them rather than silently dropping
+        // them (omitted fields keep their current values).
+        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date'])) {
+            $pricing_row = Pricing::where('service_id', $id)->first();
+            if (!is_null($pricing_row)) {
+                (new Pricing())->updatePricing(
+                    $id,
+                    $validated['currency'] ?? $pricing_row->currency,
+                    (float) ($validated['price'] ?? $pricing_row->price),
+                    (int) ($validated['payment_term'] ?? $pricing_row->term),
+                    $validated['next_due_date'] ?? $pricing_row->next_due_date,
+                    (int) $pricing_row->active
+                );
+            }
+        }
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($id);
