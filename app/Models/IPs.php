@@ -62,7 +62,13 @@ class IPs extends Model
 
     public static function getUpdateIpInfo(IPs $ip): bool
     {
-        $response = Http::get("https://ipwhois.app/json/{$ip->address}");
+        try {
+            $response = Http::get("https://ipwhois.app/json/{$ip->address}");
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // DNS/timeout/unreachable: don't 500 the IP create; callers treat
+            // false as "whois unavailable" and continue.
+            return false;
+        }
 
         if ($response->ok()) {
 

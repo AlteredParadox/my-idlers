@@ -217,6 +217,18 @@ class YabsIngestTest extends TestCase
         $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
     }
 
+    public function test_normal_vps_disk_is_stored_in_gb_not_fractional_tb()
+    {
+        $server = $this->makeServer();
+        $payload = $this->yabsPayload();
+        $payload['mem']['disk'] = 200 * 1048576; // 200 GB in KB
+
+        app(\App\Services\YabsIngestService::class)->ingest($payload, $server->id);
+
+        // Before the fix, a ~200 GB disk crossed the (too-low) TB threshold
+        $this->assertDatabaseHas('yabs', ['server_id' => $server->id, 'disk_type' => 'GB']);
+    }
+
     public function test_ingest_invalidates_the_public_server_cache()
     {
         $server = $this->makeServer();
