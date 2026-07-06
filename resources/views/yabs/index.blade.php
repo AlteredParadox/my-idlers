@@ -77,16 +77,16 @@
                                 @endif
                             </td>
                             <td class="text-center text-nowrap">
-                                {{ $yab->disk_speed->d_4k }}<small class="text-muted">{{ $yab->disk_speed->d_4k_type }}</small>
+                                {{ $yab->disk_speed->d_4k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_4k_type ?? '' }}</small>
                             </td>
                             <td class="text-center text-nowrap">
-                                {{ $yab->disk_speed->d_64k }}<small class="text-muted">{{ $yab->disk_speed->d_64k_type }}</small>
+                                {{ $yab->disk_speed->d_64k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_64k_type ?? '' }}</small>
                             </td>
                             <td class="text-center text-nowrap">
-                                {{ $yab->disk_speed->d_512k }}<small class="text-muted">{{ $yab->disk_speed->d_512k_type }}</small>
+                                {{ $yab->disk_speed->d_512k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_512k_type ?? '' }}</small>
                             </td>
                             <td class="text-center text-nowrap">
-                                {{ $yab->disk_speed->d_1m }}<small class="text-muted">{{ $yab->disk_speed->d_1m_type }}</small>
+                                {{ $yab->disk_speed->d_1m ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_1m_type ?? '' }}</small>
                             </td>
                             <td class="text-center text-nowrap">{{ date_format(new DateTime($yab->output_date), 'Y-m-d') }}</td>
                             <td class="text-center text-nowrap">

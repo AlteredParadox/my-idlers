@@ -69,47 +69,91 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single ?? '—' }}</td>
-                                @if($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null)
-                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single, $server2_data[0]->yabs[0]->gb5_single, '') !!}
+                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single ?? ($server1_data[0]->yabs[0]->gb6_single !== null ? $server1_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
+                                @php
+                                    // version-paired: never compare a GB5 score against a GB6 score
+                                    if ($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null) {
+                                        $cmp1_single = $server1_data[0]->yabs[0]->gb5_single; $cmp2_single = $server2_data[0]->yabs[0]->gb5_single;
+                                    } elseif ($server1_data[0]->yabs[0]->gb6_single !== null && $server2_data[0]->yabs[0]->gb6_single !== null) {
+                                        $cmp1_single = $server1_data[0]->yabs[0]->gb6_single; $cmp2_single = $server2_data[0]->yabs[0]->gb6_single;
+                                    } else {
+                                        $cmp1_single = $cmp2_single = null;
+                                    }
+                                @endphp
+                                @if($cmp1_single !== null && $cmp2_single !== null)
+                                    {!! \App\Process::tableRowCompare($cmp1_single, $cmp2_single, '') !!}
                                 @else
                                     <td class="text-center equal-td">—</td>
                                 @endif
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single ?? '—' }}</td>
+                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single ?? ($server2_data[0]->yabs[0]->gb6_single !== null ? $server2_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi ?? '—' }}</td>
-                                @if($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null)
-                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi, $server2_data[0]->yabs[0]->gb5_multi, '') !!}
+                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi ?? ($server1_data[0]->yabs[0]->gb6_multi !== null ? $server1_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
+                                @php
+                                    // version-paired: never compare a GB5 score against a GB6 score
+                                    if ($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null) {
+                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb5_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb5_multi;
+                                    } elseif ($server1_data[0]->yabs[0]->gb6_multi !== null && $server2_data[0]->yabs[0]->gb6_multi !== null) {
+                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb6_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb6_multi;
+                                    } else {
+                                        $cmp1_multi = $cmp2_multi = null;
+                                    }
+                                @endphp
+                                @if($cmp1_multi !== null && $cmp2_multi !== null)
+                                    {!! \App\Process::tableRowCompare($cmp1_multi, $cmp2_multi, '') !!}
                                 @else
                                     <td class="text-center equal-td">—</td>
                                 @endif
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi ?? '—' }}</td>
+                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi ?? ($server2_data[0]->yabs[0]->gb6_multi !== null ? $server2_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($server1_data[0]->yabs[0]->disk_speed !== null && $server2_data[0]->yabs[0]->disk_speed !== null)
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">64K Disk Speed</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($server1_data[0]->yabs[0]->disk_speed !== null && $server2_data[0]->yabs[0]->disk_speed !== null)
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">512K Disk Speed</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($server1_data[0]->yabs[0]->disk_speed !== null && $server2_data[0]->yabs[0]->disk_speed !== null)
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">1M Disk Speed</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, 'MB/s') !!}
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @if($server1_data[0]->yabs[0]->disk_speed !== null && $server2_data[0]->yabs[0]->disk_speed !== null)
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                    {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, 'MB/s') !!}
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
+                                @else
+                                    <td class="text-center">—</td>
+                                    <td class="text-center equal-td">—</td>
+                                    <td class="text-center">—</td>
+                                @endif
                             </tr>
                             @for($i = 0; $i < 5; $i++)
                                 @if(isset($server1_data[0]->yabs[0]->network_speed[$i]) && isset($server2_data[0]->yabs[0]->network_speed[$i]) && $server1_data[0]->yabs[0]->network_speed[$i]->location === $server2_data[0]->yabs[0]->network_speed[$i]->location)
@@ -159,10 +203,10 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single per USD</td>
-                                @if($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null)
-                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
-                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), '', false) !!}
-                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_single, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @if($cmp1_single !== null && $cmp2_single !== null)
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp1_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($cmp1_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($cmp2_single, $server2_data[0]->price->usd_per_month), '', false) !!}
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp2_single, $server2_data[0]->price->usd_per_month), 2) }}</td>
                                 @else
                                     <td class="text-center">—</td>
                                     <td class="text-center equal-td">—</td>
@@ -171,10 +215,10 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi per USD</td>
-                                @if($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null)
-                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
-                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($server1_data[0]->yabs[0]->gb5_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), '', false) !!}
-                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->gb5_multi, $server2_data[0]->price->usd_per_month), 2) }}</td>
+                                @if($cmp1_multi !== null && $cmp2_multi !== null)
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp1_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
+                                    {!! \App\Process::tableRowCompare(\App\Process::safeDivide($cmp1_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($cmp2_multi, $server2_data[0]->price->usd_per_month), '', false) !!}
+                                    <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp2_multi, $server2_data[0]->price->usd_per_month), 2) }}</td>
                                 @else
                                     <td class="text-center">—</td>
                                     <td class="text-center equal-td">—</td>

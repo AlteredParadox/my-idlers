@@ -100,12 +100,12 @@ class Yabs extends Model
             'disk' => [
                 'amount' => $data->disk . ' ' . $data->disk_type,
                 'gb' => $data->disk_gb,
-                'speed_tests' => [
+                'speed_tests' => $data->disk_speed ? [
                     '4k' => $data->disk_speed->d_4k . ' ' . $data->disk_speed->d_4k_type,
                     '64k' => $data->disk_speed->d_64k . ' ' . $data->disk_speed->d_64k_type,
                     '512k' => $data->disk_speed->d_512k . ' ' . $data->disk_speed->d_512k_type,
                     '1m' => $data->disk_speed->d_1m . ' ' . $data->disk_speed->d_1m_type,
-                ],
+                ] : null,
             ],
             'network' => [
                 'has_ipv6' => $data->has_ipv6 === 1,
