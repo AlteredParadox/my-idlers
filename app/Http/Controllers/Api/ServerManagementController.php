@@ -42,7 +42,7 @@ class ServerManagementController extends Controller
     {
         $rules = [
             'hostname' => 'required|min:3',
-            'server_type' => 'required|integer',
+            'server_type' => 'required|integer|in:1,2,3,4,5,6,7',
             // exists: no FK guards these columns, and a dangling id 500s the
             // servers index and public page on the null relation
             'os_id' => 'required|integer|exists:os,id',
@@ -55,10 +55,10 @@ class ServerManagementController extends Controller
             'disk_as_gb' => 'required|integer',
             'cpu' => 'required|integer',
             'bandwidth' => 'required|integer',
-            'was_promo' => 'required|integer',
-            'transferrable' => 'integer',
-            'active' => 'required|integer',
-            'show_public' => 'required|integer',
+            'was_promo' => 'required|integer|in:0,1',
+            'transferrable' => 'integer|in:0,1',
+            'active' => 'required|integer|in:0,1',
+            'show_public' => 'required|integer|in:0,1',
             'ip1' => 'ip',
             // different:ip1 — duplicate would hit the (service_id, address)
             // unique index as a QueryException 500 instead of a 400
@@ -170,7 +170,7 @@ class ServerManagementController extends Controller
     {
         $rules = [
             'hostname' => 'string|min:3',
-            'server_type' => 'integer',
+            'server_type' => 'integer|in:1,2,3,4,5,6,7',
             'os_id' => 'integer|exists:os,id',
             'provider_id' => 'integer|exists:providers,id',
             'location_id' => 'integer|exists:locations,id',
@@ -181,10 +181,10 @@ class ServerManagementController extends Controller
             'disk_as_gb' => 'integer',
             'cpu' => 'integer',
             'bandwidth' => 'integer',
-            'was_promo' => 'integer',
-            'transferrable' => 'integer',
-            'active' => 'integer',
-            'show_public' => 'integer',
+            'was_promo' => 'integer|in:0,1',
+            'transferrable' => 'integer|in:0,1',
+            'active' => 'integer|in:0,1',
+            'show_public' => 'integer|in:0,1',
             'owned_since' => 'date_format:Y-m-d',
             'ram_type' => 'in:MB,GB',
             'disk_type' => 'in:GB,TB',
@@ -314,7 +314,7 @@ class ServerManagementController extends Controller
             'price' => 'required|numeric',
             'currency' => 'required|string|size:3',
             'term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'active' => 'integer',
+            'active' => 'integer|in:0,1',
             'next_due_date' => 'date_format:Y-m-d',
         ];
 
