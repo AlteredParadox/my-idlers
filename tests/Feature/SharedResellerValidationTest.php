@@ -50,4 +50,16 @@ class SharedResellerValidationTest extends TestCase
             ->post(route('servers.store'), ['hostname' => 'crafted.example.com'])
             ->assertSessionHasErrors(['currency', 'payment_term']);
     }
+
+    public function test_shared_store_requires_provider_and_location()
+    {
+        // provider_id/location_id are non-nullable columns (default 9999);
+        // omitting them used to insert null -> DB constraint violation (500).
+        $payload = $this->basePayload();
+        unset($payload['provider_id'], $payload['location_id']);
+
+        $this->actingAs(User::factory()->create())
+            ->post(route('shared.store'), $payload)
+            ->assertSessionHasErrors(['provider_id', 'location_id']);
+    }
 }
