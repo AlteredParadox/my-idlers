@@ -123,19 +123,7 @@ class SharedController extends Controller
             ...\App\Models\Labels::validationRules(),
         ]);
 
-        // Validate BEFORE any write: failing after $shared->update()
-        // left persisted changes with every cache forget skipped.
-        // Collect the dedicated IP plus any ipN fields (IPs assigned via the
-        // IPs page round-trip through the edit form) — syncing only the one
-        // dedicated_ip slot silently deleted the others and their notes.
-        $submitted_ips = is_null($request->dedicated_ip) ? [] : [$request->dedicated_ip];
-        $extra_ip_fields = [];
-        foreach ($request->all() as $key => $value) {
-            if (preg_match('/^ip\d+$/', $key) && !is_null($value)) {
-                $extra_ip_fields[$key] = $value;
-            }
-        }
-        $request->validate(array_fill_keys(array_keys($extra_ip_fields), 'ip'));
+        $submitted_ips = $this->collectSubmittedIps($request);
 
         $link_speed_mbps = null;
         if ($request->link_speed) {
@@ -171,7 +159,7 @@ class SharedController extends Controller
         Labels::deleteLabelsAssignedTo($shared->id);
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $shared->id);
 
-        IPs::syncForService($shared->id, array_merge($submitted_ips, array_values($extra_ip_fields)));
+        IPs::syncForService($shared->id, $submitted_ips);
 
         Cache::forget("note.{$shared->id}");//embeds the shared relation
         Cache::forget('all_notes');
