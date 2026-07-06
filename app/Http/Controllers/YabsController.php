@@ -62,6 +62,9 @@ class YabsController extends Controller
 
             Cache::forget('all_yabs');
             Cache::forget("yabs.{$yab->id}");
+            // Server caches embed the yabs relation; mirror the add path.
+            Server::serverSpecificCacheForget($yab->server_id);
+            Server::serverRelatedCacheForget();
 
             return redirect()->route('yabs.index')
                 ->with('success', 'YABS was deleted Successfully.');

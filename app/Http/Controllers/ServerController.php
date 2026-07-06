@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disk;
+use App\Models\Note;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -268,6 +269,8 @@ class ServerController extends Controller
             IPs::deleteIPsAssignedTo($server->id);
 
             Disk::deleteDisksForServer($server->id);
+
+            Note::deleteForService($server->id);
 
             Server::serverRelatedCacheForget();
 

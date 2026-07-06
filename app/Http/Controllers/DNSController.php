@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DNS;
+use App\Models\Note;
 use App\Models\Labels;
 use App\Models\Reseller;
 use App\Models\Server;
@@ -126,6 +127,8 @@ class DNSController extends Controller
             Cache::forget('dns_count');
 
             Labels::deleteLabelsAssignedTo($dn->id);
+
+            Note::deleteForService($dn->id);
 
             return redirect()->route('dns.index')
                 ->with('success', 'DNS was deleted Successfully.');

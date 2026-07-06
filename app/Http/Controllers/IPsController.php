@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\IPs;
+use App\Models\Note;
 use App\Models\Reseller;
 use App\Models\SeedBoxes;
 use App\Models\Server;
@@ -67,6 +68,7 @@ class IPsController extends Controller
 
         if ($ip->delete()) {
             self::forgetServiceCaches($service_id);
+            Note::deleteForService($ip->id);
 
             return redirect()->route('IPs.index')
                 ->with('success', 'IP address was deleted Successfully.');
