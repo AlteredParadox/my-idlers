@@ -46,61 +46,61 @@
                             <tr>
                                 <td class="ps-3 fw-medium">CPU Cores</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->cpu_cores }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->cpu_cores, $server2_data[0]->yabs[0]->cpu_cores, ' cores') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->cpu_cores, $server2_data[0]->yabs[0]->cpu_cores, ' cores') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->cpu_cores }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">CPU Frequency</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->cpu_freq }}<span class="data-type">MHz</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->cpu_freq, $server2_data[0]->yabs[0]->cpu_freq, 'MHz') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->cpu_freq, $server2_data[0]->yabs[0]->cpu_freq, 'MHz') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->cpu_freq }}<span class="data-type">MHz</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">RAM</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->ram_mb }}<span class="data-type">MB</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->ram_mb, $server2_data[0]->yabs[0]->ram_mb, 'MB') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->ram_mb, $server2_data[0]->yabs[0]->ram_mb, 'MB') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->ram_mb }}<span class="data-type">MB</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Disk</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_gb }}<span class="data-type">GB</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_gb, $server2_data[0]->yabs[0]->disk_gb, 'GB') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_gb, $server2_data[0]->yabs[0]->disk_gb, 'GB') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_gb }}<span class="data-type">GB</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->gb5_single, $server2_data[0]->yabs[0]->gb5_single, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single, $server2_data[0]->yabs[0]->gb5_single, '') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi, $server2_data[0]->yabs[0]->gb5_multi, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi, $server2_data[0]->yabs[0]->gb5_multi, '') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, 'MB/s') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps, 'MB/s') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_4k_as_mbps }}<span class="data-type">MB/s</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">64K Disk Speed</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, 'MB/s') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps, 'MB/s') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_64k_as_mbps }}<span class="data-type">MB/s</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">512K Disk Speed</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, 'MB/s') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps, 'MB/s') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_512k_as_mbps }}<span class="data-type">MB/s</span></td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">1M Disk Speed</td>
                                 <td class="text-center">{{ $server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, 'MB/s') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps, 'MB/s') !!}
                                 <td class="text-center">{{ $server2_data[0]->yabs[0]->disk_speed->d_1m_as_mbps }}<span class="data-type">MB/s</span></td>
                             </tr>
                             @for($i = 0; $i < 5; $i++)
@@ -108,13 +108,13 @@
                                     <tr>
                                         <td class="ps-3 fw-medium">{{ $server1_data[0]->yabs[0]->network_speed[$i]->location }} Send</td>
                                         <td class="text-center">{{ $server1_data[0]->yabs[0]->network_speed[$i]->send_as_mbps }}<span class="data-type">MB/s</span></td>
-                                        {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->network_speed[$i]->send_as_mbps, $server2_data[0]->yabs[0]->network_speed[$i]->send_as_mbps, 'MB/s') !!}
+                                        {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->network_speed[$i]->send_as_mbps, $server2_data[0]->yabs[0]->network_speed[$i]->send_as_mbps, 'MB/s') !!}
                                         <td class="text-center">{{ $server2_data[0]->yabs[0]->network_speed[$i]->send_as_mbps }}<span class="data-type">MB/s</span></td>
                                     </tr>
                                     <tr>
                                         <td class="ps-3 fw-medium">{{ $server1_data[0]->yabs[0]->network_speed[$i]->location }} Receive</td>
                                         <td class="text-center">{{ $server1_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps }}<span class="data-type">MB/s</span></td>
-                                        {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps, $server2_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps, 'MB/s') !!}
+                                        {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps, $server2_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps, 'MB/s') !!}
                                         <td class="text-center">{{ $server2_data[0]->yabs[0]->network_speed[$i]->receive_as_mbps }}<span class="data-type">MB/s</span></td>
                                     </tr>
                                 @endif
@@ -122,7 +122,7 @@
                             <tr>
                                 <td class="ps-3 fw-medium">USD per Month</td>
                                 <td class="text-center">{{ $server1_data[0]->price->usd_per_month }}<span class="data-type">/mo</span></td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->price->usd_per_month, $server2_data[0]->price->usd_per_month, '/mo') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->price->usd_per_month, $server2_data[0]->price->usd_per_month, '/mo') !!}
                                 <td class="text-center">{{ $server2_data[0]->price->usd_per_month }}<span class="data-type">/mo</span></td>
                             </tr>
                             <tr>
@@ -134,31 +134,31 @@
                             <tr>
                                 <td class="ps-3 fw-medium">CPU per USD</td>
                                 <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->cpu_cores / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->cpu_cores / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->cpu_cores / $server2_data[0]->price->usd_per_month, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->cpu_cores / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->cpu_cores / $server2_data[0]->price->usd_per_month, '') !!}
                                 <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->cpu_cores / $server2_data[0]->price->usd_per_month, 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">Disk GB per USD</td>
                                 <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->disk_gb / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->disk_gb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->disk_gb / $server2_data[0]->price->usd_per_month, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->disk_gb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->disk_gb / $server2_data[0]->price->usd_per_month, '') !!}
                                 <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->disk_gb / $server2_data[0]->price->usd_per_month, 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">RAM MB per USD</td>
                                 <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->ram_mb / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->ram_mb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->ram_mb / $server2_data[0]->price->usd_per_month, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->ram_mb / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->ram_mb / $server2_data[0]->price->usd_per_month, '') !!}
                                 <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->ram_mb / $server2_data[0]->price->usd_per_month, 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single per USD</td>
                                 <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->gb5_single / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->gb5_single / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_single / $server2_data[0]->price->usd_per_month, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_single / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_single / $server2_data[0]->price->usd_per_month, '') !!}
                                 <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->gb5_single / $server2_data[0]->price->usd_per_month, 2) }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi per USD</td>
                                 <td class="text-center">{{ number_format($server1_data[0]->yabs[0]->gb5_multi / $server1_data[0]->price->usd_per_month, 2) }}</td>
-                                {!! \App\Models\Server::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_multi / $server2_data[0]->price->usd_per_month, '') !!}
+                                {!! \App\Process::tableRowCompare($server1_data[0]->yabs[0]->gb5_multi / $server1_data[0]->price->usd_per_month, $server2_data[0]->yabs[0]->gb5_multi / $server2_data[0]->price->usd_per_month, '') !!}
                                 <td class="text-center">{{ number_format($server2_data[0]->yabs[0]->gb5_multi / $server2_data[0]->price->usd_per_month, 2) }}</td>
                             </tr>
                             <tr>

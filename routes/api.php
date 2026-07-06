@@ -19,70 +19,70 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:api')->get('dns/', 'App\Http\Controllers\ApiController@getAllDns');
-Route::middleware('auth:api')->get('dns/{id}', 'App\Http\Controllers\ApiController@getDns');
+Route::middleware('auth:api')->get('dns/', 'App\Http\Controllers\Api\CatalogQueryController@getAllDns');
+Route::middleware('auth:api')->get('dns/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getDns');
 
-Route::middleware('auth:api')->get('domains/', 'App\Http\Controllers\ApiController@getAllDomains');
-Route::middleware('auth:api')->get('domains/{id}', 'App\Http\Controllers\ApiController@getDomains');
+Route::middleware('auth:api')->get('domains/', 'App\Http\Controllers\Api\ServiceQueryController@getAllDomains');
+Route::middleware('auth:api')->get('domains/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getDomains');
 
-Route::middleware('auth:api')->get('servers', 'App\Http\Controllers\ApiController@getAllServers');
+Route::middleware('auth:api')->get('servers', 'App\Http\Controllers\Api\ServiceQueryController@getAllServers');
 $serverById = 'servers/{id}';
-Route::middleware('auth:api')->get($serverById, 'App\Http\Controllers\ApiController@getServer');
+Route::middleware('auth:api')->get($serverById, 'App\Http\Controllers\Api\ServiceQueryController@getServer');
 
-Route::middleware('auth:api')->post('servers', 'App\Http\Controllers\ApiController@storeServer');
-Route::middleware('auth:api')->put($serverById, 'App\Http\Controllers\ApiController@updateServer');
-Route::middleware('auth:api')->delete($serverById, 'App\Http\Controllers\ApiController@destroyServer');
+Route::middleware('auth:api')->post('servers', 'App\Http\Controllers\Api\ServerManagementController@storeServer');
+Route::middleware('auth:api')->put($serverById, 'App\Http\Controllers\Api\ServerManagementController@updateServer');
+Route::middleware('auth:api')->delete($serverById, 'App\Http\Controllers\Api\ServerManagementController@destroyServer');
 
-Route::middleware('auth:api')->get('IPs/', 'App\Http\Controllers\ApiController@getAllIPs');
-Route::middleware('auth:api')->get('IPs/{id}', 'App\Http\Controllers\ApiController@getIP');
+Route::middleware('auth:api')->get('IPs/', 'App\Http\Controllers\Api\CatalogQueryController@getAllIPs');
+Route::middleware('auth:api')->get('IPs/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getIP');
 
-Route::middleware('auth:api')->get('labels/', 'App\Http\Controllers\ApiController@getAllLabels');
-Route::middleware('auth:api')->get('labels/{id}', 'App\Http\Controllers\ApiController@getLabel');
+Route::middleware('auth:api')->get('labels/', 'App\Http\Controllers\Api\CatalogQueryController@getAllLabels');
+Route::middleware('auth:api')->get('labels/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getLabel');
 
-Route::middleware('auth:api')->get('locations/', 'App\Http\Controllers\ApiController@getAllLocations');
-Route::middleware('auth:api')->get('locations/{id}', 'App\Http\Controllers\ApiController@getLocation');
+Route::middleware('auth:api')->get('locations/', 'App\Http\Controllers\Api\CatalogQueryController@getAllLocations');
+Route::middleware('auth:api')->get('locations/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getLocation');
 
-Route::middleware('auth:api')->get('misc/', 'App\Http\Controllers\ApiController@getAllMisc');
-Route::middleware('auth:api')->get('misc/{id}', 'App\Http\Controllers\ApiController@getMisc');
+Route::middleware('auth:api')->get('misc/', 'App\Http\Controllers\Api\ServiceQueryController@getAllMisc');
+Route::middleware('auth:api')->get('misc/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getMisc');
 
-Route::middleware('auth:api')->get('networkSpeeds/', 'App\Http\Controllers\ApiController@getAllNetworkSpeeds');
-Route::middleware('auth:api')->get('networkSpeeds/{id}', 'App\Http\Controllers\ApiController@getNetworkSpeeds');
+Route::middleware('auth:api')->get('networkSpeeds/', 'App\Http\Controllers\Api\CatalogQueryController@getAllNetworkSpeeds');
+Route::middleware('auth:api')->get('networkSpeeds/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getNetworkSpeeds');
 
-Route::middleware('auth:api')->get('os/', 'App\Http\Controllers\ApiController@getAllOs');
-Route::middleware('auth:api')->get('os/{id}', 'App\Http\Controllers\ApiController@getOs');
+Route::middleware('auth:api')->get('os/', 'App\Http\Controllers\Api\CatalogQueryController@getAllOs');
+Route::middleware('auth:api')->get('os/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getOs');
 
-Route::middleware('auth:api')->get('pricing/', 'App\Http\Controllers\ApiController@getAllPricing');
-Route::middleware('auth:api')->get('pricing/{id}', 'App\Http\Controllers\ApiController@getPricing');
-Route::middleware('auth:api')->put('pricing/{id}', 'App\Http\Controllers\ApiController@updatePricing');
+Route::middleware('auth:api')->get('pricing/', 'App\Http\Controllers\Api\CatalogQueryController@getAllPricing');
+Route::middleware('auth:api')->get('pricing/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getPricing');
+Route::middleware('auth:api')->put('pricing/{id}', 'App\Http\Controllers\Api\ServerManagementController@updatePricing');
 
-Route::middleware('auth:api')->get('providers/', 'App\Http\Controllers\ApiController@getAllProviders');
-Route::middleware('auth:api')->get('providers/{id}', 'App\Http\Controllers\ApiController@getProvider');
+Route::middleware('auth:api')->get('providers/', 'App\Http\Controllers\Api\CatalogQueryController@getAllProviders');
+Route::middleware('auth:api')->get('providers/{id}', 'App\Http\Controllers\Api\CatalogQueryController@getProvider');
 
-Route::middleware('auth:api')->get('reseller/', 'App\Http\Controllers\ApiController@getAllReseller');
-Route::middleware('auth:api')->get('reseller/{id}', 'App\Http\Controllers\ApiController@getReseller');
+Route::middleware('auth:api')->get('reseller/', 'App\Http\Controllers\Api\ServiceQueryController@getAllReseller');
+Route::middleware('auth:api')->get('reseller/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getReseller');
 
-Route::middleware('auth:api')->get('seedbox/', 'App\Http\Controllers\ApiController@getAllSeedbox');
-Route::middleware('auth:api')->get('seedbox/{id}', 'App\Http\Controllers\ApiController@getSeedbox');
+Route::middleware('auth:api')->get('seedbox/', 'App\Http\Controllers\Api\ServiceQueryController@getAllSeedbox');
+Route::middleware('auth:api')->get('seedbox/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getSeedbox');
 
-Route::middleware('auth:api')->get('settings/', 'App\Http\Controllers\ApiController@getAllSettings');
+Route::middleware('auth:api')->get('settings/', 'App\Http\Controllers\Api\CatalogQueryController@getAllSettings');
 
-Route::middleware('auth:api')->get('shared/', 'App\Http\Controllers\ApiController@getAllShared');
-Route::middleware('auth:api')->get('shared/{id}', 'App\Http\Controllers\ApiController@getShared');
+Route::middleware('auth:api')->get('shared/', 'App\Http\Controllers\Api\ServiceQueryController@getAllShared');
+Route::middleware('auth:api')->get('shared/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getShared');
 
 
-Route::middleware('auth:api')->get('online/{hostname}', 'App\Http\Controllers\ApiController@checkHostIsUp');
+Route::middleware('auth:api')->get('online/{hostname}', 'App\Http\Controllers\Api\ToolsController@checkHostIsUp');
 
-Route::middleware('auth:api')->get('prometheus/status', 'App\Http\Controllers\ApiController@prometheusStatus');
-Route::middleware('auth:api')->get('prometheus/detail/{hostname}/{period}/{back}', 'App\Http\Controllers\ApiController@prometheusDetail')
+Route::middleware('auth:api')->get('prometheus/status', 'App\Http\Controllers\Api\ToolsController@prometheusStatus');
+Route::middleware('auth:api')->get('prometheus/detail/{hostname}/{period}/{back}', 'App\Http\Controllers\Api\ToolsController@prometheusDetail')
     ->where(['hostname' => '[a-zA-Z0-9._-]+', 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+']);
 
-Route::middleware('auth:api')->get('dns/{domainName}/{type}', 'App\Http\Controllers\ApiController@getIpForDomain');
+Route::middleware('auth:api')->get('dns/{domainName}/{type}', 'App\Http\Controllers\Api\ToolsController@getIpForDomain');
 
-Route::middleware(['throttle:4', 'signed'])->post('yabs/{server}', 'App\Http\Controllers\ApiController@storeYabs')->name('api.store-yabs');
-Route::middleware('auth:api')->get('yabs/', 'App\Http\Controllers\ApiController@getAllYabs');
-Route::middleware('auth:api')->get('yabs/{id}', 'App\Http\Controllers\ApiController@getYabs');
+Route::middleware(['throttle:4', 'signed'])->post('yabs/{server}', 'App\Http\Controllers\Api\ServerManagementController@storeYabs')->name('api.store-yabs');
+Route::middleware('auth:api')->get('yabs/', 'App\Http\Controllers\Api\ServiceQueryController@getAllYabs');
+Route::middleware('auth:api')->get('yabs/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getYabs');
 
-Route::middleware('auth:api')->get('note/{id}', 'App\Http\Controllers\ApiController@getNote');
+Route::middleware('auth:api')->get('note/{id}', 'App\Http\Controllers\Api\ServiceQueryController@getNote');
 
 // Export routes
 Route::middleware('auth:api')->group(function () {
