@@ -84,6 +84,5 @@ class SettingsModelTest extends TestCase
 
         $this->assertSame(1, $settings->show_servers_public);
         $this->assertSame(0, $settings->show_server_value_price);
-        $this->assertTrue($settings->show_servers_public === 1);
     }
 }
