@@ -39,7 +39,7 @@ class Labels extends Model
                         'service_id' => $service_id
                     ]);
                 } catch (Exception $exception) {
-
+                    // Ignore duplicate label assignments
                 }
             }
         }

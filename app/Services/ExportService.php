@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ExportException;
 use App\Models\DNS;
 use App\Models\Domains;
 use App\Models\Misc;
@@ -1153,85 +1154,40 @@ class ExportService
         $misc = Misc::with(['price'])->get();
 
         // Transform all data
-        $serversData = $servers->map(fn($server) => $this->transformServerForExport($server))->toArray();
-        $domainsData = $domains->map(fn($domain) => $this->transformDomainForExport($domain))->toArray();
-        $sharedData = $shared->map(fn($s) => $this->transformSharedForExport($s))->toArray();
-        $resellerData = $reseller->map(fn($r) => $this->transformResellerForExport($r))->toArray();
-        $seedboxesData = $seedboxes->map(fn($sb) => $this->transformSeedboxForExport($sb))->toArray();
-        $dnsData = $dns->map(fn($d) => $this->transformDnsForExport($d))->toArray();
-        $miscData = $misc->map(fn($m) => $this->transformMiscForExport($m))->toArray();
+        $sections = [
+            'servers' => $servers->map(fn($server) => $this->transformServerForExport($server))->toArray(),
+            'domains' => $domains->map(fn($domain) => $this->transformDomainForExport($domain))->toArray(),
+            'shared' => $shared->map(fn($s) => $this->transformSharedForExport($s))->toArray(),
+            'reseller' => $reseller->map(fn($r) => $this->transformResellerForExport($r))->toArray(),
+            'seedboxes' => $seedboxes->map(fn($sb) => $this->transformSeedboxForExport($sb))->toArray(),
+            'dns' => $dns->map(fn($d) => $this->transformDnsForExport($d))->toArray(),
+            'misc' => $misc->map(fn($m) => $this->transformMiscForExport($m))->toArray(),
+        ];
 
         if ($format === 'json') {
-            return $this->exportAllAsJson(
-                $serversData,
-                $domainsData,
-                $sharedData,
-                $resellerData,
-                $seedboxesData,
-                $dnsData,
-                $miscData,
-                $timestamp
-            );
+            return $this->exportAllAsJson($sections, $timestamp);
         }
 
         // CSV format - create ZIP with separate CSV files
-        return $this->exportAllAsCsvZip(
-            $serversData,
-            $domainsData,
-            $sharedData,
-            $resellerData,
-            $seedboxesData,
-            $dnsData,
-            $miscData,
-            $timestamp
-        );
+        return $this->exportAllAsCsvZip($sections, $timestamp);
     }
 
     /**
      * Export all data as JSON with metadata
      *
-     * @param array $serversData
-     * @param array $domainsData
-     * @param array $sharedData
-     * @param array $resellerData
-     * @param array $seedboxesData
-     * @param array $dnsData
-     * @param array $miscData
+     * @param array $sections data arrays keyed by section name (servers, domains, ...)
      * @param string $timestamp
      * @return array{data: string, filename: string, content_type: string}
      */
-    protected function exportAllAsJson(
-        array $serversData,
-        array $domainsData,
-        array $sharedData,
-        array $resellerData,
-        array $seedboxesData,
-        array $dnsData,
-        array $miscData,
-        string $timestamp
-    ): array {
+    protected function exportAllAsJson(array $sections, string $timestamp): array
+    {
         $exportData = [
             'export_metadata' => [
                 'export_date' => date('c'), // ISO 8601 format
                 'version' => '4.1.0',
-                'counts' => [
-                    'servers' => count($serversData),
-                    'domains' => count($domainsData),
-                    'shared' => count($sharedData),
-                    'reseller' => count($resellerData),
-                    'seedboxes' => count($seedboxesData),
-                    'dns' => count($dnsData),
-                    'misc' => count($miscData),
-                ],
+                'counts' => array_map('count', $sections),
             ],
-            'servers' => $serversData,
-            'domains' => $domainsData,
-            'shared' => $sharedData,
-            'reseller' => $resellerData,
-            'seedboxes' => $seedboxesData,
-            'dns' => $dnsData,
-            'misc' => $miscData,
-        ];
+        ] + $sections;
 
         return [
             'data' => $this->toJson($exportData),
@@ -1243,83 +1199,40 @@ class ExportService
     /**
      * Export all data as a ZIP file containing separate CSV files
      *
-     * @param array $serversData
-     * @param array $domainsData
-     * @param array $sharedData
-     * @param array $resellerData
-     * @param array $seedboxesData
-     * @param array $dnsData
-     * @param array $miscData
+     * @param array $sections data arrays keyed by section name (servers, domains, ...)
      * @param string $timestamp
      * @return array{data: string, filename: string, content_type: string}
      */
-    protected function exportAllAsCsvZip(
-        array $serversData,
-        array $domainsData,
-        array $sharedData,
-        array $resellerData,
-        array $seedboxesData,
-        array $dnsData,
-        array $miscData,
-        string $timestamp
-    ): array {
+    protected function exportAllAsCsvZip(array $sections, string $timestamp): array
+    {
         // Create a temporary file for the ZIP
         $tempFile = tempnam(sys_get_temp_dir(), 'export_');
         $zip = new \ZipArchive();
 
         if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            throw new \RuntimeException('Failed to create export archive.');
+            throw new ExportException('Failed to create export archive.');
         }
 
         // Add each service type as a separate CSV file
-        $zip->addFromString(
-            'servers.csv',
-            $this->toCsv($serversData, $this->getServerCsvHeaders())
-        );
+        $csvFiles = [
+            'servers' => ['servers.csv', $this->getServerCsvHeaders()],
+            'domains' => ['domains.csv', $this->getDomainCsvHeaders()],
+            'shared' => ['shared_hosting.csv', $this->getSharedCsvHeaders()],
+            'reseller' => ['reseller_hosting.csv', $this->getResellerCsvHeaders()],
+            'seedboxes' => ['seedboxes.csv', $this->getSeedboxCsvHeaders()],
+            'dns' => ['dns.csv', $this->getDnsCsvHeaders()],
+            'misc' => ['misc_services.csv', $this->getMiscCsvHeaders()],
+        ];
 
-        $zip->addFromString(
-            'domains.csv',
-            $this->toCsv($domainsData, $this->getDomainCsvHeaders())
-        );
-
-        $zip->addFromString(
-            'shared_hosting.csv',
-            $this->toCsv($sharedData, $this->getSharedCsvHeaders())
-        );
-
-        $zip->addFromString(
-            'reseller_hosting.csv',
-            $this->toCsv($resellerData, $this->getResellerCsvHeaders())
-        );
-
-        $zip->addFromString(
-            'seedboxes.csv',
-            $this->toCsv($seedboxesData, $this->getSeedboxCsvHeaders())
-        );
-
-        $zip->addFromString(
-            'dns.csv',
-            $this->toCsv($dnsData, $this->getDnsCsvHeaders())
-        );
-
-        $zip->addFromString(
-            'misc_services.csv',
-            $this->toCsv($miscData, $this->getMiscCsvHeaders())
-        );
+        foreach ($csvFiles as $section => [$filename, $headers]) {
+            $zip->addFromString($filename, $this->toCsv($sections[$section], $headers));
+        }
 
         // Add metadata file
         $metadata = [
             'export_date' => date('c'),
             'version' => '4.1.0',
-            'counts' => [
-                'servers' => count($serversData),
-                'domains' => count($domainsData),
-                'shared' => count($sharedData),
-                'reseller' => count($resellerData),
-                'seedboxes' => count($seedboxesData),
-                'dns' => count($dnsData),
-                'misc' => count($miscData),
-            ],
+            'counts' => array_map('count', $sections),
         ];
         $zip->addFromString(
             'metadata.json',
