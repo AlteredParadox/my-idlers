@@ -284,7 +284,7 @@
                     var matched = false;
                     var statusClasses = ['text-success', 'text-danger', 'text-warning', 'text-muted'];
                     for (var promHost in statuses) {
-                        if (hostname === promHost || promHost === hostname.split('.')[0] || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0) {
+                        if (matchHost(hostname, promHost)) {
                             icon.classList.remove(...statusClasses);
                             icon.classList.add(statuses[promHost] ? 'text-success' : 'text-danger');
                             matched = true;
@@ -310,8 +310,19 @@
                 return 'text-success';
             }
 
+            function isIpAddress(s) {
+                // IPv4 or bracketless IPv6 (Prometheus strips :port before keying)
+                return /^\d{1,3}(\.\d{1,3}){3}$/.test(s) || s.indexOf(':') !== -1;
+            }
+
             function matchHost(hostname, promHost) {
-                return hostname === promHost || promHost === hostname.split('.')[0] || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0;
+                // If either side is an IP, only exact equality counts — mirrors
+                // PrometheusService::hostMatches so the list and detail agree.
+                if (isIpAddress(hostname) || isIpAddress(promHost)) {
+                    return hostname === promHost;
+                }
+                return hostname === promHost || promHost === hostname.split('.')[0]
+                    || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0;
             }
 
             function updateRamUsage(metrics) {

@@ -23,7 +23,7 @@ class OsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'os_name' => 'required|string|min:2|max:255'
+            'os_name' => 'required|string|min:2|max:255|unique:os,name'
         ]);
 
         OS::create([

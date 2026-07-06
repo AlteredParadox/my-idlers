@@ -15,16 +15,22 @@ class Round34RegressionTest extends TestCase
 {
     public function test_list_view_host_matchers_use_exact_semantics()
     {
-        $safe = "hostname === promHost || promHost === hostname.split('.')[0] || "
-            . "hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0";
+        // Since the GPT 2nd round the matcher lives in ONE matchHost() (the
+        // status loop calls it), so the exact short-label expression appears
+        // once and is IP-guarded.
+        $safe = "hostname === promHost || promHost === hostname.split('.')[0]\n"
+            . "                    || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0";
 
         foreach (['servers/index.blade.php', 'servers/index-cards.blade.php'] as $view) {
             $blade = file_get_contents(resource_path("views/$view"));
 
-            // Both the inline status loop and matchHost() carry the matcher.
-            $this->assertSame(2, substr_count($blade, $safe), "$view lost the exact matcher");
+            $this->assertSame(1, substr_count($blade, $safe), "$view lost the exact matcher");
+            // The status loop must route through matchHost, not inline the expression.
+            $this->assertStringContainsString('if (matchHost(hostname, promHost)) {', $blade, $view);
+            // IP sides fall back to exact equality.
+            $this->assertStringContainsString('if (isIpAddress(hostname) || isIpAddress(promHost)) {', $blade, $view);
 
-            // The two prefix/first-label holes must not reappear.
+            // The prefix/first-label holes must not reappear.
             $this->assertStringNotContainsString("promHost.split('.')[0] === hostname.split('.')[0]", $blade, $view);
             $this->assertStringNotContainsString("hostname.indexOf(promHost) === 0", $blade, $view);
         }
