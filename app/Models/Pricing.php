@@ -55,6 +55,38 @@ class Pricing extends Model
     // Keeps currency selects usable when the exchange-rate API is unavailable
     public const FALLBACK_CURRENCIES = ['USD', 'EUR', 'GBP'];
 
+    /**
+     * ISO 4217 active alpha codes. Validation uses this FIXED list rather
+     * than getCurrencyList(): the live list depends on the exchange-rate API
+     * being reachable, and an outage must not brick editing non-USD services.
+     * Unknown codes previously passed size:3 and were silently converted 1:1
+     * as USD, corrupting as_usd/usd_per_month and every total built on them.
+     */
+    public const ISO_CURRENCIES = [
+        'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
+        'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
+        'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
+        'COP', 'CRC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP',
+        'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD',
+        'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS',
+        'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR',
+        'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD',
+        'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU',
+        'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK',
+        'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG',
+        'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK',
+        'SGD', 'SHP', 'SLE', 'SOS', 'SRD', 'SSP', 'STN', 'SVC', 'SYP', 'SZL',
+        'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH',
+        'UGX', 'USD', 'UYU', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XCD',
+        'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL',
+    ];
+
+    /** Validation fragment for currency fields: 'in:AED,AFN,...' */
+    public static function currencyRule(): string
+    {
+        return 'in:' . implode(',', self::ISO_CURRENCIES);
+    }
+
     public static function getCurrencyList(): array
     {
         $currencies = array_keys((array)self::refreshRates());

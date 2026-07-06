@@ -35,9 +35,9 @@ class MiscController extends Controller
     {
         $request->validate([
             'name' => 'required|string|min:3|max:255',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0|max:99999999',
             'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'currency' => 'required|string|size:3',
+            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
             'owned_since' => 'sometimes|nullable|date',
             'next_due_date' => 'sometimes|nullable|date'
         ]);
@@ -75,9 +75,9 @@ class MiscController extends Controller
     {
         $request->validate([
             'name' => 'required|string|min:3|max:255',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0|max:99999999',
             'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'currency' => 'required|string|size:3',
+            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
             'owned_since' => 'sometimes|nullable|date',
             'next_due_date' => 'sometimes|nullable|date'
         ]);
