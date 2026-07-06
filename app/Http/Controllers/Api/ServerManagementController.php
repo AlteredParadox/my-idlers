@@ -50,9 +50,7 @@ class ServerManagementController extends Controller
             'location_id' => 'required|integer|exists:locations,id',
             'ssh_port' => 'required|integer|min:1|max:65535',
             'ram' => 'required|integer|min:0|max:100000000',
-            'ram_as_mb' => 'required|integer|min:0|max:100000000',
             'disk' => 'required|integer|min:0|max:1000000',
-            'disk_as_gb' => 'required|integer|min:0|max:100000000',
             'cpu' => 'required|integer|min:1|max:1024',
             'bandwidth' => 'required|integer|min:0|max:100000000',
             'was_promo' => 'required|integer|in:0,1',
@@ -176,9 +174,7 @@ class ServerManagementController extends Controller
             'location_id' => 'integer|exists:locations,id',
             'ssh_port' => 'integer|min:1|max:65535',
             'ram' => 'integer|min:0|max:100000000',
-            'ram_as_mb' => 'integer|min:0|max:100000000',
             'disk' => 'integer|min:0|max:1000000',
-            'disk_as_gb' => 'integer|min:0|max:100000000',
             'cpu' => 'integer|min:1|max:1024',
             'bandwidth' => 'integer|min:0|max:100000000',
             'was_promo' => 'integer|in:0,1',
@@ -238,18 +234,19 @@ class ServerManagementController extends Controller
     /**
      * Derive the _as_ columns like storeServer does — the index and public
      * pages render RAM/disk exclusively from them, so a partial update would
-     * otherwise show the old size forever. An explicit _as_ value still wins.
+     * otherwise show the old size forever. Clients cannot supply
+     * ram_as_mb/disk_as_gb directly (not in the rules): an explicit value
+     * could contradict ram/ram_type (ram=8 GB with ram_as_mb=1) and the
+     * views sort and render from the derived columns.
      */
     private function deriveAsColumns(array $updateData, array $validated, Server $server_row): array
     {
-        if (!array_key_exists('ram_as_mb', $validated)
-            && (array_key_exists('ram', $validated) || array_key_exists('ram_type', $validated))) {
+        if (array_key_exists('ram', $validated) || array_key_exists('ram_type', $validated)) {
             $ram = (int) ($validated['ram'] ?? $server_row->ram);
             $ram_type = $validated['ram_type'] ?? $server_row->ram_type;
             $updateData['ram_as_mb'] = ($ram_type === 'MB') ? $ram : ($ram * 1024);
         }
-        if (!array_key_exists('disk_as_gb', $validated)
-            && (array_key_exists('disk', $validated) || array_key_exists('disk_type', $validated))) {
+        if (array_key_exists('disk', $validated) || array_key_exists('disk_type', $validated)) {
             $disk = (int) ($validated['disk'] ?? $server_row->disk);
             $disk_type = $validated['disk_type'] ?? $server_row->disk_type;
             $updateData['disk_as_gb'] = ($disk_type === 'GB') ? $disk : ($disk * 1024);

@@ -55,8 +55,8 @@ class GptRound6RegressionTest extends TestCase
     {
         // JPY is valid ISO but has no rate in this environment (no exchange
         // API configured): storing it would convert 1:1 as USD — the exact
-        // corruption the currency rule exists to stop. Only the explicit
-        // fallbacks (USD/EUR/GBP) are convertible here.
+        // corruption the currency rule exists to stop. Only USD is
+        // convertible here (GPT round 7 dropped the EUR/GBP fallbacks).
         $this->actingAs($this->user)->post(route('servers.store'), $this->webServerPayload([
             'currency' => 'JPY',
         ]))->assertSessionHasErrors('currency');
@@ -92,7 +92,9 @@ class GptRound6RegressionTest extends TestCase
         ];
         $headers = ['Authorization' => 'Bearer ' . $this->token];
 
-        foreach ([['ram', -1], ['disk_as_gb', -50], ['cpu', 0], ['ssh_port', 99999], ['bandwidth', -5]] as [$field, $value]) {
+        // disk_as_gb is no longer accepted input (GPT round 7: always derived),
+        // so the negative-disk case moved to the source field.
+        foreach ([['ram', -1], ['disk', -50], ['cpu', 0], ['ssh_port', 99999], ['bandwidth', -5]] as [$field, $value]) {
             $this->postJson('/api/servers', array_merge($base, [$field => $value]), $headers)
                 ->assertStatus(400);
         }
