@@ -70,32 +70,26 @@ class IPs extends Model
             return false;
         }
 
-        if ($response->ok()) {
-
-            $data = $response->json();
-
-            // ipwhois.app returns HTTP 200 with success:false when rate-limited;
-            // bail so we don't overwrite good whois data with nulls.
-            if (!($data['success'] ?? false)) {
-                return false;
-            }
-
-            $ip->update([
-                'continent' => $data['continent'],
-                'country' => $data['country'],
-                'region' => $data['region'],
-                'city' => $data['city'],
-                'org' => $data['org'],
-                'isp' => $data['isp'],
-                'asn' => $data['asn'],
-                'timezone_gmt' => $data['timezone_gmt'],
-                'fetched_at' => now()
-            ]);
-
-            return true;
+        // ipwhois.app returns HTTP 200 with success:false when rate-limited;
+        // bail so we don't overwrite good whois data with nulls.
+        $data = $response->ok() ? $response->json() : null;
+        if (!($data['success'] ?? false)) {
+            return false;
         }
 
-        return false;
+        $ip->update([
+            'continent' => $data['continent'],
+            'country' => $data['country'],
+            'region' => $data['region'],
+            'city' => $data['city'],
+            'org' => $data['org'],
+            'isp' => $data['isp'],
+            'asn' => $data['asn'],
+            'timezone_gmt' => $data['timezone_gmt'],
+            'fetched_at' => now()
+        ]);
+
+        return true;
     }
 
 }

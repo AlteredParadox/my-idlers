@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class Home extends Model
@@ -191,6 +192,10 @@ class Home extends Model
                 Cache::forget('all_seedboxes');
                 Cache::forget("seedbox.$service_id");
                 break;
+            default:
+                // A new service type must be added here, or its cached price
+                // data goes stale silently after doDueSoon advances dates.
+                Log::warning("forgetServiceCacheByType: unknown service type $type for $service_id");
         }
     }
 
