@@ -162,4 +162,37 @@ class IpsTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertDatabaseMissing('ips', ['id' => 'testip01']);
     }
+
+    public function test_duplicate_ip_on_same_service_is_rejected_not_500()
+    {
+        \Illuminate\Support\Facades\Http::fake(['ipwhois.app/*' => \Illuminate\Support\Facades\Http::response(['success' => false], 200)]);
+
+        $payload = ['address' => '203.0.113.7', 'ip_type' => 'ipv4', 'service_id' => $this->server->id];
+        $this->actingAs($this->user)->post(route('IPs.store'), $payload);
+
+        // Second identical add used to throw an uncaught QueryException (500)
+        $response = $this->actingAs($this->user)->post(route('IPs.store'), $payload);
+
+        $response->assertSessionHas('error');
+        $this->assertSame(1, IPs::where('service_id', $this->server->id)->where('address', '203.0.113.7')->count());
+    }
+
+    public function test_adding_ip_to_shared_service_invalidates_shared_caches()
+    {
+        \Illuminate\Support\Facades\Http::fake(['ipwhois.app/*' => \Illuminate\Support\Facades\Http::response(['success' => false], 200)]);
+
+        Pricing::create([
+            'service_id' => 'shd00001', 'service_type' => 2, 'currency' => 'USD', 'price' => 3,
+            'term' => 1, 'as_usd' => 3, 'usd_per_month' => 3, 'next_due_date' => '2027-01-01',
+        ]);
+        \App\Models\Shared::create(['id' => 'shd00001', 'main_domain' => 's.example.com', 'active' => 1]);
+        \Illuminate\Support\Facades\Cache::put('all_shared', 'stale');
+
+        $this->actingAs($this->user)->post(route('IPs.store'), [
+            'address' => '203.0.113.9', 'ip_type' => 'ipv4', 'service_id' => 'shd00001',
+        ]);
+
+        // Shared caches embed the ips relation, so they must be cleared
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('all_shared'));
+    }
 }

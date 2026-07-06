@@ -574,4 +574,18 @@ class ExportServersTest extends TestCase
         $resultCsv = $this->exportService->exportServers('CSV');
         $this->assertEquals('text/csv', $resultCsv['content_type']);
     }
+
+    public function test_is_valid_format_rejects_non_string()
+    {
+        $this->assertFalse($this->exportService->isValidFormat(['json']));
+        $this->assertTrue($this->exportService->isValidFormat('json'));
+    }
+
+    public function test_array_format_param_does_not_500()
+    {
+        // ?format[]=x made $format an array -> TypeError (500); should be 400
+        $response = $this->actingAs($this->user)->getJson('/export/servers?format[]=x');
+
+        $response->assertStatus(400);
+    }
 }

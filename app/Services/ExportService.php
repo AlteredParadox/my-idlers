@@ -41,9 +41,11 @@ class ExportService
      * @param string $format
      * @return bool
      */
-    public function isValidFormat(string $format): bool
+    public function isValidFormat($format): bool
     {
-        return in_array(strtolower($format), self::VALID_FORMATS, true);
+        // Accept mixed: ?format[]=x arrives as an array; treat non-strings as
+        // invalid (400) rather than letting a TypeError 500 the request.
+        return is_string($format) && in_array(strtolower($format), self::VALID_FORMATS, true);
     }
 
     /**

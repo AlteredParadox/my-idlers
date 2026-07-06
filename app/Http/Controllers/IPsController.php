@@ -7,7 +7,9 @@ use App\Models\Reseller;
 use App\Models\SeedBoxes;
 use App\Models\Server;
 use App\Models\Shared;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -38,13 +40,19 @@ class IPsController extends Controller
 
         $ip_id = Str::random(8);
 
-        $ip = IPs::create([
-            'id' => $ip_id,
-            'address' => $request->address,
-            'is_ipv4' => ($request->ip_type === 'ipv4') ? 1 : 0,
-            'service_id' => $request->service_id,
-            'active' => 1
-        ]);
+        try {
+            $ip = IPs::create([
+                'id' => $ip_id,
+                'address' => $request->address,
+                'is_ipv4' => ($request->ip_type === 'ipv4') ? 1 : 0,
+                'service_id' => $request->service_id,
+                'active' => 1
+            ]);
+        } catch (QueryException $e) {
+            // Unique (service_id, address) — this IP is already on the service
+            return redirect()->route('IPs.index')
+                ->with('error', 'That IP address is already assigned to this service.');
+        }
 
         IPs::getUpdateIpInfo($ip);
         self::forgetServiceCaches($ip->service_id);
@@ -90,6 +98,16 @@ class IPsController extends Controller
     {
         Server::serverSpecificCacheForget($service_id);
         Server::serverRelatedCacheForget();
+
+        // The IP's service may instead be a shared or reseller service, which
+        // also cache their ips relation for a month.
+        foreach (['shared', 'reseller'] as $type) {
+            Cache::forget("all_{$type}");
+            Cache::forget("all_active_{$type}");
+            Cache::forget("non_active_{$type}");
+        }
+        Cache::forget("shared_hosting.$service_id");
+        Cache::forget("reseller_hosting.$service_id");
     }
 
 }
