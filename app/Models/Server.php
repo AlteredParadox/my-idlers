@@ -21,10 +21,6 @@ class Server extends Model
     protected $fillable = ['id', 'hostname', 'ipv4', 'ipv6', 'server_type', 'os_id', 'location_id', 'provider_id',
         'ram', 'disk', 'ram_type', 'disk_type', 'ns1', 'ns2', 'label', 'bandwidth', 'ram_as_mb', 'disk_as_gb',
         'has_yabs', 'was_promo', 'transferrable', 'owned_since', 'ssh', 'active', 'show_public', 'cpu', 'cpu_model', 'link_speed', 'network_type'];
-    /**
-     * @var mixed
-     */
-    private $id;
 
     protected static function boot()
     {
@@ -119,7 +115,7 @@ class Server extends Model
         $name = strtolower(str_replace(' ', '', $os_name));
         if ($name === "none") {//None
             return "<i class='fas fa-expand' title='{$os_name}'></i>";
-        } else if (str_contains($name, "centos")) {//CentOS
+        } elseif (str_contains($name, "centos")) {//CentOS
             return "<i class='fa-brands fa-centos os-icon' title='{$os_name}'></i>";
         } elseif (str_contains($name, "debian")) {//Debian
             return "<i class='fa-brands fa-debian os-icon' title='{$os_name}'></i>";

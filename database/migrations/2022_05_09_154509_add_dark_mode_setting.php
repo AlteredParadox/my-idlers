@@ -15,5 +15,6 @@ class AddDarkModeSetting extends Migration
 
     public function down()
     {
+        // Irreversible: schema changes from up() are retained on rollback.
     }
 }

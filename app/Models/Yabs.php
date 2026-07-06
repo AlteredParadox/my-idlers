@@ -112,7 +112,7 @@ class Yabs extends Model
         }
         if ($data[1] === "Gbits/sec") {
             return $data[0] * 1000;
-        } else if ($data[1] === "Mbits/sec") {
+        } elseif ($data[1] === "Mbits/sec") {
             return $data[0];
         } else {//Kbps
             return $data[0] / 1000;
@@ -127,7 +127,7 @@ class Yabs extends Model
         }
         if ($data[1] === "Gbits/sec") {
             return "GBps";
-        } else if ($data[1] === "Mbits/sec") {
+        } elseif ($data[1] === "Mbits/sec") {
             return "MBps";
         } else {//Kbps
             return "KBps";
@@ -168,11 +168,9 @@ class Yabs extends Model
         $data = (object)$data;
         try {
             $date_ran = self::formatRunTime($data->time);
-            $version = $data['version'];
             $has_ipv4 = $data['net']['ipv4'];
             $has_ipv6 = $data['net']['ipv6'];
             //OS
-            $arch = $data['os']['arch'];
             $distro = $data['os']['distro'];
             $kernel = $data['os']['kernel'];
             $uptime = $data['os']['uptime'];
@@ -292,25 +290,23 @@ class Yabs extends Model
             //iperf
             foreach ($data['iperf'] as $st) {
                 ($has_ipv4) ? $match = 'IPv4' : $match = 'IPv6';
-                if ($st['mode'] === $match) {
-                    if ($st['send'] !== "busy " || $st['recv'] !== "busy ") {
-                        NetworkSpeed::create([
-                            'id' => $yabs_id,
-                            'server_id' => $server_id,
-                            'location' => $st['loc'],
-                            'send' => self::speedAsFloat($st['send']),
-                            'send_type' => self::speedType($st['send']),
-                            'send_as_mbps' => self::speedAsMbps($st['send']),
-                            'receive' => self::speedAsFloat($st['recv']),
-                            'receive_type' => self::speedType($st['recv']),
-                            'receive_as_mbps' => self::speedAsMbps($st['recv'])
-                        ]);
-                    }
+                if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
+                    NetworkSpeed::create([
+                        'id' => $yabs_id,
+                        'server_id' => $server_id,
+                        'location' => $st['loc'],
+                        'send' => self::speedAsFloat($st['send']),
+                        'send_type' => self::speedType($st['send']),
+                        'send_as_mbps' => self::speedAsMbps($st['send']),
+                        'receive' => self::speedAsFloat($st['recv']),
+                        'receive_type' => self::speedType($st['recv']),
+                        'receive_as_mbps' => self::speedAsMbps($st['recv'])
+                    ]);
                 }
             }
 
             //Update server
-            $update_server = DB::table('servers')
+            DB::table('servers')
                 ->where('id', $server_id)
                 ->update([
                     'ram' => $ram_f,

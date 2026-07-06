@@ -43,7 +43,7 @@ class NoteController extends Controller
         try {
             $note_id = Str::random(8);
 
-            $a = Note::create([
+            Note::create([
                 'id' => $note_id,
                 'service_id' => $request->service_id,
                 'note' => $request->note

@@ -32,7 +32,7 @@
                         <div class="col-12 col-lg-4">
                             <label class="form-label">Type</label>
                             <select class="form-select" name="dns_type">
-                                @foreach (App\Models\DNS::$dns_types as $type)
+                                @foreach (App\Models\DNS::$dnsTypes as $type)
                                     <option value="{{ $type }}" {{ $dn->dns_type == $type ? 'selected' : '' }}>{{ $type }}</option>
                                 @endforeach
                             </select>
@@ -102,7 +102,7 @@
                             <label class="form-label">Server</label>
                             <select class="form-select" name="server_id">
                                 <option value="null"></option>
-                                @foreach ($Servers as $server)
+                                @foreach ($servers as $server)
                                     <option value="{{ $server['id'] }}" {{ $server['id'] == $dn->server_id ? 'selected' : '' }}>{{ $server['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -111,7 +111,7 @@
                             <label class="form-label">Shared</label>
                             <select class="form-select" name="shared_id">
                                 <option value="null"></option>
-                                @foreach ($Shareds as $shared)
+                                @foreach ($shareds as $shared)
                                     <option value="{{ $shared['id'] }}" {{ $shared['id'] == $dn->shared_id ? 'selected' : '' }}>{{ $shared['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -120,7 +120,7 @@
                             <label class="form-label">Reseller</label>
                             <select class="form-select" name="reseller_id">
                                 <option value="null"></option>
-                                @foreach ($Resellers as $reseller)
+                                @foreach ($resellers as $reseller)
                                     <option value="{{ $reseller['id'] }}" {{ $reseller['id'] == $dn->reseller_id ? 'selected' : '' }}>{{ $reseller['hostname'] }}</option>
                                 @endforeach
                             </select>
@@ -129,7 +129,7 @@
                             <label class="form-label">Domain</label>
                             <select class="form-select" name="domain_id">
                                 <option value="null"></option>
-                                @foreach ($Domains as $domain)
+                                @foreach ($domains as $domain)
                                     <option value="{{ $domain['id'] }}" {{ $domain['id'] == $dn->domain_id ? 'selected' : '' }}>{{ $domain['domain'] }}.{{ $domain['extension'] }}</option>
                                 @endforeach
                             </select>

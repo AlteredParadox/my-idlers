@@ -4,22 +4,22 @@ namespace App;
 
 class Process
 {
-    public string $start_time;
-    public string $end_time;
+    public string $startTime;
+    public string $endTime;
 
     public function startTimer(): void
     {
-        $this->start_time = microtime(true);
+        $this->startTime = microtime(true);
     }
 
     public function stopTimer(): void
     {
-        $this->end_time = microtime(true);
+        $this->endTime = microtime(true);
     }
 
     public function getTimeTaken(): float
     {//In seconds
-        return ($this->end_time - $this->start_time) * 100;
+        return ($this->endTime - $this->startTime) * 100;
     }
 
     public static function paymentTermIntToString(int $term): string

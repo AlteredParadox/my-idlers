@@ -11,11 +11,6 @@ class CreateDatabaseCommand extends Command
 
     protected $description = 'Creates my_idlers database';
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function handle()
     {
         $schemaName = $this->argument('name') ?: config("database.connections.mysql.database");

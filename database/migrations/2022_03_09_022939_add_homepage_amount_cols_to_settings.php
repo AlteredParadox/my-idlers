@@ -26,8 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('settings', function (Blueprint $table) {
-            //
-        });
+        // Irreversible: columns added in up() are retained on rollback.
     }
 };

@@ -46,15 +46,15 @@ class IPsController extends Controller
             'active' => 1
         ]);
 
-        $fetch = IPs::getUpdateIpInfo($ip);
+        IPs::getUpdateIpInfo($ip);
 
         return redirect()->route('IPs.index')
             ->with('success', 'IP address created Successfully.');
     }
 
-    public function destroy(IPs $IP)
+    public function destroy(IPs $ip)
     {
-        if ($IP->delete()) {
+        if ($ip->delete()) {
             return redirect()->route('IPs.index')
                 ->with('success', 'IP address was deleted Successfully.');
         }
@@ -62,9 +62,9 @@ class IPsController extends Controller
             ->with('error', 'IP was not deleted.');
     }
 
-    public function getUpdateWhoIs(IPs $IP): \Illuminate\Http\RedirectResponse
+    public function getUpdateWhoIs(IPs $ip): \Illuminate\Http\RedirectResponse
     {
-        $result = IPs::getUpdateIpInfo($IP);
+        $result = IPs::getUpdateIpInfo($ip);
 
         if ($result) {
             return redirect()->route('IPs.index')

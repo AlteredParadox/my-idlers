@@ -239,15 +239,13 @@ class ApiController extends Controller
     {
         if ($request->ajax()) {
             $data = Providers::latest()->get();
-            $dt = Datatables::of($data)
+            return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $actionBtn = '<form action="' . route('providers.destroy', $row['id']) . '" method="POST"><i class="fas fa-trash text-danger ms-3" @click="modalForm" id="btn-' . $row['name'] . '" title="' . $row['id'] . '"></i> </form>';
-                    return $actionBtn;
+                    return '<form action="' . route('providers.destroy', $row['id']) . '" method="POST"><i class="fas fa-trash text-danger ms-3" @click="modalForm" id="btn-' . $row['name'] . '" title="' . $row['id'] . '"></i> </form>';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
-            return $dt;
         }
     }
 
@@ -403,7 +401,7 @@ class ApiController extends Controller
                                     }
                                 }
                             }
-                            if ($offlineSince !== null) break;
+                            if ($offlineSince !== null) { break; }
                         }
                         $metricsByInstance[$instance]['offline_since'] = $offlineSince;
                     }
@@ -460,7 +458,7 @@ class ApiController extends Controller
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || $response === false) return [];
+        if ($httpCode !== 200 || $response === false) { return []; }
         $data = json_decode($response, true);
         return $data['data']['result'] ?? [];
     }
@@ -480,7 +478,7 @@ class ApiController extends Controller
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || $response === false) return [];
+        if ($httpCode !== 200 || $response === false) { return []; }
         $data = json_decode($response, true);
         return $data['data']['result'] ?? [];
     }
@@ -603,7 +601,7 @@ class ApiController extends Controller
         for ($i = 0; $i < count($metricOrder); $i++) {
             $vals = [];
             foreach ($data as $row) {
-                if ($row[$i] !== null) $vals[] = $row[$i];
+                if ($row[$i] !== null) { $vals[] = $row[$i]; }
             }
             if (!empty($vals)) {
                 $statsAvg[] = round(array_sum($vals) / count($vals), 2);
