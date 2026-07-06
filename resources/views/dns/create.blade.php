@@ -116,7 +116,7 @@
                             <select class="form-select" name="shared_id">
                                 <option value="null"></option>
                                 @foreach ($shareds as $shared)
-                                    <option value="{{ $shared['id'] }}">{{ $shared['hostname'] }}</option>
+                                    <option value="{{ $shared['id'] }}">{{ $shared['main_domain'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -125,7 +125,7 @@
                             <select class="form-select" name="reseller_id">
                                 <option value="null"></option>
                                 @foreach ($resellers as $reseller)
-                                    <option value="{{ $reseller['id'] }}">{{ $reseller['hostname'] }}</option>
+                                    <option value="{{ $reseller['id'] }}">{{ $reseller['main_domain'] }}</option>
                                 @endforeach
                             </select>
                         </div>
