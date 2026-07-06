@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Domains;
+use App\Models\Note;
 use App\Models\Home;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -143,6 +144,8 @@ class DomainsController extends Controller
             $p->deletePricing($domain->id);
 
             Labels::deleteLabelsAssignedTo($domain->id);
+
+            Note::deleteForService($domain->id);
 
             Cache::forget("all_domains");
         Cache::forget("all_active_domains");

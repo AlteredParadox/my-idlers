@@ -32,6 +32,17 @@ class Note extends Model
         });
     }
 
+    /**
+     * Remove the note for a service being deleted, so it doesn't linger as an
+     * un-attributable ghost row on the notes index.
+     */
+    public static function deleteForService(string $service_id): void
+    {
+        self::where('service_id', $service_id)->delete();
+        Cache::forget("note.$service_id");
+        Cache::forget('all_notes');
+    }
+
     public function server(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Server::class, 'service_id', 'id');

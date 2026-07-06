@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Home;
+use App\Models\Note;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -204,6 +205,8 @@ class ResellerController extends Controller
             Labels::deleteLabelsAssignedTo($reseller->id);
 
             IPs::deleteIPsAssignedTo($reseller->id);
+
+            Note::deleteForService($reseller->id);
 
             Cache::forget("all_reseller");
         Cache::forget("all_active_reseller");

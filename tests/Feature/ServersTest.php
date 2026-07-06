@@ -256,6 +256,17 @@ class ServersTest extends TestCase
         $this->assertDatabaseMissing('servers', ['id' => 'testsvr3']);
     }
 
+    public function test_deleting_a_server_removes_its_note()
+    {
+        $server = $this->createServerWithPricing('testsvr4', 'noted.example.com');
+        \App\Models\Note::create(['id' => 'note0001', 'service_id' => 'testsvr4', 'note' => 'ghost']);
+
+        $this->actingAs($this->user)->delete(route('servers.destroy', $server));
+
+        // The note used to survive as an un-attributable ghost row
+        $this->assertDatabaseMissing('notes', ['service_id' => 'testsvr4']);
+    }
+
     public function test_public_servers_page_returns_404_when_disabled()
     {
         Settings::where('id', 1)->update(['show_servers_public' => 0]);

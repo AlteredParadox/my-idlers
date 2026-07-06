@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Home;
+use App\Models\Note;
 use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
@@ -200,6 +201,8 @@ class SharedController extends Controller
             Labels::deleteLabelsAssignedTo($shared->id);
 
             IPs::deleteIPsAssignedTo($shared->id);
+
+            Note::deleteForService($shared->id);
 
             Cache::forget("shared_hosting.$shared->id");
             Cache::forget('all_shared');

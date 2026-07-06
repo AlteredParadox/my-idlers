@@ -216,4 +216,18 @@ class YabsIngestTest extends TestCase
         $response->assertSessionHasErrors('yabs_json');
         $this->assertDatabaseMissing('yabs', ['server_id' => $server->id]);
     }
+
+    public function test_deleting_a_yabs_invalidates_the_server_cache()
+    {
+        $server = $this->makeServer();
+        app(\App\Services\YabsIngestService::class)->ingest($this->yabsPayload(), $server->id);
+        $yab = \App\Models\Yabs::where('server_id', $server->id)->firstOrFail();
+
+        \Illuminate\Support\Facades\Cache::put("server.{$server->id}", 'stale');
+
+        $this->actingAs(User::factory()->create())->delete(route('yabs.destroy', $yab));
+
+        // Server caches embed the yabs relation and must be cleared on delete
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has("server.{$server->id}"));
+    }
 }
