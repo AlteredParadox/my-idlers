@@ -352,7 +352,7 @@ class ExportService
         $domains = Domains::with(['provider', 'price'])->get();
         $shared = Shared::with(['location', 'provider', 'price', 'ips'])->get();
         $reseller = Reseller::with(['location', 'provider', 'price', 'ips'])->get();
-        $seedboxes = SeedBoxes::with(['location', 'provider', 'price'])->get();
+        $seedboxes = SeedBoxes::with(['location', 'provider', 'price', 'ips'])->get();
         $dns = DNS::all();
         $misc = Misc::with(['price'])->get();
 
