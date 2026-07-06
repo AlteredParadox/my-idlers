@@ -41,4 +41,13 @@ class SharedResellerValidationTest extends TestCase
             ->post(route('reseller.store'), $this->basePayload())
             ->assertSessionHasErrors(['price', 'currency']);
     }
+
+    public function test_server_store_requires_currency_and_payment_term()
+    {
+        // Server was the last pricing controller missing these rules; omitting
+        // them used to TypeError (500) in Pricing::insertPricing.
+        $this->actingAs(User::factory()->create())
+            ->post(route('servers.store'), ['hostname' => 'crafted.example.com'])
+            ->assertSessionHasErrors(['currency', 'payment_term']);
+    }
 }
