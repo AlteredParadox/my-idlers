@@ -7,7 +7,7 @@ use App\Models\IPs;
 use App\Models\Labels;
 use App\Models\Pricing;
 use App\Models\Server;
-use App\Models\Yabs;
+use App\Services\YabsIngestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
@@ -234,7 +234,7 @@ class ServerManagementController extends Controller
     }
 
 
-    public function storeYabs(Request $request, Server $server): \Illuminate\Http\JsonResponse
+    public function storeYabs(YabsIngestService $ingest, Request $request, Server $server): \Illuminate\Http\JsonResponse
     {
         $request->validate([
             'time' => ['required', 'string'],
@@ -248,7 +248,7 @@ class ServerManagementController extends Controller
             'iperf' => ['required', 'array'],
         ]);
 
-        $insert = Yabs::insertFromJson($request, $server->id);
+        $insert = $ingest->ingest($request, $server->id);
 
         if ($insert) {
             Cache::forget('all_active_servers');//all servers cache

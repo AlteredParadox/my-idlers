@@ -54,20 +54,21 @@ class ToolsController extends Controller
 
     public function prometheusDetail(PrometheusService $prometheus, string $hostname, string $period, int $back)
     {
-        if (!$prometheus->isEnabled()) {
-            return response()->json(['error' => 'Prometheus not enabled'], 404);
-        }
+        $error = match (true) {
+            !$prometheus->isEnabled() => ['Prometheus not enabled', 404],
+            !$prometheus->isValidPeriod($period) || $back < 0 => ['Invalid period', 400],
+            default => null,
+        };
 
-        if (!$prometheus->isValidPeriod($period) || $back < 0) {
-            return response()->json(['error' => 'Invalid period'], 400);
+        if ($error !== null) {
+            return response()->json(['error' => $error[0]], $error[1]);
         }
 
         $payload = $prometheus->detailPayload($hostname, $period, $back);
-        if ($payload === null) {
-            return response()->json(['error' => 'Server not found in Prometheus'], 404);
-        }
 
-        return response()->json($payload);
+        return $payload === null
+            ? response()->json(['error' => 'Server not found in Prometheus'], 404)
+            : response()->json($payload);
     }
 
 
