@@ -34,19 +34,13 @@ class SeedBoxesController extends Controller
             'seed_box_type' => 'required|string|max:255',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'was_promo' => 'integer|in:0,1',
             'owned_since' => 'sometimes|nullable|date',
             'disk' => 'integer|min:0|max:1000000',
             'bandwidth' => 'integer|min:0|max:100000000',
             'port_speed' => 'integer|min:0|max:1000000',
-            'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $seedbox_id = Str::random(8);
@@ -103,19 +97,13 @@ class SeedBoxesController extends Controller
             'seed_box_type' => 'required|string|max:255',
             'provider_id' => 'required|integer|exists:providers,id',
             'location_id' => 'required|integer|exists:locations,id',
-            'price' => 'required|numeric|min:0|max:99999999',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            ...\App\Models\Pricing::webValidationRules(),
             'was_promo' => 'integer|in:0,1',
             'owned_since' => 'sometimes|nullable|date',
             'disk' => 'integer|min:0|max:1000000',
             'bandwidth' => 'integer|min:0|max:100000000',
             'port_speed' => 'integer|min:0|max:1000000',
-            'next_due_date' => 'sometimes|nullable|date',
-            'label1' => 'sometimes|nullable|string|exists:labels,id',
-            'label2' => 'sometimes|nullable|string|exists:labels,id',
-            'label3' => 'sometimes|nullable|string|exists:labels,id',
-            'label4' => 'sometimes|nullable|string|exists:labels,id',
+            ...\App\Models\Labels::validationRules(),
         ]);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
