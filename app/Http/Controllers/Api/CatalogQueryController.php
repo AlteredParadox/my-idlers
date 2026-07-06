@@ -13,6 +13,20 @@ use Illuminate\Support\Facades\DB;
 class CatalogQueryController extends Controller
 {
 
+    /**
+     * Singleton catalog lookups: keep the historical array response shape on
+     * a hit, but 404 a miss instead of a successful empty list — parity with
+     * ServiceQueryController, so a missing id can't masquerade as success.
+     */
+    private function collectionOr404($rows)
+    {
+        if ($rows->isEmpty()) {
+            return response()->json(['result' => 'fail', 'error' => 'Not found'], 404);
+        }
+
+        return response($rows->toJson(JSON_PRETTY_PRINT), 200);
+    }
+
     protected function getAllPricing()
     {
         $pricing = Pricing::all()->toJson(JSON_PRETTY_PRINT);
@@ -22,9 +36,7 @@ class CatalogQueryController extends Controller
 
     protected function getPricing($id)
     {
-        $pricing = Pricing::where('id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($pricing, 200);
+        return $this->collectionOr404(Pricing::where('id', $id)->get());
     }
 
 
@@ -52,9 +64,7 @@ class CatalogQueryController extends Controller
 
     protected function getLabel($id)
     {
-        $label = Labels::where('id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($label, 200);
+        return $this->collectionOr404(Labels::where('id', $id)->get());
     }
 
 
@@ -68,10 +78,7 @@ class CatalogQueryController extends Controller
 
     protected function getDns($id)
     {
-        $dns = DB::table('d_n_s')
-            ->where('id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($dns, 200);
+        return $this->collectionOr404(DB::table('d_n_s')->where('id', $id)->get());
     }
 
 
@@ -85,10 +92,7 @@ class CatalogQueryController extends Controller
 
     protected function getLocation($id)
     {
-        $location = DB::table('locations')
-            ->where('id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($location, 200);
+        return $this->collectionOr404(DB::table('locations')->where('id', $id)->get());
     }
 
 
@@ -102,10 +106,7 @@ class CatalogQueryController extends Controller
 
     protected function getProvider($id)
     {
-        $providers = DB::table('providers')
-            ->where('id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($providers, 200);
+        return $this->collectionOr404(DB::table('providers')->where('id', $id)->get());
     }
 
 
@@ -127,10 +128,7 @@ class CatalogQueryController extends Controller
 
     protected function getOs($id)
     {
-        $os = DB::table('os as o')
-            ->where('o.id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($os, 200);
+        return $this->collectionOr404(DB::table('os as o')->where('o.id', $id)->get());
     }
 
 
@@ -143,9 +141,6 @@ class CatalogQueryController extends Controller
 
     protected function getIP($id)
     {
-        $ip = DB::table('ips as i')
-            ->where('i.id', $id)
-            ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($ip, 200);
+        return $this->collectionOr404(DB::table('ips as i')->where('i.id', $id)->get());
     }
 }
