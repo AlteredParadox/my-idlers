@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Services\CsvFormatter;
 use App\Services\ExportService;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
@@ -11,10 +12,13 @@ class ExportServiceTest extends TestCase
 {
     protected ExportService $exportService;
 
+    protected CsvFormatter $csvFormatter;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->exportService = new ExportService();
+        $this->csvFormatter = new CsvFormatter();
     }
 
     /**
@@ -152,7 +156,7 @@ class ExportServiceTest extends TestCase
             ['id' => 2, 'name' => 'Test2']
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         $lines = explode("\n", $result);
         $this->assertCount(3, $lines); // header + 2 data rows
@@ -166,7 +170,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => 'Test, with comma']
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         // Value with comma should be quoted
         $this->assertStringContainsString('"Test, with comma"', $result);
@@ -178,7 +182,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => 'Test "quoted" value']
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         // Double quotes should be escaped by doubling them
         $this->assertStringContainsString('"Test ""quoted"" value"', $result);
@@ -190,7 +194,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => "Test\nwith\nnewlines"]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         // Value with newlines should be quoted
         $this->assertStringContainsString('"Test', $result);
@@ -198,7 +202,7 @@ class ExportServiceTest extends TestCase
 
     public function test_to_csv_handles_empty_array()
     {
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [[]]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [[]]);
 
         $this->assertEquals('', $result);
     }
@@ -209,7 +213,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => 'Test']
         ]);
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         $this->assertStringContainsString('id', $result);
         $this->assertStringContainsString('name', $result);
@@ -222,7 +226,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => null]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         $lines = explode("\n", $result);
         $this->assertCount(2, $lines);
@@ -236,7 +240,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'active' => true, 'deleted' => false]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         $lines = explode("\n", $result);
         // Booleans should be converted to 1/0
@@ -251,7 +255,7 @@ class ExportServiceTest extends TestCase
         ];
         $headers = ['id', 'name'];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data, $headers]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data, $headers]);
 
         $lines = explode("\n", $result);
         $this->assertEquals('id,name', $lines[0]);
@@ -263,7 +267,7 @@ class ExportServiceTest extends TestCase
             ['id' => 1, 'name' => '=HYPERLINK("https://example.com")']
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'toCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'toCsv', [$data]);
 
         $this->assertStringContainsString('"\'=HYPERLINK(""https://example.com"")"', $result);
     }
@@ -274,7 +278,7 @@ class ExportServiceTest extends TestCase
     {
         $data = ['id' => 1, 'name' => 'Test'];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         $this->assertEquals(['id' => 1, 'name' => 'Test'], $result);
     }
@@ -289,7 +293,7 @@ class ExportServiceTest extends TestCase
             ]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         $this->assertEquals(1, $result['id']);
         $this->assertEquals(10.00, $result['pricing_price']);
@@ -307,7 +311,7 @@ class ExportServiceTest extends TestCase
             ]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         $this->assertEquals('deep_value', $result['level1_level2_level3']);
     }
@@ -319,7 +323,7 @@ class ExportServiceTest extends TestCase
             'tags' => ['tag1', 'tag2', 'tag3']
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         // Indexed array of scalars should be joined with semicolon
         $this->assertEquals('tag1;tag2;tag3', $result['tags']);
@@ -335,7 +339,7 @@ class ExportServiceTest extends TestCase
             ]
         ];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         // Indexed array of objects should be JSON encoded
         $this->assertJson($result['ips']);
@@ -345,7 +349,7 @@ class ExportServiceTest extends TestCase
     {
         $data = ['price' => 10.00, 'currency' => 'USD'];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data, 'pricing']);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data, 'pricing']);
 
         $this->assertEquals(10.00, $result['pricing_price']);
         $this->assertEquals('USD', $result['pricing_currency']);
@@ -353,7 +357,7 @@ class ExportServiceTest extends TestCase
 
     public function test_flatten_for_csv_handles_empty_array()
     {
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [[]]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [[]]);
 
         $this->assertEquals([], $result);
     }
@@ -362,7 +366,7 @@ class ExportServiceTest extends TestCase
     {
         $data = ['id' => 1, 'name' => null];
 
-        $result = $this->callProtectedMethod($this->exportService, 'flattenForCsv', [$data]);
+        $result = $this->callProtectedMethod($this->csvFormatter, 'flattenForCsv', [$data]);
 
         $this->assertArrayHasKey('name', $result);
         $this->assertNull($result['name']);
