@@ -38,9 +38,11 @@ class ServerManagementController extends Controller
         $rules = [
             'hostname' => 'required|min:3',
             'server_type' => 'required|integer',
-            'os_id' => 'required|integer',
-            'provider_id' => 'required|integer',
-            'location_id' => 'required|integer',
+            // exists: no FK guards these columns, and a dangling id 500s the
+            // servers index and public page on the null relation
+            'os_id' => 'required|integer|exists:os,id',
+            'provider_id' => 'required|integer|exists:providers,id',
+            'location_id' => 'required|integer|exists:locations,id',
             'ssh_port' => 'required|integer',
             'ram' => 'required|integer',
             'ram_as_mb' => 'required|integer',
@@ -162,9 +164,9 @@ class ServerManagementController extends Controller
         $rules = [
             'hostname' => 'string|min:3',
             'server_type' => 'integer',
-            'os_id' => 'integer',
-            'provider_id' => 'integer',
-            'location_id' => 'integer',
+            'os_id' => 'integer|exists:os,id',
+            'provider_id' => 'integer|exists:providers,id',
+            'location_id' => 'integer|exists:locations,id',
             'ssh_port' => 'integer',
             'ram' => 'integer',
             'ram_as_mb' => 'integer',
@@ -200,7 +202,8 @@ class ServerManagementController extends Controller
             $updateData['ssh'] = $request->integer('ssh_port');
         }
 
-        if (!Server::where('id', $id)->exists()) {
+        $server_row = Server::find($id);
+        if (is_null($server_row)) {
             return response()->json(array('result' => 'fail', 'error' => 'Not found'), 404);
         }
 
@@ -209,10 +212,25 @@ class ServerManagementController extends Controller
         // not the dirty count.
         Server::where('id', $id)->update($updateData);
 
-        // currency/price/payment_term/next_due_date are validated above but
-        // live on the pricing row — apply them rather than silently dropping
-        // them (omitted fields keep their current values).
-        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date'])) {
+        // The UI disk totals prefer server_disks rows when they exist —
+        // updating only servers.disk left the old size showing forever.
+        if (array_key_exists('disk', $validated) || array_key_exists('disk_type', $validated)) {
+            DB::transaction(function () use ($id, $validated, $server_row) {
+                Disk::deleteDisksForServer($id);
+                Disk::insertDisk(
+                    $id,
+                    (int) ($validated['disk'] ?? $server_row->disk),
+                    $validated['disk_type'] ?? $server_row->disk_type,
+                    'SSD'
+                );
+            });
+        }
+
+        // currency/price/payment_term/next_due_date live on the pricing row —
+        // apply them rather than silently dropping them; 'active' must fan in
+        // too or a reactivated server stays hidden from the cost breakdown
+        // and due-soon feed (both filter pricings.active = 1).
+        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date', 'active'])) {
             $pricing_row = Pricing::where('service_id', $id)->first();
             if (!is_null($pricing_row)) {
                 (new Pricing())->updatePricing(
@@ -221,7 +239,7 @@ class ServerManagementController extends Controller
                     (float) ($validated['price'] ?? $pricing_row->price),
                     (int) ($validated['payment_term'] ?? $pricing_row->term),
                     $validated['next_due_date'] ?? $pricing_row->next_due_date,
-                    (int) $pricing_row->active
+                    (int) ($validated['active'] ?? $pricing_row->active)
                 );
             }
         }

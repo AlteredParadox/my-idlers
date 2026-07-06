@@ -46,7 +46,7 @@
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($s->server_type) }}</span>
                                     </td>
-                                    <td class="text-center">{!! App\Models\Server::osIntToIcon($s->os->id, $s->os->name) !!}</td>
+                                    <td class="text-center">{!! App\Models\Server::osIntToIcon($s->os->id ?? 1, $s->os->name ?? '') !!}</td>
                                     <td class="text-center">{{ $s->cpu }}</td>
                                     <td class="text-center text-nowrap">{{ $s->yabs[0]->cpu_freq ?? '—' }}</td>
                                     <td class="text-center text-nowrap">
@@ -120,16 +120,12 @@
                                         @endif
                                     </td>
                                     @if((int) $settings->show_server_value_ip === 1)
-                                        <td class="text-nowrap">
-                                            @if(isset($s->ips[0]) && $s->ips[0]->is_ipv4 === 1)
-                                                {{ $s->ips[0]->address }}
-                                            @endif
-                                        </td>
-                                        <td class="text-nowrap">
-                                            @if(isset($s->ips[0]) && $s->ips[0]->is_ipv6 === 1)
-                                                {{ $s->ips[0]->address }}
-                                            @endif
-                                        </td>
+                                        @php
+                                            $ipv4 = $s->ips->firstWhere('is_ipv4', 1);
+                                            $ipv6 = $s->ips->firstWhere('is_ipv4', 0);
+                                        @endphp
+                                        <td class="text-nowrap">{{ $ipv4->address ?? '' }}</td>
+                                        <td class="text-nowrap">{{ $ipv6->address ?? '' }}</td>
                                     @endif
                                 </tr>
                             @endforeach

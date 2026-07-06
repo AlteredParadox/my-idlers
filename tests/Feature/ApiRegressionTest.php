@@ -43,9 +43,9 @@ class ApiRegressionTest extends TestCase
         $response = $this->postJson('/api/servers', [
             'hostname' => 'api-created.example.com',
             'server_type' => 1,
-            'os_id' => 1,
-            'provider_id' => 1,
-            'location_id' => 1,
+            'os_id' => \App\Models\OS::first()->id,
+            'provider_id' => \App\Models\Providers::first()->id,
+            'location_id' => \App\Models\Locations::first()->id,
             'ssh_port' => 2222,
             'ram' => 2048,
             'ram_type' => 'MB',
@@ -79,9 +79,9 @@ class ApiRegressionTest extends TestCase
     {
         $this->postJson('/api/servers', [
             'server_type' => 1,
-            'os_id' => 1,
-            'provider_id' => 1,
-            'location_id' => 1,
+            'os_id' => \App\Models\OS::first()->id,
+            'provider_id' => \App\Models\Providers::first()->id,
+            'location_id' => \App\Models\Locations::first()->id,
             'ssh_port' => 22,
             'ram' => 2048,
             'ram_type' => 'MB',
@@ -152,8 +152,8 @@ class ApiRegressionTest extends TestCase
         $this->actingAs(User::factory()->create())->post(route('shared.store'), [
             'domain' => 'shared.example.com',
             'shared_type' => 'cPanel',
-            'provider_id' => 1,
-            'location_id' => 1,
+            'provider_id' => \App\Models\Providers::first()->id,
+            'location_id' => \App\Models\Locations::first()->id,
             'disk' => 10,
             'disk_type' => 'GB',
             'bandwidth' => 100,
