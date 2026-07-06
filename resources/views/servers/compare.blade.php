@@ -69,43 +69,51 @@
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Single</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single ?? ($server1_data[0]->yabs[0]->gb6_single !== null ? $server1_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
                                 @php
-                                    // version-paired: never compare a GB5 score against a GB6 score
+                                    // version-paired: the displayed values, the diff, and the
+                                    // per-USD rows below must all come from the SAME GB version
                                     if ($server1_data[0]->yabs[0]->gb5_single !== null && $server2_data[0]->yabs[0]->gb5_single !== null) {
-                                        $cmp1_single = $server1_data[0]->yabs[0]->gb5_single; $cmp2_single = $server2_data[0]->yabs[0]->gb5_single;
+                                        $cmp1_single = $server1_data[0]->yabs[0]->gb5_single; $cmp2_single = $server2_data[0]->yabs[0]->gb5_single; $cmpv6_single = false;
                                     } elseif ($server1_data[0]->yabs[0]->gb6_single !== null && $server2_data[0]->yabs[0]->gb6_single !== null) {
-                                        $cmp1_single = $server1_data[0]->yabs[0]->gb6_single; $cmp2_single = $server2_data[0]->yabs[0]->gb6_single;
+                                        $cmp1_single = $server1_data[0]->yabs[0]->gb6_single; $cmp2_single = $server2_data[0]->yabs[0]->gb6_single; $cmpv6_single = true;
                                     } else {
-                                        $cmp1_single = $cmp2_single = null;
+                                        $cmp1_single = $cmp2_single = null; $cmpv6_single = false;
                                     }
+                                    $v6tag_single = $cmpv6_single ? ' (v6)' : '';
                                 @endphp
                                 @if($cmp1_single !== null && $cmp2_single !== null)
+                                    <td class="text-center">{{ $cmp1_single }}{{ $v6tag_single }}</td>
                                     {!! \App\Process::tableRowCompare($cmp1_single, $cmp2_single, '') !!}
+                                    <td class="text-center">{{ $cmp2_single }}{{ $v6tag_single }}</td>
                                 @else
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_single ?? ($server1_data[0]->yabs[0]->gb6_single !== null ? $server1_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
                                     <td class="text-center equal-td">—</td>
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single ?? ($server2_data[0]->yabs[0]->gb6_single !== null ? $server2_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
                                 @endif
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_single ?? ($server2_data[0]->yabs[0]->gb6_single !== null ? $server2_data[0]->yabs[0]->gb6_single . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">GB5 Multi</td>
-                                <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi ?? ($server1_data[0]->yabs[0]->gb6_multi !== null ? $server1_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
                                 @php
-                                    // version-paired: never compare a GB5 score against a GB6 score
+                                    // version-paired: the displayed values, the diff, and the
+                                    // per-USD rows below must all come from the SAME GB version
                                     if ($server1_data[0]->yabs[0]->gb5_multi !== null && $server2_data[0]->yabs[0]->gb5_multi !== null) {
-                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb5_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb5_multi;
+                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb5_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb5_multi; $cmpv6_multi = false;
                                     } elseif ($server1_data[0]->yabs[0]->gb6_multi !== null && $server2_data[0]->yabs[0]->gb6_multi !== null) {
-                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb6_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb6_multi;
+                                        $cmp1_multi = $server1_data[0]->yabs[0]->gb6_multi; $cmp2_multi = $server2_data[0]->yabs[0]->gb6_multi; $cmpv6_multi = true;
                                     } else {
-                                        $cmp1_multi = $cmp2_multi = null;
+                                        $cmp1_multi = $cmp2_multi = null; $cmpv6_multi = false;
                                     }
+                                    $v6tag_multi = $cmpv6_multi ? ' (v6)' : '';
                                 @endphp
                                 @if($cmp1_multi !== null && $cmp2_multi !== null)
+                                    <td class="text-center">{{ $cmp1_multi }}{{ $v6tag_multi }}</td>
                                     {!! \App\Process::tableRowCompare($cmp1_multi, $cmp2_multi, '') !!}
+                                    <td class="text-center">{{ $cmp2_multi }}{{ $v6tag_multi }}</td>
                                 @else
+                                    <td class="text-center">{{ $server1_data[0]->yabs[0]->gb5_multi ?? ($server1_data[0]->yabs[0]->gb6_multi !== null ? $server1_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
                                     <td class="text-center equal-td">—</td>
+                                    <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi ?? ($server2_data[0]->yabs[0]->gb6_multi !== null ? $server2_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
                                 @endif
-                                <td class="text-center">{{ $server2_data[0]->yabs[0]->gb5_multi ?? ($server2_data[0]->yabs[0]->gb6_multi !== null ? $server2_data[0]->yabs[0]->gb6_multi . ' (v6)' : '—') }}</td>
                             </tr>
                             <tr>
                                 <td class="ps-3 fw-medium">4K Disk Speed</td>
@@ -202,7 +210,7 @@
                                 <td class="text-center">{{ number_format(\App\Process::safeDivide($server2_data[0]->yabs[0]->ram_mb, $server2_data[0]->price->usd_per_month), 2) }}</td>
                             </tr>
                             <tr>
-                                <td class="ps-3 fw-medium">GB5 Single per USD</td>
+                                <td class="ps-3 fw-medium">GB{{ $cmpv6_single ? '6' : '5' }} Single per USD</td>
                                 @if($cmp1_single !== null && $cmp2_single !== null)
                                     <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp1_single, $server1_data[0]->price->usd_per_month), 2) }}</td>
                                     {!! \App\Process::tableRowCompare(\App\Process::safeDivide($cmp1_single, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($cmp2_single, $server2_data[0]->price->usd_per_month), '', false) !!}
@@ -214,7 +222,7 @@
                                 @endif
                             </tr>
                             <tr>
-                                <td class="ps-3 fw-medium">GB5 Multi per USD</td>
+                                <td class="ps-3 fw-medium">GB{{ $cmpv6_multi ? '6' : '5' }} Multi per USD</td>
                                 @if($cmp1_multi !== null && $cmp2_multi !== null)
                                     <td class="text-center">{{ number_format(\App\Process::safeDivide($cmp1_multi, $server1_data[0]->price->usd_per_month), 2) }}</td>
                                     {!! \App\Process::tableRowCompare(\App\Process::safeDivide($cmp1_multi, $server1_data[0]->price->usd_per_month), \App\Process::safeDivide($cmp2_multi, $server2_data[0]->price->usd_per_month), '', false) !!}
