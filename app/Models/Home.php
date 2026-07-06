@@ -162,45 +162,42 @@ class Home extends Model
      * Forget the list + per-item caches for a service type whose pricing changed.
      * (No DB foreign keys / cascades; cache fan-out is manual.)
      */
+    /**
+     * Cache keys per service type: [list-key prefix, per-item key prefix].
+     * Types 2-5 also have all_active_/non_active_ list variants; seedboxes
+     * (6) only have the plain list. Servers (1) use their own helpers.
+     */
+    private const TYPE_CACHE_KEYS = [
+        2 => ['shared', 'shared_hosting', true],
+        3 => ['reseller', 'reseller_hosting', true],
+        4 => ['domains', 'domain', true],
+        5 => ['misc', 'misc', true],
+        6 => ['seedboxes', 'seedbox', false],
+    ];
+
     public static function forgetServiceCacheByType(int $type, string $service_id): void
     {
-        switch ($type) {
-            case 1: // server
-                Server::serverSpecificCacheForget($service_id);
-                Server::serverRelatedCacheForget();
-                break;
-            case 2: // shared
-                Cache::forget('all_shared');
-                Cache::forget('all_active_shared');
-                Cache::forget('non_active_shared');
-                Cache::forget("shared_hosting.$service_id");
-                break;
-            case 3: // reseller
-                Cache::forget('all_reseller');
-                Cache::forget('all_active_reseller');
-                Cache::forget('non_active_reseller');
-                Cache::forget("reseller_hosting.$service_id");
-                break;
-            case 4: // domains
-                Cache::forget('all_domains');
-                Cache::forget('all_active_domains');
-                Cache::forget('non_active_domains');
-                Cache::forget("domain.$service_id");
-                break;
-            case 5: // misc
-                Cache::forget('all_misc');
-                Cache::forget('all_active_misc');
-                Cache::forget('non_active_misc');
-                Cache::forget("misc.$service_id");
-                break;
-            case 6: // seedbox
-                Cache::forget('all_seedboxes');
-                Cache::forget("seedbox.$service_id");
-                break;
-            default:
-                // A new service type must be added here, or its cached price
-                // data goes stale silently after doDueSoon advances dates.
-                Log::warning("forgetServiceCacheByType: unknown service type $type for $service_id");
+        if ($type === 1) {
+            Server::serverSpecificCacheForget($service_id);
+            Server::serverRelatedCacheForget();
+
+            return;
+        }
+
+        if (!isset(self::TYPE_CACHE_KEYS[$type])) {
+            // A new service type must be added here, or its cached price
+            // data goes stale silently after doDueSoon advances dates.
+            Log::warning("forgetServiceCacheByType: unknown service type $type for $service_id");
+
+            return;
+        }
+
+        [$list, $item, $hasActiveVariants] = self::TYPE_CACHE_KEYS[$type];
+        Cache::forget("all_$list");
+        Cache::forget("$item.$service_id");
+        if ($hasActiveVariants) {
+            Cache::forget("all_active_$list");
+            Cache::forget("non_active_$list");
         }
     }
 
