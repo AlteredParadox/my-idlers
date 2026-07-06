@@ -163,168 +163,150 @@ class Yabs extends Model
     {
         $data = (object)$data;
         try {
-            $date_ran = self::formatRunTime($data->time);
-            $has_ipv4 = $data['net']['ipv4'];
-            $has_ipv6 = $data['net']['ipv6'];
-            //OS
-            $distro = $data['os']['distro'];
-            $kernel = $data['os']['kernel'];
-            $uptime = $data['os']['uptime'];
-            //CPU
-            $model = $data['cpu']['model'];
-            $cores = $data['cpu']['cores'];
-            $freq = $data['cpu']['freq'];
-            $aes = $data['cpu']['aes'];
-            $virt = $data['cpu']['virt'];
-            //RAM Disk
-            $ram = $data['mem']['ram'];
-            $swap = $data['mem']['swap'];
-            $disk = $data['mem']['disk'];
-
-            $gb5_single = $gb5_multi = $gb5_id = $gb6_single = $gb6_multi = $gb6_id = null;
-            foreach ($data['geekbench'] as $gb) {
-                if ($gb['version'] === 5) {
-                    $gb5_single = $gb['single'];
-                    $gb5_multi = $gb['multi'];
-                    $gb5_id = self::gb5IdFromURL($gb['url']);
-                } elseif ($gb['version'] === 6) {
-                    $gb6_single = $gb['single'];
-                    $gb6_multi = $gb['multi'];
-                    $gb6_id = self::gb6IdFromURL($gb['url']);
-                }
-            }
-
             $yabs_id = Str::random(8);
 
-            if ($ram > 999999) {
-                $ram_f = ($ram / 1024 / 1024);
-                $ram_type = 'GB';
-            } else {
-                $ram_f = ($ram / 1024);
-                $ram_type = 'MB';
-            }
-
-            if ($disk > 100000000) {
-                $disk_f = ($disk / 1024 / 1024 / 1024);
-                $disk_type = 'TB';
-            } else {
-                $disk_f = ($disk / 1024 / 1024);
-                $disk_type = 'GB';
-            }
-
-            self::create([
-                'id' => $yabs_id,
-                'server_id' => $server_id,
-                'has_ipv6' => $has_ipv6,
-                'aes' => $aes,
-                'vm' => $virt,
-                'distro' => $distro,
-                'kernel' => $kernel,
-                'uptime' => $uptime,
-                'cpu_model' => $model,
-                'cpu_cores' => $cores,
-                'cpu_freq' => (float)$freq,
-                'ram' => $ram_f,
-                'ram_type' => $ram_type,
-                'ram_mb' => ($ram / 1024),
-                'swap' => $swap / 1024,
-                'swap_mb' => ($swap / 1024),
-                'swap_type' => 'MB',
-                'disk' => $disk_f,
-                'disk_gb' => ($disk / 1024 / 1024),
-                'disk_type' => $disk_type,
-                'output_date' => $date_ran,
-                'gb5_single' => $gb5_single,
-                'gb5_multi' => $gb5_multi,
-                'gb5_id' => $gb5_id,
-                'gb6_single' => $gb6_single,
-                'gb6_multi' => $gb6_multi,
-                'gb6_id' => $gb6_id
-            ]);
-
-            //fio
-            foreach ($data['fio'] as $ds) {
-                if ($ds['bs'] === '4k') {
-                    $d4k = ($ds['speed_rw'] > 999999) ? ($ds['speed_rw'] / 1000 / 1000) : $ds['speed_rw'] / 1000;
-                    $d4k_type = ($ds['speed_rw'] > 999999) ? 'GB/s' : 'MB/s';
-                    $d4k_mbps = self::KBstoMBs($ds['speed_rw']);
-                }
-                if ($ds['bs'] === '64k') {
-                    $d64k = ($ds['speed_rw'] > 999999) ? ($ds['speed_rw'] / 1000 / 1000) : $ds['speed_rw'] / 1000;
-                    $d64k_type = ($ds['speed_rw'] > 999999) ? 'GB/s' : 'MB/s';
-                    $d64k_mbps = self::KBstoMBs($ds['speed_rw']);
-                }
-                if ($ds['bs'] === '512k') {
-                    $d512k = ($ds['speed_rw'] > 999999) ? ($ds['speed_rw'] / 1000 / 1000) : $ds['speed_rw'] / 1000;
-                    $d512k_type = ($ds['speed_rw'] > 999999) ? 'GB/s' : 'MB/s';
-                    $d512k_mbps = self::KBstoMBs($ds['speed_rw']);
-                }
-                if ($ds['bs'] === '1m') {
-                    $d1m = ($ds['speed_rw'] > 999999) ? ($ds['speed_rw'] / 1000 / 1000) : $ds['speed_rw'] / 1000;
-                    $d1m_type = ($ds['speed_rw'] > 999999) ? 'GB/s' : 'MB/s';
-                    $d1m_mbps = self::KBstoMBs($ds['speed_rw']);
-                }
-            }
-
-            DiskSpeed::create([
-                'id' => $yabs_id,
-                'server_id' => $server_id,
-                'd_4k' => $d4k,
-                'd_4k_type' => $d4k_type,
-                'd_4k_as_mbps' => $d4k_mbps,
-                'd_64k' => $d64k,
-                'd_64k_type' => $d64k_type,
-                'd_64k_as_mbps' => $d64k_mbps,
-                'd_512k' => $d512k,
-                'd_512k_type' => $d512k_type,
-                'd_512k_as_mbps' => $d512k_mbps,
-                'd_1m' => $d1m,
-                'd_1m_type' => $d1m_type,
-                'd_1m_as_mbps' => $d1m_mbps
-            ]);
-
-            //iperf
-            foreach ($data['iperf'] as $st) {
-                ($has_ipv4) ? $match = 'IPv4' : $match = 'IPv6';
-                if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
-                    NetworkSpeed::create([
-                        'id' => $yabs_id,
-                        'server_id' => $server_id,
-                        'location' => $st['loc'],
-                        'send' => self::speedAsFloat($st['send']),
-                        'send_type' => self::speedType($st['send']),
-                        'send_as_mbps' => self::speedAsMbps($st['send']),
-                        'receive' => self::speedAsFloat($st['recv']),
-                        'receive_type' => self::speedType($st['recv']),
-                        'receive_as_mbps' => self::speedAsMbps($st['recv'])
-                    ]);
-                }
-            }
-
-            //Update server: don't overwrite user-entered specs with measured
-            //values (server_disks is the disk source of truth, and ram/cpu
-            //hold as-provisioned amounts; YABS sees usable RAM and only the
-            //root filesystem). Flag the benchmark and fill cpu_model when it
-            //was never set.
-            $server_update = ['has_yabs' => 1];
-
-            if (empty(DB::table('servers')->where('id', $server_id)->value('cpu_model'))) {
-                $server_update['cpu_model'] = $model;
-            }
-
-            DB::table('servers')
-                ->where('id', $server_id)
-                ->update($server_update);
+            self::insertYabsRow($yabs_id, $server_id, $data);
+            self::insertDiskSpeeds($yabs_id, $server_id, $data['fio']);
+            self::insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'], (bool)$data['net']['ipv4']);
+            self::updateServerAfterRun($server_id, $data['cpu']['model']);
 
             Cache::forget("yabs.$yabs_id");
             Cache::forget("all_yabs");
             Cache::forget("server.$server_id");
             Cache::forget("all_servers");
-
-        } catch (Exception $e) {//Not valid JSON
+        } catch (Exception $e) {//Not a valid YABS payload
             return false;
         }
         return true;
+    }
+
+    private static function insertYabsRow(string $yabs_id, string $server_id, object $data): void
+    {
+        [$ram_f, $ram_type] = self::scaleRam($data['mem']['ram']);
+        [$disk_f, $disk_type] = self::scaleDisk($data['mem']['disk']);
+
+        self::create([
+            'id' => $yabs_id,
+            'server_id' => $server_id,
+            'has_ipv6' => $data['net']['ipv6'],
+            'aes' => $data['cpu']['aes'],
+            'vm' => $data['cpu']['virt'],
+            'distro' => $data['os']['distro'],
+            'kernel' => $data['os']['kernel'],
+            'uptime' => $data['os']['uptime'],
+            'cpu_model' => $data['cpu']['model'],
+            'cpu_cores' => $data['cpu']['cores'],
+            'cpu_freq' => (float)$data['cpu']['freq'],
+            'ram' => $ram_f,
+            'ram_type' => $ram_type,
+            'ram_mb' => ($data['mem']['ram'] / 1024),
+            'swap' => $data['mem']['swap'] / 1024,
+            'swap_mb' => ($data['mem']['swap'] / 1024),
+            'swap_type' => 'MB',
+            'disk' => $disk_f,
+            'disk_gb' => ($data['mem']['disk'] / 1024 / 1024),
+            'disk_type' => $disk_type,
+            'output_date' => self::formatRunTime($data->time),
+        ] + self::geekbenchScores($data['geekbench']));
+    }
+
+    /** YABS reports RAM in KB; store as MB or GB */
+    private static function scaleRam($ram): array
+    {
+        if ($ram > 999999) {
+            return [$ram / 1024 / 1024, 'GB'];
+        }
+        return [$ram / 1024, 'MB'];
+    }
+
+    /** YABS reports disk in KB; store as GB or TB */
+    private static function scaleDisk($disk): array
+    {
+        if ($disk > 100000000) {
+            return [$disk / 1024 / 1024 / 1024, 'TB'];
+        }
+        return [$disk / 1024 / 1024, 'GB'];
+    }
+
+    private static function geekbenchScores($geekbench): array
+    {
+        $scores = [
+            'gb5_single' => null, 'gb5_multi' => null, 'gb5_id' => null,
+            'gb6_single' => null, 'gb6_multi' => null, 'gb6_id' => null,
+        ];
+        foreach ($geekbench as $gb) {
+            if ($gb['version'] === 5) {
+                $scores['gb5_single'] = $gb['single'];
+                $scores['gb5_multi'] = $gb['multi'];
+                $scores['gb5_id'] = self::gb5IdFromURL($gb['url']);
+            } elseif ($gb['version'] === 6) {
+                $scores['gb6_single'] = $gb['single'];
+                $scores['gb6_multi'] = $gb['multi'];
+                $scores['gb6_id'] = self::gb6IdFromURL($gb['url']);
+            }
+        }
+
+        return $scores;
+    }
+
+    private static function insertDiskSpeeds(string $yabs_id, string $server_id, $fio): void
+    {
+        $speeds = [];
+        foreach ($fio as $ds) {
+            $speeds[$ds['bs']] = $ds['speed_rw'];
+        }
+
+        $row = ['id' => $yabs_id, 'server_id' => $server_id];
+        foreach (['4k' => 'd_4k', '64k' => 'd_64k', '512k' => 'd_512k', '1m' => 'd_1m'] as $bs => $col) {
+            if (!isset($speeds[$bs])) {
+                continue;
+            }
+            $speed = $speeds[$bs];
+            $row[$col] = ($speed > 999999) ? ($speed / 1000 / 1000) : $speed / 1000;
+            $row["{$col}_type"] = ($speed > 999999) ? 'GB/s' : 'MB/s';
+            $row["{$col}_as_mbps"] = self::KBstoMBs($speed);
+        }
+
+        DiskSpeed::create($row);
+    }
+
+    private static function insertNetworkSpeeds(string $yabs_id, string $server_id, $iperf, bool $has_ipv4): void
+    {
+        $match = $has_ipv4 ? 'IPv4' : 'IPv6';
+        foreach ($iperf as $st) {
+            if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
+                NetworkSpeed::create([
+                    'id' => $yabs_id,
+                    'server_id' => $server_id,
+                    'location' => $st['loc'],
+                    'send' => self::speedAsFloat($st['send']),
+                    'send_type' => self::speedType($st['send']),
+                    'send_as_mbps' => self::speedAsMbps($st['send']),
+                    'receive' => self::speedAsFloat($st['recv']),
+                    'receive_type' => self::speedType($st['recv']),
+                    'receive_as_mbps' => self::speedAsMbps($st['recv'])
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Don't overwrite user-entered specs with measured values
+     * (server_disks is the disk source of truth, and ram/cpu hold
+     * as-provisioned amounts; YABS sees usable RAM and only the root
+     * filesystem). Flag the benchmark and fill cpu_model when unset.
+     */
+    private static function updateServerAfterRun(string $server_id, string $cpu_model): void
+    {
+        $server_update = ['has_yabs' => 1];
+
+        if (empty(DB::table('servers')->where('id', $server_id)->value('cpu_model'))) {
+            $server_update['cpu_model'] = $cpu_model;
+        }
+
+        DB::table('servers')
+            ->where('id', $server_id)
+            ->update($server_update);
     }
 
 }
