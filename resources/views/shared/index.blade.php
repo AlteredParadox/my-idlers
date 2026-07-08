@@ -188,27 +188,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            var dtConfig = {
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [11]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No shared hosting found"
-                }
-            };
-            $('#shared-table').DataTable(dtConfig);
-            $('#inactive-shared-table').DataTable(dtConfig);
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#shared-table', '#inactive-shared-table'], 'noSort' => [11], 'empty' => 'No shared hosting found'])
     @endsection
 </x-app-layout>

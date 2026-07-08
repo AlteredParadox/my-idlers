@@ -103,25 +103,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            $('#seedbox-table').DataTable({
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [11]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No seedboxes found"
-                }
-            });
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#seedbox-table'], 'noSort' => [11], 'empty' => 'No seedboxes found'])
     @endsection
 </x-app-layout>

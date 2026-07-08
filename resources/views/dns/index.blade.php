@@ -64,25 +64,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            $('#dns-table').DataTable({
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [3]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No DNS records found"
-                }
-            });
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#dns-table'], 'noSort' => [3], 'empty' => 'No DNS records found'])
     @endsection
 </x-app-layout>

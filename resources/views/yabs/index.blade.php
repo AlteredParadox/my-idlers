@@ -121,25 +121,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            $('#yabs-table').DataTable({
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [13]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No YABS results found"
-                }
-            });
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#yabs-table'], 'noSort' => [13], 'empty' => 'No YABS results found'])
     @endsection
 </x-app-layout>

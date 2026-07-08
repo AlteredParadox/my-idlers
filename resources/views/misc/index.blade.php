@@ -152,27 +152,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            var dtConfig = {
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [4]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No misc services found"
-                }
-            };
-            $('#misc-table').DataTable(dtConfig);
-            $('#inactive-misc-table').DataTable(dtConfig);
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#misc-table', '#inactive-misc-table'], 'noSort' => [4], 'empty' => 'No misc services found'])
     @endsection
 </x-app-layout>

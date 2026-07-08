@@ -46,7 +46,7 @@ class ServerModelTest extends TestCase
 
     public function test_os_icon_escapes_os_name_to_prevent_attribute_breakout()
     {
-        $result = Server::osIntToIcon(1, "Ubuntu' onmouseover='alert(1)");
+        $result = Server::osIntToIcon("Ubuntu' onmouseover='alert(1)");
 
         // The single quote that would break out of title='...' must be escaped
         $this->assertStringNotContainsString("onmouseover='alert(1)", $result);
@@ -56,7 +56,7 @@ class ServerModelTest extends TestCase
     public function test_os_icon_tolerates_null_os()
     {
         // A server can reference a since-deleted OS; rendering must not fatal
-        $result = Server::osIntToIcon(null, null);
+        $result = Server::osIntToIcon(null);
 
         $this->assertStringContainsString('<i', $result);
     }

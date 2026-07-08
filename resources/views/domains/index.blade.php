@@ -158,27 +158,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            var dtConfig = {
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [6]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No domains found"
-                }
-            };
-            $('#domain-table').DataTable(dtConfig);
-            $('#inactive-domain-table').DataTable(dtConfig);
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#domain-table', '#inactive-domain-table'], 'noSort' => [6], 'empty' => 'No domains found'])
     @endsection
 </x-app-layout>

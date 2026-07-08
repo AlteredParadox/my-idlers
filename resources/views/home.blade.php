@@ -170,55 +170,10 @@
                             </thead>
                             <tbody>
                                 @foreach($information['due_soon'] as $due_soon)
-                                <tr>
-                                    <td>
-                                        @if($due_soon->service_type === 1)
-                                            {{ $due_soon->hostname }}
-                                        @elseif($due_soon->service_type === 2)
-                                            {{ $due_soon->main_domain }}
-                                        @elseif($due_soon->service_type === 3)
-                                            {{ $due_soon->reseller }}
-                                        @elseif($due_soon->service_type === 4)
-                                            {{ $due_soon->domain }}.{{ $due_soon->extension }}
-                                        @elseif($due_soon->service_type === 5)
-                                            {{ $due_soon->name }}
-                                        @elseif($due_soon->service_type === 6)
-                                            {{ $due_soon->title }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                        @if($due_soon->service_type === 1)
-                                            VPS
-                                        @elseif($due_soon->service_type === 2)
-                                            Shared
-                                        @elseif($due_soon->service_type === 3)
-                                            Reseller
-                                        @elseif($due_soon->service_type === 4)
-                                            Domain
-                                        @elseif($due_soon->service_type === 5)
-                                            Misc
-                                        @elseif($due_soon->service_type === 6)
-                                            Seedbox
-                                        @endif
-                                        </span>
-                                    </td>
-                                    <td>{{ $due_soon->next_due_date ? Carbon\Carbon::parse($due_soon->next_due_date)->diffForHumans() : '-' }}</td>
-                                    <td>{{ $due_soon->price }} {{ $due_soon->currency }} {{ \App\Process::paymentTermIntToString($due_soon->term) }}</td>
-                                    <td class="text-center">
-                                        @php
-                                            $routes = [
-                                                1 => 'servers.show',
-                                                2 => 'shared.show',
-                                                3 => 'reseller.show',
-                                                4 => 'domains.show',
-                                                5 => 'misc.show',
-                                                6 => 'seedboxes.show'
-                                            ];
-                                        @endphp
-                                        <a href="{{ route($routes[$due_soon->service_type], $due_soon->service_id) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                    </td>
-                                </tr>
+                                    @include('partials.home-service-row', [
+                                        'row' => $due_soon,
+                                        'date' => $due_soon->next_due_date ? Carbon\Carbon::parse($due_soon->next_due_date)->diffForHumans() : '-',
+                                    ])
                                 @endforeach
                             </tbody>
                         </table>
@@ -250,55 +205,10 @@
                             </thead>
                             <tbody>
                                 @foreach($information['newest'] as $new)
-                                <tr>
-                                    <td>
-                                        @if($new->service_type === 1)
-                                            {{ $new->hostname }}
-                                        @elseif($new->service_type === 2)
-                                            {{ $new->main_domain }}
-                                        @elseif($new->service_type === 3)
-                                            {{ $new->reseller }}
-                                        @elseif($new->service_type === 4)
-                                            {{ $new->domain }}.{{ $new->extension }}
-                                        @elseif($new->service_type === 5)
-                                            {{ $new->name }}
-                                        @elseif($new->service_type === 6)
-                                            {{ $new->title }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                        @if($new->service_type === 1)
-                                            VPS
-                                        @elseif($new->service_type === 2)
-                                            Shared
-                                        @elseif($new->service_type === 3)
-                                            Reseller
-                                        @elseif($new->service_type === 4)
-                                            Domain
-                                        @elseif($new->service_type === 5)
-                                            Misc
-                                        @elseif($new->service_type === 6)
-                                            Seedbox
-                                        @endif
-                                        </span>
-                                    </td>
-                                    <td>{{ Carbon\Carbon::parse($new->created_at)->diffForHumans() }}</td>
-                                    <td>{{ $new->price }} {{ $new->currency }} {{ \App\Process::paymentTermIntToString($new->term) }}</td>
-                                    <td class="text-center">
-                                        @php
-                                            $routes = [
-                                                1 => 'servers.show',
-                                                2 => 'shared.show',
-                                                3 => 'reseller.show',
-                                                4 => 'domains.show',
-                                                5 => 'misc.show',
-                                                6 => 'seedboxes.show'
-                                            ];
-                                        @endphp
-                                        <a href="{{ route($routes[$new->service_type], $new->service_id) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                    </td>
-                                </tr>
+                                    @include('partials.home-service-row', [
+                                        'row' => $new,
+                                        'date' => Carbon\Carbon::parse($new->created_at)->diffForHumans(),
+                                    ])
                                 @endforeach
                             </tbody>
                         </table>
