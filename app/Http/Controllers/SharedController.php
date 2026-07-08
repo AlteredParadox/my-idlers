@@ -118,30 +118,34 @@ class SharedController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        $shared->update([
-            'main_domain' => $request->domain,
-            'shared_type' => $request->shared_type,
-            'provider_id' => $request->provider_id,
-            'location_id' => $request->location_id,
-            'disk' => $request->disk,
-            'disk_type' => 'GB',
-            'disk_as_gb' => $request->disk,
-            'owned_since' => $request->owned_since,
-            'bandwidth' => $request->bandwidth,
-            'link_speed' => $link_speed_mbps,
-            'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'domains_limit' => $request->domains,
-            'subdomains_limit' => $request->sub_domains,
-            'email_limit' => $request->email,
-            'ftp_limit' => $request->ftp,
-            'db_limit' => $request->db,
-            'active' => $is_active
-        ]);
+        // Atomic: a failure in any later write (pricing, labels, IPs) must
+        // not leave a partially updated service.
+        DB::transaction(function () use ($request, $shared, $is_active, $link_speed_mbps, $submitted_ips) {
+            $shared->update([
+                'main_domain' => $request->domain,
+                'shared_type' => $request->shared_type,
+                'provider_id' => $request->provider_id,
+                'location_id' => $request->location_id,
+                'disk' => $request->disk,
+                'disk_type' => 'GB',
+                'disk_as_gb' => $request->disk,
+                'owned_since' => $request->owned_since,
+                'bandwidth' => $request->bandwidth,
+                'link_speed' => $link_speed_mbps,
+                'was_promo' => $request->was_promo,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'domains_limit' => $request->domains,
+                'subdomains_limit' => $request->sub_domains,
+                'email_limit' => $request->email,
+                'ftp_limit' => $request->ftp,
+                'db_limit' => $request->db,
+                'active' => $is_active
+            ]);
 
-        $this->syncPricingAndLabels($request, $shared->id, $is_active);
+            $this->syncPricingAndLabels($request, $shared->id, $is_active);
 
-        IPs::syncForService($shared->id, $submitted_ips);
+            IPs::syncForService($shared->id, $submitted_ips);
+        });
 
         Cache::forget("note.{$shared->id}");//embeds the shared relation
         Cache::forget('all_notes');

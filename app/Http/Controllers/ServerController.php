@@ -179,50 +179,50 @@ class ServerController extends Controller
 
         $total_disk_gb = $this->totalDiskAsGb($request);
 
-        $server->update([
-            'hostname' => $request->hostname,
-            'server_type' => $request->server_type,
-            'os_id' => $request->os_id,
-            'ssh' => $request->ssh_port,
-            'provider_id' => $request->provider_id,
-            'location_id' => $request->location_id,
-            'ram' => $request->ram,
-            'ram_type' => $request->ram_type,
-            'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
-            'disk' => $request->disk[0],
-            'disk_type' => $request->disk_type[0],
-            'disk_as_gb' => $total_disk_gb,
-            'owned_since' => $request->owned_since,
-            'ns1' => $request->ns1,
-            'ns2' => $request->ns2,
-            'bandwidth' => $request->bandwidth,
-            'link_speed' => $link_speed_mbps,
-            'network_type' => $request->network_type,
-            'cpu' => $request->cpu,
-            'cpu_model' => $request->cpu_model,
-            'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'active' => $is_active,
-            'show_public' => (isset($request->show_public)) ? 1 : 0
-        ]);
+        // Atomic: a failure in any later write (pricing, labels, disks, IPs)
+        // must not leave a partially updated server; caches are only cleared
+        // after the whole sequence commits.
+        DB::transaction(function () use ($request, $server, $is_active, $link_speed_mbps, $total_disk_gb, $ip_fields) {
+            $server->update([
+                'hostname' => $request->hostname,
+                'server_type' => $request->server_type,
+                'os_id' => $request->os_id,
+                'ssh' => $request->ssh_port,
+                'provider_id' => $request->provider_id,
+                'location_id' => $request->location_id,
+                'ram' => $request->ram,
+                'ram_type' => $request->ram_type,
+                'ram_as_mb' => ($request->ram_type === 'MB') ? $request->ram : ($request->ram * 1024),
+                'disk' => $request->disk[0],
+                'disk_type' => $request->disk_type[0],
+                'disk_as_gb' => $total_disk_gb,
+                'owned_since' => $request->owned_since,
+                'ns1' => $request->ns1,
+                'ns2' => $request->ns2,
+                'bandwidth' => $request->bandwidth,
+                'link_speed' => $link_speed_mbps,
+                'network_type' => $request->network_type,
+                'cpu' => $request->cpu,
+                'cpu_model' => $request->cpu_model,
+                'was_promo' => $request->was_promo,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'active' => $is_active,
+                'show_public' => (isset($request->show_public)) ? 1 : 0
+            ]);
 
-        $pricing = new Pricing();
-        $pricing->updatePricing($server->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+            (new Pricing())->updatePricing($server->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
 
-        Labels::deleteLabelsAssignedTo($server->id);
+            Labels::deleteLabelsAssignedTo($server->id);
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server->id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $server->id);
 
-        // Atomic: a mid-loop failure after the delete would leave the server
-        // with only part of its disk rows.
-        DB::transaction(function () use ($request, $server) {
             Disk::deleteDisksForServer($server->id);
             foreach ($request->disk as $i => $disk_size) {
                 Disk::insertDisk($server->id, $disk_size, $request->disk_type[$i], $request->disk_media[$i]);
             }
-        });
 
-        IPs::syncForService($server->id, array_values($ip_fields));
+            IPs::syncForService($server->id, array_values($ip_fields));
+        });
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($server->id);

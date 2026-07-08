@@ -120,31 +120,35 @@ class ResellerController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        $reseller->update([
-            'main_domain' => $request->domain,
-            'reseller_type' => $request->reseller_type,
-            'provider_id' => $request->provider_id,
-            'location_id' => $request->location_id,
-            'accounts' => $request->accounts,
-            'disk' => $request->disk,
-            'disk_type' => 'GB',
-            'disk_as_gb' => $request->disk,
-            'owned_since' => $request->owned_since,
-            'bandwidth' => $request->bandwidth,
-            'link_speed' => $link_speed_mbps,
-            'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'domains_limit' => $request->domains,
-            'subdomains_limit' => $request->sub_domains,
-            'email_limit' => $request->email,
-            'ftp_limit' => $request->ftp,
-            'db_limit' => $request->db,
-            'active' => $is_active
-        ]);
+        // Atomic: a failure in any later write (pricing, labels, IPs) must
+        // not leave a partially updated service.
+        DB::transaction(function () use ($request, $reseller, $is_active, $link_speed_mbps, $submitted_ips) {
+            $reseller->update([
+                'main_domain' => $request->domain,
+                'reseller_type' => $request->reseller_type,
+                'provider_id' => $request->provider_id,
+                'location_id' => $request->location_id,
+                'accounts' => $request->accounts,
+                'disk' => $request->disk,
+                'disk_type' => 'GB',
+                'disk_as_gb' => $request->disk,
+                'owned_since' => $request->owned_since,
+                'bandwidth' => $request->bandwidth,
+                'link_speed' => $link_speed_mbps,
+                'was_promo' => $request->was_promo,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'domains_limit' => $request->domains,
+                'subdomains_limit' => $request->sub_domains,
+                'email_limit' => $request->email,
+                'ftp_limit' => $request->ftp,
+                'db_limit' => $request->db,
+                'active' => $is_active
+            ]);
 
-        $this->syncPricingAndLabels($request, $reseller->id, $is_active);
+            $this->syncPricingAndLabels($request, $reseller->id, $is_active);
 
-        IPs::syncForService($reseller->id, $submitted_ips);
+            IPs::syncForService($reseller->id, $submitted_ips);
+        });
 
         Cache::forget("note.{$reseller->id}");//embeds the reseller relation
         Cache::forget('all_notes');
