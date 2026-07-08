@@ -34,9 +34,6 @@
             "dont-discover": []
         }
     },
-    "files": [
-        "app/Process.php"
-    ],
     "autoload": {
         "psr-4": {
             "App\\": "app/",

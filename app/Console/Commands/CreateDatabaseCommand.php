@@ -21,7 +21,7 @@ class CreateDatabaseCommand extends Command
         // hostile argument or DB_CHARSET/DB_COLLATION env value would
         // otherwise be interpolated straight into the DDL statement.
         foreach (['name' => $schemaName, 'charset' => $charset, 'collation' => $collation] as $what => $value) {
-            if (!is_string($value) || !preg_match('/^[A-Za-z0-9_]+$/', $value)) {
+            if (!is_string($value) || !preg_match('/^\w+$/', $value)) {
                 $this->error("Invalid database $what: only letters, numbers and underscores are allowed.");
 
                 return 1;
