@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 class ResellerController extends Controller
 {
     use \App\Http\Controllers\Concerns\ValidatesHostingQuotas;
+    use \App\Http\Controllers\Concerns\HandlesServiceUpdates;
 
     public function index()
     {
@@ -29,9 +30,10 @@ class ResellerController extends Controller
         return view('reseller.create');
     }
 
-    public function store(Request $request)
+    /** Identical for store and update. */
+    private function rules(): array
     {
-        $request->validate([
+        return [
             'domain' => 'required|min:4|max:255',
             'reseller_type' => 'required|string|max:255',
             ...$this->hostingQuotaRules(),
@@ -45,12 +47,14 @@ class ResellerController extends Controller
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'dedicated_ip' => 'sometimes|nullable|ip',
             ...\App\Models\Labels::validationRules(),
-        ]);
+        ];
+    }
 
-        $link_speed_mbps = null;
-        if ($request->link_speed) {
-            $link_speed_mbps = $request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed;
-        }
+    public function store(Request $request)
+    {
+        $request->validate($this->rules());
+
+        $link_speed_mbps = $this->linkSpeedAsMbps($request);
 
         $reseller_id = Str::random(8);
 
@@ -87,9 +91,7 @@ class ResellerController extends Controller
             ]);
         });
 
-        Cache::forget("all_reseller");
-        Cache::forget("all_active_reseller");
-        Cache::forget("non_active_reseller");
+        Home::forgetServiceCacheByType(3, $reseller_id);
         Home::homePageCacheForget();
 
         return redirect()->route('reseller.index')
@@ -110,28 +112,11 @@ class ResellerController extends Controller
 
     public function update(Request $request, Reseller $reseller)
     {
-        $request->validate([
-            'domain' => 'required|min:4|max:255',
-            'reseller_type' => 'required|string|max:255',
-            ...$this->hostingQuotaRules(),
-            'os_id' => 'integer',
-            'provider_id' => 'required|integer|exists:providers,id',
-            'location_id' => 'required|integer|exists:locations,id',
-            ...\App\Models\Pricing::webValidationRules(),
-            'was_promo' => 'integer|in:0,1',
-            'owned_since' => 'sometimes|nullable|date',
-            'accounts' => 'integer|min:0|max:1000000',
-            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
-            'dedicated_ip' => 'sometimes|nullable|ip',
-            ...\App\Models\Labels::validationRules(),
-        ]);
+        $request->validate($this->rules());
 
         $submitted_ips = $this->collectSubmittedIps($request);
 
-        $link_speed_mbps = null;
-        if ($request->link_speed) {
-            $link_speed_mbps = $request->link_speed_type === 'Gbps' ? $request->link_speed * 1000 : $request->link_speed;
-        }
+        $link_speed_mbps = $this->linkSpeedAsMbps($request);
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -157,21 +142,13 @@ class ResellerController extends Controller
             'active' => $is_active
         ]);
 
-        $pricing = new Pricing();
-        $pricing->updatePricing($reseller->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
-
-        Labels::deleteLabelsAssignedTo($reseller->id);
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $reseller->id);
+        $this->syncPricingAndLabels($request, $reseller->id, $is_active);
 
         IPs::syncForService($reseller->id, $submitted_ips);
 
         Cache::forget("note.{$reseller->id}");//embeds the reseller relation
         Cache::forget('all_notes');
-        Cache::forget("all_reseller");
-        Cache::forget("all_active_reseller");
-        Cache::forget("non_active_reseller");
-        Cache::forget("reseller_hosting.{$reseller->id}");
-
+        Home::forgetServiceCacheByType(3, $reseller->id);
         Home::homePageCacheForget();
 
         return redirect()->route('reseller.index')
@@ -190,10 +167,7 @@ class ResellerController extends Controller
 
             Note::deleteForService($reseller->id);
 
-            Cache::forget("all_reseller");
-        Cache::forget("all_active_reseller");
-        Cache::forget("non_active_reseller");
-            Cache::forget("reseller_hosting.$reseller->id");
+            Home::forgetServiceCacheByType(3, $reseller->id);
             Home::homePageCacheForget();
 
             return redirect()->route('reseller.index')

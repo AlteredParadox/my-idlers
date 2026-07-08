@@ -217,6 +217,25 @@ class Home extends Model
         }
     }
 
+    /**
+     * Every service-type LIST cache (they all embed the session sort order,
+     * so a settings change invalidates the lot).
+     */
+    public static function forgetAllServiceListCaches(): void
+    {
+        Cache::forget('all_servers');
+        Cache::forget('all_active_servers');
+        Cache::forget('non_active_servers');
+        Cache::forget('public_server_data');
+        foreach (self::TYPE_CACHE_KEYS as [$list, $item, $hasActiveVariants]) {
+            Cache::forget("all_$list");
+            if ($hasActiveVariants) {
+                Cache::forget("all_active_$list");
+                Cache::forget("non_active_$list");
+            }
+        }
+    }
+
     public static function breakdownPricing($all_pricing): array
     {
         return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($all_pricing) {

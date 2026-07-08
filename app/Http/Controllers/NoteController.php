@@ -24,12 +24,13 @@ class NoteController extends Controller
 
     public function create()
     {
-        $servers = Server::all();
-        $shareds = Shared::all();
-        $resellers = Reseller::all();
-        $domains = Domains::all();
-        $dns = DNS::all();
-        $ips = IPs::all();
+        // Dropdowns render id + display columns only; skip the rest
+        $servers = Server::all(['id', 'hostname']);
+        $shareds = Shared::all(['id', 'main_domain']);
+        $resellers = Reseller::all(['id', 'main_domain']);
+        $domains = Domains::all(['id', 'domain', 'extension']);
+        $dns = DNS::all(['id', 'dns_type', 'hostname', 'address']);
+        $ips = IPs::all(['id', 'address']);
 
         return view('notes.create', compact(['servers', 'shareds', 'resellers', 'domains', 'dns', 'ips']));
     }
@@ -88,12 +89,12 @@ class NoteController extends Controller
     public function edit(Note $note)
     {
         $note = Note::note($note->service_id);
-        $servers = Server::all();
-        $shareds = Shared::all();
-        $resellers = Reseller::all();
-        $domains = Domains::all();
-        $dns = DNS::all();
-        $ips = IPs::all();
+        $servers = Server::all(['id', 'hostname']);
+        $shareds = Shared::all(['id', 'main_domain']);
+        $resellers = Reseller::all(['id', 'main_domain']);
+        $domains = Domains::all(['id', 'domain', 'extension']);
+        $dns = DNS::all(['id', 'dns_type', 'hostname', 'address']);
+        $ips = IPs::all(['id', 'address']);
 
         return view('notes.edit', compact(['note', 'servers', 'shareds', 'resellers', 'domains', 'dns', 'ips']));
     }

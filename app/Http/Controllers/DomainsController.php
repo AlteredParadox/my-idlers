@@ -7,7 +7,6 @@ use App\Models\Note;
 use App\Models\Home;
 use App\Models\Labels;
 use App\Models\Pricing;
-use App\Models\Providers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -33,9 +32,10 @@ class DomainsController extends Controller
         return view('domains.create');
     }
 
-    public function store(Request $request)
+    /** Identical for store and update. */
+    private function rules(): array
     {
-        $request->validate([
+        return [
             'domain' => 'required|string|min:2|max:255',
             'extension' => 'required|string|min:2|max:255',
             'ns1' => 'sometimes|nullable|min:2|max:255',
@@ -45,7 +45,12 @@ class DomainsController extends Controller
             ...\App\Models\Pricing::webValidationRules(),
             'owned_since' => 'sometimes|nullable|date',
             ...\App\Models\Labels::validationRules(),
-        ]);
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate($this->rules());
 
         $domain_id = Str::random(8);
 
@@ -69,9 +74,7 @@ class DomainsController extends Controller
             Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain_id);
         });
 
-        Cache::forget("all_domains");
-        Cache::forget("all_active_domains");
-        Cache::forget("non_active_domains");
+        Home::forgetServiceCacheByType(4, $domain_id);
         Home::homePageCacheForget();
 
         return redirect()->route('domains.index')
@@ -86,17 +89,7 @@ class DomainsController extends Controller
 
     public function update(Request $request, Domains $domain)
     {
-        $request->validate([
-            'domain' => 'required|string|min:2|max:255',
-            'extension' => 'required|string|min:2|max:255',
-            'ns1' => 'sometimes|nullable|min:2|max:255',
-            'ns2' => 'sometimes|nullable|min:2|max:255',
-            'ns3' => 'sometimes|nullable|min:2|max:255',
-            'provider_id' => 'required|integer|exists:providers,id',
-            ...\App\Models\Pricing::webValidationRules(),
-            'owned_since' => 'sometimes|nullable|date',
-            ...\App\Models\Labels::validationRules(),
-        ]);
+        $request->validate($this->rules());
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -118,12 +111,9 @@ class DomainsController extends Controller
         Labels::deleteLabelsAssignedTo($domain->id);
         Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain->id);
 
-        Cache::forget("all_domains");
-        Cache::forget("all_active_domains");
-        Cache::forget("non_active_domains");
-        Cache::forget("domain.{$domain->id}");
         Cache::forget("note.{$domain->id}");//embeds the domain relation
         Cache::forget('all_notes');
+        Home::forgetServiceCacheByType(4, $domain->id);
         Home::homePageCacheForget();
 
         return redirect()->route('domains.index')
@@ -140,10 +130,7 @@ class DomainsController extends Controller
 
             Note::deleteForService($domain->id);
 
-            Cache::forget("all_domains");
-        Cache::forget("all_active_domains");
-        Cache::forget("non_active_domains");
-            Cache::forget("domain.{$domain->id}");
+            Home::forgetServiceCacheByType(4, $domain->id);
             Home::homePageCacheForget();
 
             return redirect()->route('domains.index')
