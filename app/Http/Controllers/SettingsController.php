@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Home;
 use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -94,23 +95,7 @@ class SettingsController extends Controller
 
         Cache::forget('settings');//Main page settings cache
         //Clear because they are affected by settings change (sort_on)
-        Cache::forget('all_servers');
-        Cache::forget('all_active_servers');
-        Cache::forget('non_active_servers');
-        Cache::forget('public_server_data');
-        Cache::forget('all_shared');
-        Cache::forget('all_active_shared');
-        Cache::forget('non_active_shared');
-        Cache::forget('all_seedboxes');
-        Cache::forget('all_reseller');
-        Cache::forget('all_active_reseller');
-        Cache::forget('non_active_reseller');
-        Cache::forget('all_misc');
-        Cache::forget('all_active_misc');
-        Cache::forget('non_active_misc');
-        Cache::forget('all_domains');
-        Cache::forget('all_active_domains');
-        Cache::forget('non_active_domains');
+        Home::forgetAllServiceListCaches();
 
         Settings::setSettingsToSession(Settings::getSettings());
 

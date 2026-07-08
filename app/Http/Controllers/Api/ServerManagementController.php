@@ -323,17 +323,16 @@ class ServerManagementController extends Controller
 
         $pricing = new Pricing();
 
-        $request->as_usd = $pricing->convertToUSD($request->price, $request->currency);
-
-        $request->usd_per_month = $pricing->costAsPerMonth($request->as_usd, $request->term);
+        $as_usd = $pricing->convertToUSD($request->price, $request->currency);
+        $usd_per_month = $pricing->costAsPerMonth($as_usd, $request->term);
 
         $validated = $validator->validated();
         $updateData = [
             'price' => $validated['price'],
             'currency' => $validated['currency'],
             'term' => $validated['term'],
-            'as_usd' => $request->as_usd,
-            'usd_per_month' => $request->usd_per_month,
+            'as_usd' => $as_usd,
+            'usd_per_month' => $usd_per_month,
         ];
 
         if (array_key_exists('next_due_date', $validated)) {

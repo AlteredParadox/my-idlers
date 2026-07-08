@@ -9,12 +9,13 @@ use App\Models\Note;
 use App\Models\Pricing;
 use App\Models\SeedBoxes;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SeedBoxesController extends Controller
 {
+    use \App\Http\Controllers\Concerns\HandlesServiceUpdates;
+
     public function index()
     {
         $seedboxes = SeedBoxes::allSeedboxes();
@@ -26,9 +27,10 @@ class SeedBoxesController extends Controller
         return view('seedboxes.create');
     }
 
-    public function store(Request $request)
+    /** Identical for store and update. */
+    private function rules(): array
     {
-        $request->validate([
+        return [
             'title' => 'required|string|min:2|max:255',
             'hostname' => 'sometimes|nullable|string|min:2|max:255',
             'seed_box_type' => 'required|string|max:255',
@@ -41,7 +43,12 @@ class SeedBoxesController extends Controller
             'bandwidth' => 'integer|min:0|max:100000000',
             'port_speed' => 'integer|min:0|max:1000000',
             ...\App\Models\Labels::validationRules(),
-        ]);
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate($this->rules());
 
         $seedbox_id = Str::random(8);
 
@@ -69,7 +76,7 @@ class SeedBoxesController extends Controller
             ]);
         });
 
-        Cache::forget("all_seedboxes");
+        Home::forgetServiceCacheByType(6, $seedbox_id);
         Home::homePageCacheForget();
 
         return redirect()->route('seedboxes.index')
@@ -91,20 +98,7 @@ class SeedBoxesController extends Controller
 
     public function update(Request $request, SeedBoxes $seedbox)
     {
-        $request->validate([
-            'title' => 'required|string|min:2|max:255',
-            'hostname' => 'sometimes|nullable|string|min:2|max:255',
-            'seed_box_type' => 'required|string|max:255',
-            'provider_id' => 'required|integer|exists:providers,id',
-            'location_id' => 'required|integer|exists:locations,id',
-            ...\App\Models\Pricing::webValidationRules(),
-            'was_promo' => 'integer|in:0,1',
-            'owned_since' => 'sometimes|nullable|date',
-            'disk' => 'integer|min:0|max:1000000',
-            'bandwidth' => 'integer|min:0|max:100000000',
-            'port_speed' => 'integer|min:0|max:1000000',
-            ...\App\Models\Labels::validationRules(),
-        ]);
+        $request->validate($this->rules());
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -125,14 +119,9 @@ class SeedBoxesController extends Controller
             'active' => $is_active
         ]);
 
-        $pricing = new Pricing();
-        $pricing->updatePricing($seedbox->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+        $this->syncPricingAndLabels($request, $seedbox->id, $is_active);
 
-        Labels::deleteLabelsAssignedTo($seedbox->id);
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $seedbox->id);
-
-        Cache::forget("all_seedboxes");
-        Cache::forget("seedbox.{$seedbox->id}");
+        Home::forgetServiceCacheByType(6, $seedbox->id);
         Home::homePageCacheForget();
 
         return redirect()->route('seedboxes.index')
@@ -154,8 +143,7 @@ class SeedBoxesController extends Controller
             // Legacy/forged notes keyed to this id would linger as ghost rows
             Note::deleteForService($seedbox->id);
 
-            Cache::forget("all_seedboxes");
-            Cache::forget("seedbox.{$seedbox->id}");
+            Home::forgetServiceCacheByType(6, $seedbox->id);
             Home::homePageCacheForget();
 
             return redirect()->route('seedboxes.index')

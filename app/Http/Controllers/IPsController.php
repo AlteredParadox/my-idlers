@@ -11,7 +11,6 @@ use App\Models\Shared;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class IPsController extends Controller
@@ -24,10 +23,11 @@ class IPsController extends Controller
 
     public function create()
     {
-        $servers = Server::all();
-        $shareds = Shared::all();
-        $resellers = Reseller::all();
-        $seed_boxes = SeedBoxes::all();
+        // Dropdowns render id + one display column; skip the other columns
+        $servers = Server::all(['id', 'hostname']);
+        $shareds = Shared::all(['id', 'main_domain']);
+        $resellers = Reseller::all(['id', 'main_domain']);
+        $seed_boxes = SeedBoxes::all(['id', 'title']);
         return view('ips.create', compact(['servers', 'shareds', 'resellers', 'seed_boxes']));
     }
 

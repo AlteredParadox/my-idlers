@@ -7,7 +7,6 @@ use App\Models\Misc;
 use App\Models\Note;
 use App\Models\Pricing;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -31,13 +30,19 @@ class MiscController extends Controller
         return view('misc.show', compact(['misc_data']));
     }
 
-    public function store(Request $request)
+    /** Identical for store and update. */
+    private function rules(): array
     {
-        $request->validate([
+        return [
             'name' => 'required|string|min:3|max:255',
             ...\App\Models\Pricing::webValidationRules(),
             'owned_since' => 'sometimes|nullable|date',
-        ]);
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate($this->rules());
 
         $misc_id = Str::random(8);
 
@@ -53,9 +58,7 @@ class MiscController extends Controller
             ]);
         });
 
-        Cache::forget("all_misc");
-        Cache::forget("all_active_misc");
-        Cache::forget("non_active_misc");
+        Home::forgetServiceCacheByType(5, $misc_id);
         Home::homePageCacheForget();
 
         return redirect()->route('misc.index')
@@ -70,11 +73,7 @@ class MiscController extends Controller
 
     public function update(Request $request, Misc $misc)
     {
-        $request->validate([
-            'name' => 'required|string|min:3|max:255',
-            ...\App\Models\Pricing::webValidationRules(),
-            'owned_since' => 'sometimes|nullable|date',
-        ]);
+        $request->validate($this->rules());
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
@@ -87,10 +86,7 @@ class MiscController extends Controller
         $pricing = new Pricing();
         $pricing->updatePricing($misc->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
 
-        Cache::forget("all_misc");
-        Cache::forget("all_active_misc");
-        Cache::forget("non_active_misc");
-        Cache::forget("misc.{$misc->id}");
+        Home::forgetServiceCacheByType(5, $misc->id);
         Home::homePageCacheForget();
 
         return redirect()->route('misc.index')
@@ -106,10 +102,7 @@ class MiscController extends Controller
             // Legacy/forged notes keyed to this id would linger as ghost rows
             Note::deleteForService($misc->id);
 
-            Cache::forget("all_misc");
-        Cache::forget("all_active_misc");
-        Cache::forget("non_active_misc");
-            Cache::forget("misc.{$misc->id}");
+            Home::forgetServiceCacheByType(5, $misc->id);
             Home::homePageCacheForget();
 
             return redirect()->route('misc.index')

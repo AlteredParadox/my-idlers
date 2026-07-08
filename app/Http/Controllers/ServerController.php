@@ -12,7 +12,6 @@ use App\Models\Settings;
 use App\Models\Yabs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class ServerController extends Controller
@@ -45,14 +44,18 @@ class ServerController extends Controller
         return view('servers.create');
     }
 
-    public function store(Request $request)
+    /**
+     * Identical for store and update except ip2: on store a duplicate of ip1
+     * hits the (service_id, address) unique index as a QueryException 500
+     * (leaving an orphaned pricing row); the update path dedupes via
+     * IPs::syncForService instead.
+     */
+    private function rules(bool $for_store): array
     {
-        $request->validate([
+        return [
             'hostname' => 'required|min:5|max:255',
             'ip1' => 'sometimes|nullable|ip',
-            // different:ip1 — the (service_id, address) unique index makes a
-            // duplicate a QueryException 500 (leaving an orphaned pricing row)
-            'ip2' => 'sometimes|nullable|ip|different:ip1',
+            'ip2' => $for_store ? 'sometimes|nullable|ip|different:ip1' : 'sometimes|nullable|ip',
             'ns1' => 'sometimes|nullable|string|max:255',
             'ns2' => 'sometimes|nullable|string|max:255',
             'server_type' => 'integer|in:1,2,3,4,5,6,7',
@@ -80,7 +83,12 @@ class ServerController extends Controller
             'was_promo' => 'integer|in:0,1',
             'owned_since' => 'sometimes|nullable|date',
             ...\App\Models\Labels::validationRules(),
-        ]);
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate($this->rules(true));
 
         $this->assertDiskArraysAligned($request);
 
@@ -159,38 +167,7 @@ class ServerController extends Controller
 
     public function update(Request $request, Server $server)
     {
-        $request->validate([
-            'hostname' => 'required|min:5|max:255',
-            'ip1' => 'sometimes|nullable|ip',
-            'ip2' => 'sometimes|nullable|ip',
-            'ns1' => 'sometimes|nullable|string|max:255',
-            'ns2' => 'sometimes|nullable|string|max:255',
-            'server_type' => 'integer|in:1,2,3,4,5,6,7',
-            'ssh_port' => 'integer|min:1|max:65535',
-            'bandwidth' => 'integer|min:0|max:100000000',
-            'link_speed' => 'sometimes|nullable|numeric|min:0|max:1000000',
-            'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
-            'network_type' => 'sometimes|nullable|string|in:IPv4,IPv6,IPv4+IPv6,IPv4 NAT,IPv4 NAT + IPv6',
-            'ram' => 'required|numeric|min:0|max:100000000',
-            // in: rules — these land in char(2)/varchar(4) columns, so a
-            // forged value is a MySQL-strict truncation 500 without them
-            'ram_type' => 'required|in:MB,GB',
-            'disk' => 'required|array',
-            'disk.*' => 'required|integer|min:1|max:1000000',
-            'disk_type' => 'required|array',
-            'disk_type.*' => 'required|in:GB,TB',
-            'disk_media' => 'required|array',
-            'disk_media.*' => 'required|in:SSD,HDD,NVMe',
-            'os_id' => 'required|integer|exists:os,id',
-            'provider_id' => 'required|integer|exists:providers,id',
-            'location_id' => 'required|integer|exists:locations,id',
-            ...\App\Models\Pricing::webValidationRules(),
-            'cpu' => 'required|integer|min:1|max:1024',
-            'cpu_model' => 'sometimes|nullable|string|max:255',
-            'was_promo' => 'integer|in:0,1',
-            'owned_since' => 'sometimes|nullable|date',
-            ...\App\Models\Labels::validationRules(),
-        ]);
+        $request->validate($this->rules(false));
 
         $this->assertDiskArraysAligned($request);
 

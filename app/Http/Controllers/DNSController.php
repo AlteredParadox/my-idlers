@@ -25,10 +25,11 @@ class DNSController extends Controller
 
     public function create()
     {
-        $servers = Server::all();
-        $domains = Domains::all();
-        $shareds = Shared::all();
-        $resellers = Reseller::all();
+        // Dropdowns render id + one display column; skip the other ~20 columns
+        $servers = Server::all(['id', 'hostname']);
+        $domains = Domains::all(['id', 'domain', 'extension']);
+        $shareds = Shared::all(['id', 'main_domain']);
+        $resellers = Reseller::all(['id', 'main_domain']);
         return view('dns.create', compact(['servers', 'domains', 'shareds', 'resellers']));
     }
 
@@ -86,7 +87,7 @@ class DNSController extends Controller
 
     public function show(DNS $dn)
     {
-        $dns = DNS::findOrFail($dn->id);
+        $dns = $dn;//route-model binding already fetched (or 404ed) this row
 
         $labels = DB::table('labels_assigned as l')
             ->join('labels', 'l.label_id', 'labels.id')
@@ -98,11 +99,10 @@ class DNSController extends Controller
 
     public function edit(DNS $dn)
     {
-        $servers = Server::all();
-        $domains = Domains::all();
-        $shareds = Shared::all();
-        $resellers = Reseller::all();
-        $dn = DNS::findOrFail($dn->id);
+        $servers = Server::all(['id', 'hostname']);
+        $domains = Domains::all(['id', 'domain', 'extension']);
+        $shareds = Shared::all(['id', 'main_domain']);
+        $resellers = Reseller::all(['id', 'main_domain']);
         $labels = DB::table('labels_assigned as l')
             ->join('labels', 'l.label_id', 'labels.id')
             ->where('l.service_id', $dn->id)
