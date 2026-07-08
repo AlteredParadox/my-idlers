@@ -137,7 +137,12 @@ class ServiceQueryController extends Controller
 
     protected function getNote($id)
     {
-        $note = Note::where('id', $id)->firstOrFail(['note'])->note;
-        return response($note, 200)->header('Content-Type', 'text/plain');
+        // first(), not firstOrFail(): a miss must answer with this API's
+        // JSON 404 shape, not the framework's ModelNotFound response.
+        $note = Note::where('id', $id)->first(['note']);
+        if (is_null($note)) {
+            return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
+        }
+        return response($note->note, 200)->header('Content-Type', 'text/plain');
     }
 }
