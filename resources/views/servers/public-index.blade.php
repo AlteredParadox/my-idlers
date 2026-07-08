@@ -46,7 +46,7 @@
                                     <td class="text-center">
                                         <span class="badge badge-type">{{ App\Models\Server::serviceServerType($s->server_type) }}</span>
                                     </td>
-                                    <td class="text-center">{!! App\Models\Server::osIntToIcon($s->os->id ?? 1, $s->os->name ?? '') !!}</td>
+                                    <td class="text-center">{!! App\Models\Server::osIntToIcon($s->os->name ?? '') !!}</td>
                                     <td class="text-center">{{ $s->cpu }}</td>
                                     <td class="text-center text-nowrap">{{ $s->yabs[0]->cpu_freq ?? '—' }}</td>
                                     <td class="text-center text-nowrap">

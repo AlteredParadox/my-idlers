@@ -15,24 +15,31 @@ class Round34RegressionTest extends TestCase
 {
     public function test_list_view_host_matchers_use_exact_semantics()
     {
-        // Since the GPT 2nd round the matcher lives in ONE matchHost() (the
-        // status loop calls it), so the exact short-label expression appears
-        // once and is IP-guarded.
+        // The matcher now lives in ONE shared partial included by both index
+        // variants (the round-35 lesson: unify duplicated predicates or they
+        // drift), so the exact short-label expression appears exactly once
+        // repo-wide and is IP-guarded.
         $safe = "hostname === promHost || promHost === hostname.split('.')[0]\n"
-            . "                    || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0";
+            . "        || hostname === promHost.split('.')[0] || hostname.indexOf(promHost + '.') === 0";
 
+        $partial = file_get_contents(resource_path('views/servers/partials/status-js.blade.php'));
+
+        $this->assertSame(1, substr_count($partial, $safe), 'status-js partial lost the exact matcher');
+        // The status loop must route through matchHost, not inline the expression.
+        $this->assertStringContainsString('if (matchHost(hostname, promHost)) {', $partial);
+        // IP sides fall back to exact equality.
+        $this->assertStringContainsString('if (isIpAddress(hostname) || isIpAddress(promHost)) {', $partial);
+
+        // The prefix/first-label holes must not reappear.
+        $this->assertStringNotContainsString("promHost.split('.')[0] === hostname.split('.')[0]", $partial);
+        $this->assertStringNotContainsString("hostname.indexOf(promHost) === 0", $partial);
+
+        // Both index variants must use the shared partial — no forked copies.
         foreach (['servers/index.blade.php', 'servers/index-cards.blade.php'] as $view) {
             $blade = file_get_contents(resource_path("views/$view"));
 
-            $this->assertSame(1, substr_count($blade, $safe), "$view lost the exact matcher");
-            // The status loop must route through matchHost, not inline the expression.
-            $this->assertStringContainsString('if (matchHost(hostname, promHost)) {', $blade, $view);
-            // IP sides fall back to exact equality.
-            $this->assertStringContainsString('if (isIpAddress(hostname) || isIpAddress(promHost)) {', $blade, $view);
-
-            // The prefix/first-label holes must not reappear.
-            $this->assertStringNotContainsString("promHost.split('.')[0] === hostname.split('.')[0]", $blade, $view);
-            $this->assertStringNotContainsString("hostname.indexOf(promHost) === 0", $blade, $view);
+            $this->assertStringContainsString("@include('servers.partials.status-js'", $blade, $view);
+            $this->assertStringNotContainsString('function matchHost', $blade, "$view must not fork the matcher");
         }
     }
 

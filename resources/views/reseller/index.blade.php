@@ -192,27 +192,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    <script>
-        window.addEventListener('load', function () {
-            $.fn.dataTable.ext.errMode = 'none';
-            var dtConfig = {
-                pageLength: {{ session('default_per_page', 100) }},
-                lengthMenu: [10, 25, 50, 100, 250, 500],
-                columnDefs: [
-                    {orderable: false, targets: [12]}
-                ],
-                language: {
-                    search: "",
-                    searchPlaceholder: "Search...",
-                    lengthMenu: "Show _MENU_",
-                    info: "Showing _START_ to _END_ of _TOTAL_",
-                    paginate: { previous: "Prev", next: "Next" },
-                    emptyTable: "No reseller hosting found"
-                }
-            };
-            $('#reseller-table').DataTable(dtConfig);
-            $('#inactive-reseller-table').DataTable(dtConfig);
-        });
-    </script>
+    @include('partials.datatable-init', ['tables' => ['#reseller-table', '#inactive-reseller-table'], 'noSort' => [12], 'empty' => 'No reseller hosting found'])
     @endsection
 </x-app-layout>
