@@ -33,12 +33,13 @@ Route::middleware('auth:api')->group(function () {
     Route::get('domains/', [ServiceQueryController::class, 'getAllDomains']);
     Route::get('domains/{id}', [ServiceQueryController::class, 'getDomains']);
 
+    $serverById = 'servers/{id}';
     Route::get('servers', [ServiceQueryController::class, 'getAllServers']);
-    Route::get('servers/{id}', [ServiceQueryController::class, 'getServer']);
+    Route::get($serverById, [ServiceQueryController::class, 'getServer']);
 
     Route::post('servers', [ServerManagementController::class, 'storeServer']);
-    Route::put('servers/{id}', [ServerManagementController::class, 'updateServer']);
-    Route::delete('servers/{id}', [ServerManagementController::class, 'destroyServer']);
+    Route::put($serverById, [ServerManagementController::class, 'updateServer']);
+    Route::delete($serverById, [ServerManagementController::class, 'destroyServer']);
 
     Route::get('IPs/', [CatalogQueryController::class, 'getAllIPs']);
     Route::get('IPs/{id}', [CatalogQueryController::class, 'getIP']);

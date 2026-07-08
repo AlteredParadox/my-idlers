@@ -131,7 +131,7 @@ class GptRound8RegressionTest extends TestCase
         $exported = (new \App\Services\ExportTransformer())
             ->transformSeedboxForExport($seedbox);
         $this->assertSame('192.0.2.80', $exported['ips'][0]['address']);
-        $this->assertContains('ips', (new \App\Services\ExportTransformer())->getSeedboxCsvHeaders());
+        $this->assertContains('ips', (new \App\Services\ExportCsvHeaders())->getSeedboxCsvHeaders());
 
         // The combined export has its OWN eager-load list (GPT round 11:
         // sibling site) — the JSON must carry the seedbox IPs too.

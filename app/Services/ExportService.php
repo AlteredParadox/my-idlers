@@ -98,10 +98,13 @@ class ExportService
 
     protected CsvFormatter $csv;
 
-    public function __construct(?ExportTransformer $transformer = null, ?CsvFormatter $csv = null)
+    protected ExportCsvHeaders $headers;
+
+    public function __construct(?ExportTransformer $transformer = null, ?CsvFormatter $csv = null, ?ExportCsvHeaders $headers = null)
     {
         $this->transformer = $transformer ?? new ExportTransformer();
         $this->csv = $csv ?? new CsvFormatter();
+        $this->headers = $headers ?? new ExportCsvHeaders();
     }
 
     /**
@@ -218,7 +221,7 @@ class ExportService
 
         // CSV format
         return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->{$cfg['headers']}()),
+            'data' => $this->csv->toCsv($exportData, $this->headers->{$cfg['headers']}()),
             'filename' => "{$cfg['file_prefix']}_{$timestamp}.csv",
             'content_type' => self::MIME_CSV
         ];
@@ -335,7 +338,7 @@ class ExportService
             foreach (self::EXPORTABLES as $section => $cfg) {
                 $zip->addFromString(
                     $cfg['csv_name'],
-                    $this->csv->toCsv($sections[$section], $this->transformer->{$cfg['headers']}())
+                    $this->csv->toCsv($sections[$section], $this->headers->{$cfg['headers']}())
                 );
             }
 
