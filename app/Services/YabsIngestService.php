@@ -75,37 +75,71 @@ class YabsIngestService
 
     public function ingest(array $data, string $server_id): bool
     {
+        $parsed = $this->parse($data, $server_id);
+
+        return $parsed !== null && $this->persist($parsed);
+    }
+
+
+    /**
+     * Parse a YABS payload into the rows to persist, or null when the
+     * payload is malformed — that's client input (422 on the API), distinct
+     * from a persistence failure.
+     */
+    public function parse(array $data, string $server_id): ?array
+    {
         try {
             $yabs_id = Str::random(8);
 
-            DB::transaction(function () use ($yabs_id, $server_id, $data) {
-                $this->insertYabsRow($yabs_id, $server_id, $data);
+            return [
+                'server_id' => $server_id,
+                'cpu_model' => $data['cpu']['model'],
+                'yabs' => $this->yabsRow($yabs_id, $server_id, $data),
                 // Modern yabs.sh omits these keys when a test auto-skips (fio
                 // needs 2GB free; iperf binary download can fail) — the run is
                 // still complete, valid output and must ingest.
-                $this->insertDiskSpeeds($yabs_id, $server_id, $data['fio'] ?? []);
-                $this->insertNetworkSpeeds($yabs_id, $server_id, $data['iperf'] ?? [], (bool)($data['net']['ipv4'] ?? 0));
-                $this->updateServerAfterRun($server_id, $data['cpu']['model']);
-            });
-
-            Cache::forget("yabs.$yabs_id");
-            Cache::forget("all_yabs");
-            Cache::forget("server.$server_id");
-            Cache::forget("all_servers");
-            // The public servers page renders YABS data too; the delete path
-            // clears this via serverRelatedCacheForget, the add path must match.
-            Cache::forget("public_server_data");
+                'disk_speed' => $this->diskSpeedRow($yabs_id, $server_id, $data['fio'] ?? []),
+                'network_speeds' => $this->networkSpeedRows($yabs_id, $server_id, $data['iperf'] ?? [], (bool)($data['net']['ipv4'] ?? 0)),
+            ];
         } catch (\Throwable $e) {//Not a valid YABS payload
             // Throwable, not Exception: the parse helpers raise Error/TypeError
             // on malformed input (createFromFormat false, non-geekbench URLs,
             // non-numeric mem values) and those must hit this path too.
+            return null;
+        }
+    }
+
+
+    /** Persist a parse() result; false means a genuine server-side failure. */
+    public function persist(array $parsed): bool
+    {
+        try {
+            DB::transaction(function () use ($parsed) {
+                Yabs::create($parsed['yabs']);
+                if ($parsed['disk_speed'] !== null) {
+                    DiskSpeed::create($parsed['disk_speed']);
+                }
+                foreach ($parsed['network_speeds'] as $row) {
+                    NetworkSpeed::create($row);
+                }
+                $this->updateServerAfterRun($parsed['server_id'], $parsed['cpu_model']);
+            });
+
+            Cache::forget("yabs.{$parsed['yabs']['id']}");
+            Cache::forget("all_yabs");
+            Cache::forget("server.{$parsed['server_id']}");
+            Cache::forget("all_servers");
+            // The public servers page renders YABS data too; the delete path
+            // clears this via serverRelatedCacheForget, the add path must match.
+            Cache::forget("public_server_data");
+        } catch (\Throwable $e) {
             return false;
         }
         return true;
     }
 
 
-    private function insertYabsRow(string $yabs_id, string $server_id, array $data): void
+    private function yabsRow(string $yabs_id, string $server_id, array $data): array
     {
         [$ram_f, $ram_type] = $this->scaleRam($data['mem']['ram']);
         [$disk_f, $disk_type] = $this->scaleDisk($data['mem']['disk']);
@@ -116,7 +150,7 @@ class YabsIngestService
         $virt = strtolower((string) ($data['cpu']['virt'] ?? ''));
         $is_vm = ($virt === '' || $virt === 'none') ? 0 : 1;
 
-        Yabs::create([
+        return [
             'id' => $yabs_id,
             'server_id' => $server_id,
             'has_ipv6' => $data['net']['ipv6'],
@@ -138,7 +172,7 @@ class YabsIngestService
             'disk_gb' => ($data['mem']['disk'] / 1024 / 1024),
             'disk_type' => $disk_type,
             'output_date' => $this->formatRunTime($data['time']),
-        ] + $this->geekbenchScores($data['geekbench'] ?? []));
+        ] + $this->geekbenchScores($data['geekbench'] ?? []);
     }
 
 
@@ -200,10 +234,10 @@ class YabsIngestService
         return trim(($days > 0 ? "$days days, " : '') . "$hours hours, $minutes minutes", ', ');
     }
 
-    private function insertDiskSpeeds(string $yabs_id, string $server_id, $fio): void
+    private function diskSpeedRow(string $yabs_id, string $server_id, $fio): ?array
     {
         if (empty($fio)) {
-            return;//disk_speed columns are NOT NULL; no row when fio was skipped
+            return null;//disk_speed columns are NOT NULL; no row when fio was skipped
         }
         $speeds = [];
         foreach ($fio as $ds) {
@@ -221,18 +255,19 @@ class YabsIngestService
             $row["{$col}_as_mbps"] = $this->kbsToMbs($speed);
         }
 
-        DiskSpeed::create($row);
+        return $row;
     }
 
 
-    private function insertNetworkSpeeds(string $yabs_id, string $server_id, $iperf, bool $has_ipv4): void
+    private function networkSpeedRows(string $yabs_id, string $server_id, $iperf, bool $has_ipv4): array
     {
+        $rows = [];
         $match = $has_ipv4 ? 'IPv4' : 'IPv6';
         foreach ($iperf as $st) {
             if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
                 [$send, $send_type, $send_mbps] = $this->parseSpeed($st['send']);
                 [$recv, $recv_type, $recv_mbps] = $this->parseSpeed($st['recv']);
-                NetworkSpeed::create([
+                $rows[] = [
                     'id' => $yabs_id,
                     'server_id' => $server_id,
                     'location' => $st['loc'],
@@ -242,9 +277,11 @@ class YabsIngestService
                     'receive' => $recv,
                     'receive_type' => $recv_type,
                     'receive_as_mbps' => $recv_mbps
-                ]);
+                ];
             }
         }
+
+        return $rows;
     }
 
 

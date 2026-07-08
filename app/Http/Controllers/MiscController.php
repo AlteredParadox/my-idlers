@@ -77,14 +77,17 @@ class MiscController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        $misc->update([
-            'name' => $request->name,
-            'owned_since' => $request->owned_since,
-            'active' => $is_active
-        ]);
+        // Atomic: a failure in the pricing write must not leave a partially
+        // updated service.
+        DB::transaction(function () use ($request, $misc, $is_active) {
+            $misc->update([
+                'name' => $request->name,
+                'owned_since' => $request->owned_since,
+                'active' => $is_active
+            ]);
 
-        $pricing = new Pricing();
-        $pricing->updatePricing($misc->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+            (new Pricing())->updatePricing($misc->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+        });
 
         Home::forgetServiceCacheByType(5, $misc->id);
         Home::homePageCacheForget();

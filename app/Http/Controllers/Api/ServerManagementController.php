@@ -378,9 +378,14 @@ class ServerManagementController extends Controller
             'iperf' => ['sometimes', 'array'],
         ]);
 
-        $insert = $ingest->ingest($request->all(), $server->id);
+        // A signed-but-malformed payload is client input (422), not a server
+        // error — only a genuine persistence failure stays a 500.
+        $parsed = $ingest->parse($request->all(), $server->id);
+        if ($parsed === null) {
+            return response()->json(array('error' => 'Invalid YABS payload'), 422);
+        }
 
-        if ($insert) {
+        if ($ingest->persist($parsed)) {
             Cache::forget('all_active_servers');//all servers cache
             Cache::forget('non_active_servers');//all servers cache
             Cache::forget('all_yabs');//Forget the all YABS cache

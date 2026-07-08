@@ -93,23 +93,26 @@ class DomainsController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        $pricing = new Pricing();
-        $pricing->updatePricing($domain->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+        // Atomic: a failure in the model/labels writes must not leave the
+        // already-written pricing row pointing at stale service data.
+        DB::transaction(function () use ($request, $domain, $is_active) {
+            (new Pricing())->updatePricing($domain->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
 
-        $domain->update([
-            'domain' => $request->domain,
-            'extension' => $request->extension,
-            'ns1' => $request->ns1,
-            'ns2' => $request->ns2,
-            'ns3' => $request->ns3,
-            'provider_id' => $request->provider_id,
-            'owned_since' => $request->owned_since,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'active' => $is_active
-        ]);
+            $domain->update([
+                'domain' => $request->domain,
+                'extension' => $request->extension,
+                'ns1' => $request->ns1,
+                'ns2' => $request->ns2,
+                'ns3' => $request->ns3,
+                'provider_id' => $request->provider_id,
+                'owned_since' => $request->owned_since,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'active' => $is_active
+            ]);
 
-        Labels::deleteLabelsAssignedTo($domain->id);
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain->id);
+            Labels::deleteLabelsAssignedTo($domain->id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain->id);
+        });
 
         Cache::forget("note.{$domain->id}");//embeds the domain relation
         Cache::forget('all_notes');

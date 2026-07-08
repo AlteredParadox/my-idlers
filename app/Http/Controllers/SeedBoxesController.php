@@ -102,24 +102,28 @@ class SeedBoxesController extends Controller
 
         $is_active = (isset($request->is_active)) ? 1 : 0;
 
-        $seedbox->update([
-            'title' => $request->title,
-            'hostname' => $request->hostname,
-            'seed_box_type' => $request->seed_box_type,
-            'location_id' => $request->location_id,
-            'provider_id' => $request->provider_id,
-            'disk' => $request->disk,
-            'disk_type' => 'GB',
-            'disk_as_gb' => $request->disk,
-            'owned_since' => $request->owned_since,
-            'bandwidth' => $request->bandwidth,
-            'port_speed' => $request->port_speed,
-            'was_promo' => $request->was_promo,
-            'transferrable' => (isset($request->transferrable)) ? 1 : 0,
-            'active' => $is_active
-        ]);
+        // Atomic: a failure in the pricing/labels writes must not leave a
+        // partially updated service.
+        DB::transaction(function () use ($request, $seedbox, $is_active) {
+            $seedbox->update([
+                'title' => $request->title,
+                'hostname' => $request->hostname,
+                'seed_box_type' => $request->seed_box_type,
+                'location_id' => $request->location_id,
+                'provider_id' => $request->provider_id,
+                'disk' => $request->disk,
+                'disk_type' => 'GB',
+                'disk_as_gb' => $request->disk,
+                'owned_since' => $request->owned_since,
+                'bandwidth' => $request->bandwidth,
+                'port_speed' => $request->port_speed,
+                'was_promo' => $request->was_promo,
+                'transferrable' => (isset($request->transferrable)) ? 1 : 0,
+                'active' => $is_active
+            ]);
 
-        $this->syncPricingAndLabels($request, $seedbox->id, $is_active);
+            $this->syncPricingAndLabels($request, $seedbox->id, $is_active);
+        });
 
         Home::forgetServiceCacheByType(6, $seedbox->id);
         Home::homePageCacheForget();
