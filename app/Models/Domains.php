@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SortsByPricing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 class Domains extends Model
 {
-    use HasFactory;
+    // No OrdersBySessionSetting here: domains deliberately have no
+    // column-order global scope, only the pricing sort.
+    use HasFactory, SortsByPricing;
 
     public $incrementing = false;
 
@@ -31,10 +33,7 @@ class Domains extends Model
     {//All domains and relationships (no using joins)
         return Cache::remember("all_domains", now()->addMonth(1), function () {
             $query = Domains::with(['provider', 'price', 'labels']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "domains.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }
@@ -43,10 +42,7 @@ class Domains extends Model
     {
         return Cache::remember("all_active_domains", now()->addMonth(1), function () {
             $query = Domains::where('active', 1)->with(['provider', 'price', 'labels']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "domains.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }

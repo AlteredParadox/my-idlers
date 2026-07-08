@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\OrdersBySessionSetting;
+use App\Models\Concerns\SortsByPricing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Database\Eloquent\Builder;
 
 class Server extends Model
 {
-    use HasFactory;
+    use HasFactory, OrdersBySessionSetting, SortsByPricing;
 
     protected $table = 'servers';
 
@@ -33,26 +33,11 @@ class Server extends Model
         'show_public' => 'integer',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('order', function (Builder $builder) {
-            $array = Settings::orderByProcess(Session::get('sort_on') ?? 2);//created_at desc if not set
-            if (!in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $builder->orderBy($array[0], $array[1]);
-            }
-        });
-    }
-
     public static function allServers()
     {//All servers and relationships (no using joins)
         return Cache::remember("all_servers", now()->addMonth(1), function () {
             $query = Server::with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "servers.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }
@@ -70,10 +55,7 @@ class Server extends Model
         return Cache::remember("all_active_servers", now()->addMonth(1), function () {
             $query = Server::where('active', 1)
                 ->with(['location', 'provider', 'os', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels', 'price']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "servers.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }
@@ -136,17 +118,13 @@ class Server extends Model
 
     public static function serverRelatedCacheForget(): void
     {
+        // The home-page key set plus the four server list caches; reusing the
+        // helper keeps the two fan-out lists from drifting apart.
+        Home::homePageCacheForget();
         Cache::forget('all_servers');//All servers
-        Cache::forget('services_count');//Main page services_count cache
-        Cache::forget('due_soon');//Main page due_soon cache
-        Cache::forget('recently_added');//Main page recently_added cache
         Cache::forget('all_active_servers');//all active servers cache
         Cache::forget('non_active_servers');//all non active servers cache
-        Cache::forget('servers_summary');//servers summary cache
         Cache::forget('public_server_data');//public servers
-        Cache::forget('services_count_all');
-        Cache::forget('pricing_breakdown');
-        Cache::forget('all_active_pricing');
     }
 
     public static function serverSpecificCacheForget(string $server_id): void

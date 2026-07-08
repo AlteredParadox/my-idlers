@@ -16,41 +16,48 @@ class YabsIngestService
 
     public function speedAsMbps(string $string): float
     {
-        $data = explode(" ", $string);
-        if ($data[0] === 'busy') {
-            return 0;
-        }
-        return match ($data[1]) {
-            "Gbits/sec" => $data[0] * 1000,
-            "Mbits/sec" => $data[0],
-            default => $data[0] / 1000,//Kbps
-        };
+        return $this->parseSpeed($string)[2];
     }
 
 
     public function speedType(string $string): string
     {
-        $data = explode(" ", $string);
-        if ($data[0] === 'busy') {
-            return "Mbps";
-        }
-        // Bit-rates, not byte-rates: iperf reports Gbits/sec and the old
-        // GBps label was an 8x mislabel on every network row
-        return match ($data[1]) {
-            "Gbits/sec" => "Gbps",
-            "Mbits/sec" => "Mbps",
-            default => "Kbps",
-        };
+        return $this->parseSpeed($string)[1];
     }
 
 
     public function speedAsFloat(string $string): float
     {
+        return $this->parseSpeed($string)[0];
+    }
+
+
+    /**
+     * One pass over an iperf speed string: [value, unit label, as Mbps].
+     * Bit-rates, not byte-rates: iperf reports Gbits/sec and the old
+     * GBps label was an 8x mislabel on every network row.
+     *
+     * @return array{0: float, 1: string, 2: float}
+     */
+    private function parseSpeed(string $string): array
+    {
         $data = explode(" ", $string);
         if ($data[0] === 'busy') {
-            return 0;
+            return [0.0, 'Mbps', 0.0];
         }
-        return (float)$data[0];
+        return [
+            (float)$data[0],
+            match ($data[1]) {
+                "Gbits/sec" => "Gbps",
+                "Mbits/sec" => "Mbps",
+                default => "Kbps",
+            },
+            match ($data[1]) {
+                "Gbits/sec" => $data[0] * 1000,
+                "Mbits/sec" => (float)$data[0],
+                default => $data[0] / 1000,//Kbps
+            },
+        ];
     }
 
 
@@ -235,16 +242,18 @@ class YabsIngestService
         $match = $has_ipv4 ? 'IPv4' : 'IPv6';
         foreach ($iperf as $st) {
             if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
+                [$send, $send_type, $send_mbps] = $this->parseSpeed($st['send']);
+                [$recv, $recv_type, $recv_mbps] = $this->parseSpeed($st['recv']);
                 NetworkSpeed::create([
                     'id' => $yabs_id,
                     'server_id' => $server_id,
                     'location' => $st['loc'],
-                    'send' => $this->speedAsFloat($st['send']),
-                    'send_type' => $this->speedType($st['send']),
-                    'send_as_mbps' => $this->speedAsMbps($st['send']),
-                    'receive' => $this->speedAsFloat($st['recv']),
-                    'receive_type' => $this->speedType($st['recv']),
-                    'receive_as_mbps' => $this->speedAsMbps($st['recv'])
+                    'send' => $send,
+                    'send_type' => $send_type,
+                    'send_as_mbps' => $send_mbps,
+                    'receive' => $recv,
+                    'receive_type' => $recv_type,
+                    'receive_as_mbps' => $recv_mbps
                 ]);
             }
         }

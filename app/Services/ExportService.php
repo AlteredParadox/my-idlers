@@ -25,6 +25,75 @@ class ExportService
 
     public const MIME_CSV = 'text/csv';
 
+    /**
+     * Version stamped into export metadata
+     */
+    protected const EXPORT_VERSION = '4.1.0';
+
+    /**
+     * Everything needed to export one section. Order matters: it is the
+     * section order of the combined JSON export, its metadata counts, and
+     * the CSVs inside the combined ZIP.
+     */
+    protected const EXPORTABLES = [
+        'servers' => [
+            'model' => Server::class,
+            'with' => ['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed'],
+            'transform' => 'transformServerForExport',
+            'headers' => 'getServerCsvHeaders',
+            'file_prefix' => 'servers_export',
+            'csv_name' => 'servers.csv',
+        ],
+        'domains' => [
+            'model' => Domains::class,
+            'with' => ['provider', 'price'],
+            'transform' => 'transformDomainForExport',
+            'headers' => 'getDomainCsvHeaders',
+            'file_prefix' => 'domains_export',
+            'csv_name' => 'domains.csv',
+        ],
+        'shared' => [
+            'model' => Shared::class,
+            'with' => ['location', 'provider', 'price', 'ips'],
+            'transform' => 'transformSharedForExport',
+            'headers' => 'getSharedCsvHeaders',
+            'file_prefix' => 'shared_hosting_export',
+            'csv_name' => 'shared_hosting.csv',
+        ],
+        'reseller' => [
+            'model' => Reseller::class,
+            'with' => ['location', 'provider', 'price', 'ips'],
+            'transform' => 'transformResellerForExport',
+            'headers' => 'getResellerCsvHeaders',
+            'file_prefix' => 'reseller_hosting_export',
+            'csv_name' => 'reseller_hosting.csv',
+        ],
+        'seedboxes' => [
+            'model' => SeedBoxes::class,
+            'with' => ['location', 'provider', 'price', 'ips'],
+            'transform' => 'transformSeedboxForExport',
+            'headers' => 'getSeedboxCsvHeaders',
+            'file_prefix' => 'seedboxes_export',
+            'csv_name' => 'seedboxes.csv',
+        ],
+        'dns' => [
+            'model' => DNS::class,
+            'with' => [],
+            'transform' => 'transformDnsForExport',
+            'headers' => 'getDnsCsvHeaders',
+            'file_prefix' => 'dns_export',
+            'csv_name' => 'dns.csv',
+        ],
+        'misc' => [
+            'model' => Misc::class,
+            'with' => ['price'],
+            'transform' => 'transformMiscForExport',
+            'headers' => 'getMiscCsvHeaders',
+            'file_prefix' => 'misc_services_export',
+            'csv_name' => 'misc_services.csv',
+        ],
+    ];
+
     protected ExportTransformer $transformer;
 
     protected CsvFormatter $csv;
@@ -56,41 +125,7 @@ class ExportService
      */
     public function exportServers(string $format): array
     {
-        $format = strtolower($format);
-        
-        // Fetch all servers with relationships
-        $servers = Server::with([
-            'location',
-            'provider',
-            'os',
-            'price',
-            'ips',
-            'yabs',
-            'yabs.disk_speed',
-            'yabs.network_speed'
-        ])->get();
-
-        // Transform server data
-        $exportData = $servers->map(function ($server) {
-            return $this->transformer->transformServerForExport($server);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "servers_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getServerCsvHeaders()),
-            'filename' => "servers_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('servers', $format);
     }
 
     /**
@@ -101,32 +136,7 @@ class ExportService
      */
     public function exportDomains(string $format): array
     {
-        $format = strtolower($format);
-
-        // Fetch all domains with relationships
-        $domains = Domains::with(['provider', 'price'])->get();
-
-        // Transform domain data
-        $exportData = $domains->map(function ($domain) {
-            return $this->transformer->transformDomainForExport($domain);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "domains_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getDomainCsvHeaders()),
-            'filename' => "domains_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('domains', $format);
     }
 
     /**
@@ -137,32 +147,7 @@ class ExportService
      */
     public function exportShared(string $format): array
     {
-        $format = strtolower($format);
-
-        // Fetch all shared hosting with relationships
-        $sharedHosting = Shared::with(['location', 'provider', 'price', 'ips'])->get();
-
-        // Transform shared hosting data
-        $exportData = $sharedHosting->map(function ($shared) {
-            return $this->transformer->transformSharedForExport($shared);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "shared_hosting_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getSharedCsvHeaders()),
-            'filename' => "shared_hosting_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('shared', $format);
     }
 
     /**
@@ -173,32 +158,7 @@ class ExportService
      */
     public function exportReseller(string $format): array
     {
-        $format = strtolower($format);
-
-        // Fetch all reseller hosting with relationships
-        $resellerHosting = Reseller::with(['location', 'provider', 'price', 'ips'])->get();
-
-        // Transform reseller hosting data
-        $exportData = $resellerHosting->map(function ($reseller) {
-            return $this->transformer->transformResellerForExport($reseller);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "reseller_hosting_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getResellerCsvHeaders()),
-            'filename' => "reseller_hosting_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('reseller', $format);
     }
 
     /**
@@ -209,32 +169,7 @@ class ExportService
      */
     public function exportSeedboxes(string $format): array
     {
-        $format = strtolower($format);
-
-        // Fetch all seedboxes with relationships
-        $seedboxes = SeedBoxes::with(['location', 'provider', 'price', 'ips'])->get();
-
-        // Transform seedbox data
-        $exportData = $seedboxes->map(function ($seedbox) {
-            return $this->transformer->transformSeedboxForExport($seedbox);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "seedboxes_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getSeedboxCsvHeaders()),
-            'filename' => "seedboxes_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('seedboxes', $format);
     }
 
     /**
@@ -245,32 +180,7 @@ class ExportService
      */
     public function exportDns(string $format): array
     {
-        $format = strtolower($format);
-
-        // Fetch all DNS records
-        $dnsRecords = DNS::all();
-
-        // Transform DNS data
-        $exportData = $dnsRecords->map(function ($dns) {
-            return $this->transformer->transformDnsForExport($dns);
-        });
-
-        $timestamp = date('Y-m-d_His');
-
-        if ($format === 'json') {
-            return [
-                'data' => $this->toJson($exportData),
-                'filename' => "dns_export_{$timestamp}.json",
-                'content_type' => self::MIME_JSON
-            ];
-        }
-
-        // CSV format
-        return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getDnsCsvHeaders()),
-            'filename' => "dns_export_{$timestamp}.csv",
-            'content_type' => self::MIME_CSV
-        ];
+        return $this->exportSection('dns', $format);
     }
 
     /**
@@ -281,32 +191,51 @@ class ExportService
      */
     public function exportMisc(string $format): array
     {
+        return $this->exportSection('misc', $format);
+    }
+
+    /**
+     * Export one section as JSON or CSV
+     *
+     * @param string $section key into EXPORTABLES
+     * @param string $format 'json' or 'csv'
+     * @return array{data: string, filename: string, content_type: string}
+     */
+    protected function exportSection(string $section, string $format): array
+    {
         $format = strtolower($format);
-
-        // Fetch all misc services with relationships
-        $miscServices = Misc::with(['price'])->get();
-
-        // Transform misc service data
-        $exportData = $miscServices->map(function ($misc) {
-            return $this->transformer->transformMiscForExport($misc);
-        });
-
+        $cfg = self::EXPORTABLES[$section];
+        $exportData = $this->sectionData($section);
         $timestamp = date('Y-m-d_His');
 
         if ($format === 'json') {
             return [
                 'data' => $this->toJson($exportData),
-                'filename' => "misc_services_export_{$timestamp}.json",
+                'filename' => "{$cfg['file_prefix']}_{$timestamp}.json",
                 'content_type' => self::MIME_JSON
             ];
         }
 
         // CSV format
         return [
-            'data' => $this->csv->toCsv($exportData, $this->transformer->getMiscCsvHeaders()),
-            'filename' => "misc_services_export_{$timestamp}.csv",
+            'data' => $this->csv->toCsv($exportData, $this->transformer->{$cfg['headers']}()),
+            'filename' => "{$cfg['file_prefix']}_{$timestamp}.csv",
             'content_type' => self::MIME_CSV
         ];
+    }
+
+    /**
+     * Fetch one section with its relationships and transform each row
+     *
+     * @param string $section key into EXPORTABLES
+     * @return Collection
+     */
+    protected function sectionData(string $section): Collection
+    {
+        $cfg = self::EXPORTABLES[$section];
+
+        return $cfg['model']::with($cfg['with'])->get()
+            ->map(fn($row) => $this->transformer->{$cfg['transform']}($row));
     }
 
     /**
@@ -337,35 +266,10 @@ class ExportService
         $format = strtolower($format);
         $timestamp = date('Y-m-d_His');
 
-        // Fetch all data for each service type
-        $servers = Server::with([
-            'location',
-            'provider',
-            'os',
-            'price',
-            'ips',
-            'yabs',
-            'yabs.disk_speed',
-            'yabs.network_speed'
-        ])->get();
-
-        $domains = Domains::with(['provider', 'price'])->get();
-        $shared = Shared::with(['location', 'provider', 'price', 'ips'])->get();
-        $reseller = Reseller::with(['location', 'provider', 'price', 'ips'])->get();
-        $seedboxes = SeedBoxes::with(['location', 'provider', 'price', 'ips'])->get();
-        $dns = DNS::all();
-        $misc = Misc::with(['price'])->get();
-
-        // Transform all data
-        $sections = [
-            'servers' => $servers->map(fn($server) => $this->transformer->transformServerForExport($server))->toArray(),
-            'domains' => $domains->map(fn($domain) => $this->transformer->transformDomainForExport($domain))->toArray(),
-            'shared' => $shared->map(fn($s) => $this->transformer->transformSharedForExport($s))->toArray(),
-            'reseller' => $reseller->map(fn($r) => $this->transformer->transformResellerForExport($r))->toArray(),
-            'seedboxes' => $seedboxes->map(fn($sb) => $this->transformer->transformSeedboxForExport($sb))->toArray(),
-            'dns' => $dns->map(fn($d) => $this->transformer->transformDnsForExport($d))->toArray(),
-            'misc' => $misc->map(fn($m) => $this->transformer->transformMiscForExport($m))->toArray(),
-        ];
+        $sections = [];
+        foreach (array_keys(self::EXPORTABLES) as $section) {
+            $sections[$section] = $this->sectionData($section)->toArray();
+        }
 
         if ($format === 'json') {
             return $this->exportAllAsJson($sections, $timestamp);
@@ -373,6 +277,21 @@ class ExportService
 
         // CSV format - create ZIP with separate CSV files
         return $this->exportAllAsCsvZip($sections, $timestamp);
+    }
+
+    /**
+     * Metadata block for combined exports
+     *
+     * @param array $sections data arrays keyed by section name
+     * @return array
+     */
+    protected function exportMetadata(array $sections): array
+    {
+        return [
+            'export_date' => date('c'), // ISO 8601 format
+            'version' => self::EXPORT_VERSION,
+            'counts' => array_map('count', $sections),
+        ];
     }
 
     /**
@@ -384,13 +303,7 @@ class ExportService
      */
     protected function exportAllAsJson(array $sections, string $timestamp): array
     {
-        $exportData = [
-            'export_metadata' => [
-                'export_date' => date('c'), // ISO 8601 format
-                'version' => '4.1.0',
-                'counts' => array_map('count', $sections),
-            ],
-        ] + $sections;
+        $exportData = ['export_metadata' => $this->exportMetadata($sections)] + $sections;
 
         return [
             'data' => $this->toJson($exportData),
@@ -419,29 +332,17 @@ class ExportService
             }
 
             // Add each service type as a separate CSV file
-            $csvFiles = [
-                'servers' => ['servers.csv', $this->transformer->getServerCsvHeaders()],
-                'domains' => ['domains.csv', $this->transformer->getDomainCsvHeaders()],
-                'shared' => ['shared_hosting.csv', $this->transformer->getSharedCsvHeaders()],
-                'reseller' => ['reseller_hosting.csv', $this->transformer->getResellerCsvHeaders()],
-                'seedboxes' => ['seedboxes.csv', $this->transformer->getSeedboxCsvHeaders()],
-                'dns' => ['dns.csv', $this->transformer->getDnsCsvHeaders()],
-                'misc' => ['misc_services.csv', $this->transformer->getMiscCsvHeaders()],
-            ];
-
-            foreach ($csvFiles as $section => [$filename, $headers]) {
-                $zip->addFromString($filename, $this->csv->toCsv($sections[$section], $headers));
+            foreach (self::EXPORTABLES as $section => $cfg) {
+                $zip->addFromString(
+                    $cfg['csv_name'],
+                    $this->csv->toCsv($sections[$section], $this->transformer->{$cfg['headers']}())
+                );
             }
 
             // Add metadata file
-            $metadata = [
-                'export_date' => date('c'),
-                'version' => '4.1.0',
-                'counts' => array_map('count', $sections),
-            ];
             $zip->addFromString(
                 'metadata.json',
-                json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                json_encode($this->exportMetadata($sections), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             );
 
             $zip->close();

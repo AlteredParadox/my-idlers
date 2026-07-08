@@ -39,17 +39,39 @@ class PrometheusInstanceResolver
         // (resolveOfflineHostnames) — without this pass a down node's detail
         // page 404s ("Failed to load monitoring data") while its history
         // exists and the index shows the downtime counter.
+        $lastKnown = null;
         foreach ($up_results as $r) {
             $instance = $r['metric']['instance'] ?? '';
             if ($instance === '' || PromQL::isUp($r)) {
                 continue;
             }
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . PromQL::quote($instance) . '"}[30d])');
-            if (isset($data[0]['metric']['nodename']) && PromQL::hostMatches($hostname, $data[0]['metric']['nodename'])) {
+            $lastKnown ??= $this->lastKnownNodenames();
+            if (isset($lastKnown[$instance]) && PromQL::hostMatches($hostname, $lastKnown[$instance])) {
                 return $instance;
             }
         }
 
         return null;
+    }
+
+    /**
+     * instance => last-known nodename, one query for every instance rather
+     * than one per offline node. Shared by the detail path above and the
+     * list path (PrometheusService::resolveOfflineHostnames) so both
+     * resolve offline nodes from the same candidate set — keep them unified.
+     */
+    public function lastKnownNodenames(): array
+    {
+        $map = [];
+        foreach ($this->client->query('last_over_time(node_uname_info{job="node"}[30d])') as $r) {
+            $instance = $r['metric']['instance'] ?? '';
+            $nodename = $r['metric']['nodename'] ?? '';
+            // first result wins, matching the old per-instance query's [0]
+            if ($instance !== '' && $nodename !== '' && !isset($map[$instance])) {
+                $map[$instance] = $nodename;
+            }
+        }
+
+        return $map;
     }
 }
