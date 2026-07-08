@@ -209,8 +209,14 @@ class Home extends Model
         }
 
         [$list, $item, $hasActiveVariants] = self::TYPE_CACHE_KEYS[$type];
-        Cache::forget("all_$list");
+        self::forgetListCaches($list, $hasActiveVariants);
         Cache::forget("$item.$service_id");
+    }
+
+    /** The list caches for one service type: its all_ list plus variants. */
+    private static function forgetListCaches(string $list, bool $hasActiveVariants): void
+    {
+        Cache::forget("all_$list");
         if ($hasActiveVariants) {
             Cache::forget("all_active_$list");
             Cache::forget("non_active_$list");
@@ -228,11 +234,7 @@ class Home extends Model
         Cache::forget('non_active_servers');
         Cache::forget('public_server_data');
         foreach (self::TYPE_CACHE_KEYS as [$list, , $hasActiveVariants]) {
-            Cache::forget("all_$list");
-            if ($hasActiveVariants) {
-                Cache::forget("all_active_$list");
-                Cache::forget("non_active_$list");
-            }
+            self::forgetListCaches($list, $hasActiveVariants);
         }
     }
 

@@ -31,7 +31,6 @@ class ExportTransformer
     }
 
 
-
     /**
      * Transform a single misc service model for export
      *
@@ -48,7 +47,6 @@ class ExportTransformer
             'pricing' => $this->priceArray($misc->price),
         ];
     }
-
 
 
     /**
@@ -81,7 +79,6 @@ class ExportTransformer
     }
 
 
-
     /**
      * Transform a single reseller hosting model for export
      *
@@ -94,7 +91,6 @@ class ExportTransformer
     }
 
 
-
     /**
      * Transform a single shared hosting model for export
      *
@@ -105,7 +101,6 @@ class ExportTransformer
     {
         return $this->hostingData($shared, 'shared_type');
     }
-
 
 
     /**
@@ -147,7 +142,6 @@ class ExportTransformer
     }
 
 
-
     /**
      * Transform a single domain model for export
      *
@@ -171,7 +165,6 @@ class ExportTransformer
             'pricing' => $this->priceArray($domain->price),
         ];
     }
-
 
 
     /**
@@ -283,7 +276,6 @@ class ExportTransformer
             default => 'Unknown'
         };
     }
-
 
 
     /**

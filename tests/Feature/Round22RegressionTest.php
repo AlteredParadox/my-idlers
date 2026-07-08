@@ -12,6 +12,7 @@ use App\Models\SeedBoxes;
 use App\Models\Server;
 use App\Models\Settings;
 use App\Models\User;
+use App\Services\ExportCsvHeaders;
 use App\Services\ExportTransformer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -152,8 +153,9 @@ class Round22RegressionTest extends TestCase
         $exported = $transformer->transformDomainForExport($domain);
 
         $this->assertArrayHasKey('active', $exported);
-        $this->assertContains('active', (new \App\Services\ExportCsvHeaders())->getDomainCsvHeaders());
-        $this->assertContains('active', (new \App\Services\ExportCsvHeaders())->getMiscCsvHeaders());
+        $headers = new ExportCsvHeaders();
+        $this->assertContains('active', $headers->getDomainCsvHeaders());
+        $this->assertContains('active', $headers->getMiscCsvHeaders());
     }
 
     public function test_unimplemented_settings_and_account_routes_are_not_500()
