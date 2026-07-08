@@ -14,21 +14,9 @@ use Illuminate\Support\Str;
 class YabsIngestService
 {
 
-    public function speedAsMbps(string $string): float
-    {
-        return $this->parseSpeed($string)[2];
-    }
-
-
     public function speedType(string $string): string
     {
         return $this->parseSpeed($string)[1];
-    }
-
-
-    public function speedAsFloat(string $string): float
-    {
-        return $this->parseSpeed($string)[0];
     }
 
 

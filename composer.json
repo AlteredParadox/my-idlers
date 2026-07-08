@@ -13,10 +13,7 @@
         "php": "^8.4",
         "guzzlehttp/guzzle": "^7.9.2",
         "laravel/framework": "^13.0",
-        "laravel/tinker": "^3.0",
-        "laravel/ui": "^v4.6.0",
-        "ext-json": "*",
-        "illuminate/view": "^13.0"
+        "laravel/tinker": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^v1.24.1",
