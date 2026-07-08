@@ -227,7 +227,7 @@ class Home extends Model
         Cache::forget('all_active_servers');
         Cache::forget('non_active_servers');
         Cache::forget('public_server_data');
-        foreach (self::TYPE_CACHE_KEYS as [$list, $item, $hasActiveVariants]) {
+        foreach (self::TYPE_CACHE_KEYS as [$list, , $hasActiveVariants]) {
             Cache::forget("all_$list");
             if ($hasActiveVariants) {
                 Cache::forget("all_active_$list");

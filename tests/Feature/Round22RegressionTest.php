@@ -152,8 +152,8 @@ class Round22RegressionTest extends TestCase
         $exported = $transformer->transformDomainForExport($domain);
 
         $this->assertArrayHasKey('active', $exported);
-        $this->assertContains('active', $transformer->getDomainCsvHeaders());
-        $this->assertContains('active', $transformer->getMiscCsvHeaders());
+        $this->assertContains('active', (new \App\Services\ExportCsvHeaders())->getDomainCsvHeaders());
+        $this->assertContains('active', (new \App\Services\ExportCsvHeaders())->getMiscCsvHeaders());
     }
 
     public function test_unimplemented_settings_and_account_routes_are_not_500()
