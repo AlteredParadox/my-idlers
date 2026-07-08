@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Concerns\OrdersBySessionSetting;
+use App\Models\Concerns\SortsByPricing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 class Shared extends Model
 {
-    use HasFactory;
+    use HasFactory, OrdersBySessionSetting, SortsByPricing;
 
     public $table = 'shared_hosting';
 
@@ -28,26 +28,11 @@ class Shared extends Model
 
     public $incrementing = false;
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('order', function (Builder $builder) {
-            $array = Settings::orderByProcess(Session::get('sort_on') ?? 2);//created_at desc if not set
-            if (!in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $builder->orderBy($array[0], $array[1]);
-            }
-        });
-    }
-
     public static function allSharedHosting()
     {//All shared hosting and relationships (no using joins)
         return Cache::remember("all_shared", now()->addMonth(1), function () {
             $query = Shared::with(['location', 'provider', 'price', 'ips', 'labels']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "shared_hosting.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }
@@ -56,10 +41,7 @@ class Shared extends Model
     {
         return Cache::remember("all_active_shared", now()->addMonth(1), function () {
             $query = Shared::where('active', 1)->with(['location', 'provider', 'price', 'ips', 'labels']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "shared_hosting.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }

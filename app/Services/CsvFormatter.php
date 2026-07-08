@@ -23,19 +23,23 @@ class CsvFormatter
             return empty($headers) ? '' : $this->escapeCsvRow($headers);
         }
 
-        // Flatten all items and collect all possible headers
+        // Flatten all items; auto-detect headers only when none were provided
         $flattenedData = [];
-        $allKeys = [];
+        $detectHeaders = empty($headers);
+        $seenKeys = [];
 
         foreach ($data as $item) {
             $flattened = $this->flattenForCsv((array) $item);
             $flattenedData[] = $flattened;
-            $allKeys = array_merge($allKeys, array_keys($flattened));
+            if ($detectHeaders) {
+                // key-flip union keeps first-seen order without the O(n²)
+                // array_merge growth of appending every row's key list
+                $seenKeys += array_flip(array_keys($flattened));
+            }
         }
 
-        // Use provided headers or auto-detect from data
-        if (empty($headers)) {
-            $headers = array_unique($allKeys);
+        if ($detectHeaders) {
+            $headers = array_keys($seenKeys);
         }
 
         // Build CSV output
@@ -151,11 +155,7 @@ class CsvFormatter
      */
     protected function isIndexedArray(array $array): bool
     {
-        if (empty($array)) {
-            return true;
-        }
-
-        return array_keys($array) === range(0, count($array) - 1);
+        return array_is_list($array);
     }
 
     /**

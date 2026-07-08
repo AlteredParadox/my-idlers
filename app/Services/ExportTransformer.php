@@ -9,10 +9,21 @@ use App\Models\Reseller;
 use App\Models\SeedBoxes;
 use App\Models\Server;
 use App\Models\Shared;
-use App\Models\Yabs;
 
 class ExportTransformer
 {
+    /**
+     * CSV columns shared by every section that exports pricing data.
+     */
+    private const PRICING_CSV_HEADERS = [
+        'pricing_price',
+        'pricing_currency',
+        'pricing_term',
+        'pricing_term_name',
+        'pricing_as_usd',
+        'pricing_usd_per_month',
+        'pricing_next_due_date',
+    ];
 
     /**
      * Transform a single DNS record for export
@@ -59,25 +70,13 @@ class ExportTransformer
      */
     public function transformMiscForExport(Misc $misc): array
     {
-        $data = [
+        return [
             'id' => $misc->id,
             'name' => $misc->name,
             'active' => $misc->active,
             'owned_since' => $misc->owned_since,
+            'pricing' => $this->priceArray($misc->price),
         ];
-
-        // Add pricing data
-        $data['pricing'] = $misc->price ? [
-            'price' => $misc->price->price,
-            'currency' => $misc->price->currency,
-            'term' => $misc->price->term,
-            'term_name' => $this->getTermName($misc->price->term),
-            'as_usd' => $misc->price->as_usd,
-            'usd_per_month' => $misc->price->usd_per_month,
-            'next_due_date' => $misc->price->next_due_date
-        ] : null;
-
-        return $data;
     }
 
 
@@ -88,19 +87,10 @@ class ExportTransformer
      */
     public function getMiscCsvHeaders(): array
     {
-        return [
-            'id',
-            'name',
-            'active',
-            'owned_since',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date'
-        ];
+        return array_merge(
+            ['id', 'name', 'active', 'owned_since'],
+            self::PRICING_CSV_HEADERS
+        );
     }
 
 
@@ -112,7 +102,7 @@ class ExportTransformer
      */
     public function transformSeedboxForExport(SeedBoxes $seedbox): array
     {
-        $data = [
+        return [
             'id' => $seedbox->id,
             'title' => $seedbox->title,
             'hostname' => $seedbox->hostname,
@@ -126,40 +116,11 @@ class ExportTransformer
             'transferrable' => $seedbox->transferrable,
             'active' => $seedbox->active,
             'owned_since' => $seedbox->owned_since,
+            'location' => $this->idName($seedbox->location),
+            'provider' => $this->idName($seedbox->provider),
+            'ips' => $this->ipList($seedbox->ips),
+            'pricing' => $this->priceArray($seedbox->price),
         ];
-
-        // Add location relationship
-        $data['location'] = $seedbox->location ? [
-            'id' => $seedbox->location->id,
-            'name' => $seedbox->location->name
-        ] : null;
-
-        // Add provider relationship
-        $data['provider'] = $seedbox->provider ? [
-            'id' => $seedbox->provider->id,
-            'name' => $seedbox->provider->name
-        ] : null;
-
-        // Add IP addresses (assignable via the IPs page)
-        $data['ips'] = $seedbox->ips->map(function ($ip) {
-            return [
-                'address' => $ip->address,
-                'is_ipv4' => $ip->is_ipv4
-            ];
-        })->toArray();
-
-        // Add pricing data
-        $data['pricing'] = $seedbox->price ? [
-            'price' => $seedbox->price->price,
-            'currency' => $seedbox->price->currency,
-            'term' => $seedbox->price->term,
-            'term_name' => $this->getTermName($seedbox->price->term),
-            'as_usd' => $seedbox->price->as_usd,
-            'usd_per_month' => $seedbox->price->usd_per_month,
-            'next_due_date' => $seedbox->price->next_due_date
-        ] : null;
-
-        return $data;
     }
 
 
@@ -170,33 +131,29 @@ class ExportTransformer
      */
     public function getSeedboxCsvHeaders(): array
     {
-        return [
-            'id',
-            'title',
-            'hostname',
-            'seed_box_type',
-            'disk',
-            'disk_type',
-            'disk_as_gb',
-            'bandwidth',
-            'port_speed',
-            'was_promo',
-            'transferrable',
-            'active',
-            'owned_since',
-            'location_id',
-            'location_name',
-            'provider_id',
-            'provider_name',
-            'ips',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date'
-        ];
+        return array_merge(
+            [
+                'id',
+                'title',
+                'hostname',
+                'seed_box_type',
+                'disk',
+                'disk_type',
+                'disk_as_gb',
+                'bandwidth',
+                'port_speed',
+                'was_promo',
+                'transferrable',
+                'active',
+                'owned_since',
+                'location_id',
+                'location_name',
+                'provider_id',
+                'provider_name',
+                'ips',
+            ],
+            self::PRICING_CSV_HEADERS
+        );
     }
 
 
@@ -208,58 +165,7 @@ class ExportTransformer
      */
     public function transformResellerForExport(Reseller $reseller): array
     {
-        $data = [
-            'id' => $reseller->id,
-            'main_domain' => $reseller->main_domain,
-            'reseller_type' => $reseller->reseller_type,
-            'accounts' => $reseller->accounts,
-            'disk' => $reseller->disk,
-            'disk_type' => $reseller->disk_type,
-            'disk_as_gb' => $reseller->disk_as_gb,
-            'bandwidth' => $reseller->bandwidth,
-            'domains_limit' => $reseller->domains_limit,
-            'subdomains_limit' => $reseller->subdomains_limit,
-            'ftp_limit' => $reseller->ftp_limit,
-            'email_limit' => $reseller->email_limit,
-            'db_limit' => $reseller->db_limit,
-            'was_promo' => $reseller->was_promo,
-            'transferrable' => $reseller->transferrable,
-            'active' => $reseller->active,
-            'owned_since' => $reseller->owned_since,
-        ];
-
-        // Add location relationship
-        $data['location'] = $reseller->location ? [
-            'id' => $reseller->location->id,
-            'name' => $reseller->location->name
-        ] : null;
-
-        // Add provider relationship
-        $data['provider'] = $reseller->provider ? [
-            'id' => $reseller->provider->id,
-            'name' => $reseller->provider->name
-        ] : null;
-
-        // Add IP addresses
-        $data['ips'] = $reseller->ips->map(function ($ip) {
-            return [
-                'address' => $ip->address,
-                'is_ipv4' => $ip->is_ipv4
-            ];
-        })->toArray();
-
-        // Add pricing data
-        $data['pricing'] = $reseller->price ? [
-            'price' => $reseller->price->price,
-            'currency' => $reseller->price->currency,
-            'term' => $reseller->price->term,
-            'term_name' => $this->getTermName($reseller->price->term),
-            'as_usd' => $reseller->price->as_usd,
-            'usd_per_month' => $reseller->price->usd_per_month,
-            'next_due_date' => $reseller->price->next_due_date
-        ] : null;
-
-        return $data;
+        return $this->hostingData($reseller, 'reseller_type', ['accounts' => $reseller->accounts]);
     }
 
 
@@ -270,37 +176,7 @@ class ExportTransformer
      */
     public function getResellerCsvHeaders(): array
     {
-        return [
-            'id',
-            'main_domain',
-            'reseller_type',
-            'accounts',
-            'disk',
-            'disk_type',
-            'disk_as_gb',
-            'bandwidth',
-            'domains_limit',
-            'subdomains_limit',
-            'ftp_limit',
-            'email_limit',
-            'db_limit',
-            'was_promo',
-            'transferrable',
-            'active',
-            'owned_since',
-            'location_id',
-            'location_name',
-            'provider_id',
-            'provider_name',
-            'ips',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date'
-        ];
+        return $this->hostingCsvHeaders('reseller_type', ['accounts']);
     }
 
 
@@ -312,57 +188,7 @@ class ExportTransformer
      */
     public function transformSharedForExport(Shared $shared): array
     {
-        $data = [
-            'id' => $shared->id,
-            'main_domain' => $shared->main_domain,
-            'shared_type' => $shared->shared_type,
-            'disk' => $shared->disk,
-            'disk_type' => $shared->disk_type,
-            'disk_as_gb' => $shared->disk_as_gb,
-            'bandwidth' => $shared->bandwidth,
-            'domains_limit' => $shared->domains_limit,
-            'subdomains_limit' => $shared->subdomains_limit,
-            'ftp_limit' => $shared->ftp_limit,
-            'email_limit' => $shared->email_limit,
-            'db_limit' => $shared->db_limit,
-            'was_promo' => $shared->was_promo,
-            'transferrable' => $shared->transferrable,
-            'active' => $shared->active,
-            'owned_since' => $shared->owned_since,
-        ];
-
-        // Add location relationship
-        $data['location'] = $shared->location ? [
-            'id' => $shared->location->id,
-            'name' => $shared->location->name
-        ] : null;
-
-        // Add provider relationship
-        $data['provider'] = $shared->provider ? [
-            'id' => $shared->provider->id,
-            'name' => $shared->provider->name
-        ] : null;
-
-        // Add IP addresses
-        $data['ips'] = $shared->ips->map(function ($ip) {
-            return [
-                'address' => $ip->address,
-                'is_ipv4' => $ip->is_ipv4
-            ];
-        })->toArray();
-
-        // Add pricing data
-        $data['pricing'] = $shared->price ? [
-            'price' => $shared->price->price,
-            'currency' => $shared->price->currency,
-            'term' => $shared->price->term,
-            'term_name' => $this->getTermName($shared->price->term),
-            'as_usd' => $shared->price->as_usd,
-            'usd_per_month' => $shared->price->usd_per_month,
-            'next_due_date' => $shared->price->next_due_date
-        ] : null;
-
-        return $data;
+        return $this->hostingData($shared, 'shared_type');
     }
 
 
@@ -373,36 +199,81 @@ class ExportTransformer
      */
     public function getSharedCsvHeaders(): array
     {
+        return $this->hostingCsvHeaders('shared_type');
+    }
+
+
+    /**
+     * Shared/reseller hosting exports are identical apart from the type
+     * column and reseller's extra `accounts` field (inserted after the type).
+     *
+     * @param Shared|Reseller $model
+     * @param string $typeField
+     * @param array $extra extra fields inserted after the type column
+     * @return array
+     */
+    private function hostingData($model, string $typeField, array $extra = []): array
+    {
         return [
-            'id',
-            'main_domain',
-            'shared_type',
-            'disk',
-            'disk_type',
-            'disk_as_gb',
-            'bandwidth',
-            'domains_limit',
-            'subdomains_limit',
-            'ftp_limit',
-            'email_limit',
-            'db_limit',
-            'was_promo',
-            'transferrable',
-            'active',
-            'owned_since',
-            'location_id',
-            'location_name',
-            'provider_id',
-            'provider_name',
-            'ips',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date'
-        ];
+                'id' => $model->id,
+                'main_domain' => $model->main_domain,
+                $typeField => $model->{$typeField},
+            ]
+            + $extra
+            + [
+                'disk' => $model->disk,
+                'disk_type' => $model->disk_type,
+                'disk_as_gb' => $model->disk_as_gb,
+                'bandwidth' => $model->bandwidth,
+                'domains_limit' => $model->domains_limit,
+                'subdomains_limit' => $model->subdomains_limit,
+                'ftp_limit' => $model->ftp_limit,
+                'email_limit' => $model->email_limit,
+                'db_limit' => $model->db_limit,
+                'was_promo' => $model->was_promo,
+                'transferrable' => $model->transferrable,
+                'active' => $model->active,
+                'owned_since' => $model->owned_since,
+                'location' => $this->idName($model->location),
+                'provider' => $this->idName($model->provider),
+                'ips' => $this->ipList($model->ips),
+                'pricing' => $this->priceArray($model->price),
+            ];
+    }
+
+
+    /**
+     * @param string $typeField
+     * @param array $extra extra columns inserted after the type column
+     * @return array
+     */
+    private function hostingCsvHeaders(string $typeField, array $extra = []): array
+    {
+        return array_merge(
+            ['id', 'main_domain', $typeField],
+            $extra,
+            [
+                'disk',
+                'disk_type',
+                'disk_as_gb',
+                'bandwidth',
+                'domains_limit',
+                'subdomains_limit',
+                'ftp_limit',
+                'email_limit',
+                'db_limit',
+                'was_promo',
+                'transferrable',
+                'active',
+                'owned_since',
+                'location_id',
+                'location_name',
+                'provider_id',
+                'provider_name',
+                'ips',
+            ],
+            self::PRICING_CSV_HEADERS
+        );
     }
 
 
@@ -414,7 +285,7 @@ class ExportTransformer
      */
     public function transformDomainForExport(Domains $domain): array
     {
-        $data = [
+        return [
             'id' => $domain->id,
             'domain' => $domain->domain,
             'extension' => $domain->extension,
@@ -425,26 +296,9 @@ class ExportTransformer
             'transferrable' => $domain->transferrable,
             'active' => $domain->active,
             'owned_since' => $domain->owned_since,
+            'provider' => $this->idName($domain->provider),
+            'pricing' => $this->priceArray($domain->price),
         ];
-
-        // Add provider relationship
-        $data['provider'] = $domain->provider ? [
-            'id' => $domain->provider->id,
-            'name' => $domain->provider->name
-        ] : null;
-
-        // Add pricing data
-        $data['pricing'] = $domain->price ? [
-            'price' => $domain->price->price,
-            'currency' => $domain->price->currency,
-            'term' => $domain->price->term,
-            'term_name' => $this->getTermName($domain->price->term),
-            'as_usd' => $domain->price->as_usd,
-            'usd_per_month' => $domain->price->usd_per_month,
-            'next_due_date' => $domain->price->next_due_date
-        ] : null;
-
-        return $data;
     }
 
 
@@ -455,27 +309,23 @@ class ExportTransformer
      */
     public function getDomainCsvHeaders(): array
     {
-        return [
-            'id',
-            'domain',
-            'extension',
-            'full_domain',
-            'ns1',
-            'ns2',
-            'ns3',
-            'transferrable',
-            'active',
-            'owned_since',
-            'provider_id',
-            'provider_name',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date'
-        ];
+        return array_merge(
+            [
+                'id',
+                'domain',
+                'extension',
+                'full_domain',
+                'ns1',
+                'ns2',
+                'ns3',
+                'transferrable',
+                'active',
+                'owned_since',
+                'provider_id',
+                'provider_name',
+            ],
+            self::PRICING_CSV_HEADERS
+        );
     }
 
 
@@ -487,7 +337,7 @@ class ExportTransformer
      */
     public function transformServerForExport(Server $server): array
     {
-        $data = [
+        return [
             'id' => $server->id,
             'hostname' => $server->hostname,
             'server_type' => $server->server_type,
@@ -504,51 +354,15 @@ class ExportTransformer
             'transferrable' => $server->transferrable,
             'active' => $server->active,
             'owned_since' => $server->owned_since,
+            'os' => $this->idName($server->os),
+            'location' => $this->idName($server->location),
+            'provider' => $this->idName($server->provider),
+            'ips' => $this->ipList($server->ips),
+            'pricing' => $this->priceArray($server->price),
+            'yabs' => $server->yabs->map(function ($yabs) {
+                return $this->transformYabsForExport($yabs);
+            })->toArray(),
         ];
-
-        // Add OS relationship
-        $data['os'] = $server->os ? [
-            'id' => $server->os->id,
-            'name' => $server->os->name
-        ] : null;
-
-        // Add location relationship
-        $data['location'] = $server->location ? [
-            'id' => $server->location->id,
-            'name' => $server->location->name
-        ] : null;
-
-        // Add provider relationship
-        $data['provider'] = $server->provider ? [
-            'id' => $server->provider->id,
-            'name' => $server->provider->name
-        ] : null;
-
-        // Add IP addresses
-        $data['ips'] = $server->ips->map(function ($ip) {
-            return [
-                'address' => $ip->address,
-                'is_ipv4' => $ip->is_ipv4
-            ];
-        })->toArray();
-
-        // Add pricing data
-        $data['pricing'] = $server->price ? [
-            'price' => $server->price->price,
-            'currency' => $server->price->currency,
-            'term' => $server->price->term,
-            'term_name' => $this->getTermName($server->price->term),
-            'as_usd' => $server->price->as_usd,
-            'usd_per_month' => $server->price->usd_per_month,
-            'next_due_date' => $server->price->next_due_date
-        ] : null;
-
-        // Add YABS data with disk_speed and network_speed
-        $data['yabs'] = $server->yabs->map(function ($yabs) {
-            return $this->transformYabsForExport($yabs);
-        })->toArray();
-
-        return $data;
     }
 
 
@@ -633,38 +447,86 @@ class ExportTransformer
      */
     public function getServerCsvHeaders(): array
     {
-        return [
-            'id',
-            'hostname',
-            'server_type',
-            'server_type_name',
-            'cpu',
-            'ram',
-            'ram_type',
-            'ram_as_mb',
-            'disk',
-            'disk_type',
-            'disk_as_gb',
-            'bandwidth',
-            'ssh',
-            'transferrable',
-            'active',
-            'owned_since',
-            'os_id',
-            'os_name',
-            'location_id',
-            'location_name',
-            'provider_id',
-            'provider_name',
-            'ips',
-            'pricing_price',
-            'pricing_currency',
-            'pricing_term',
-            'pricing_term_name',
-            'pricing_as_usd',
-            'pricing_usd_per_month',
-            'pricing_next_due_date',
-            'yabs'
-        ];
+        return array_merge(
+            [
+                'id',
+                'hostname',
+                'server_type',
+                'server_type_name',
+                'cpu',
+                'ram',
+                'ram_type',
+                'ram_as_mb',
+                'disk',
+                'disk_type',
+                'disk_as_gb',
+                'bandwidth',
+                'ssh',
+                'transferrable',
+                'active',
+                'owned_since',
+                'os_id',
+                'os_name',
+                'location_id',
+                'location_name',
+                'provider_id',
+                'provider_name',
+                'ips',
+            ],
+            self::PRICING_CSV_HEADERS,
+            ['yabs']
+        );
+    }
+
+
+    /**
+     * Pricing sub-array shared by every priced section.
+     *
+     * @param \App\Models\Pricing|null $price
+     * @return array|null
+     */
+    private function priceArray($price): ?array
+    {
+        return $price ? [
+            'price' => $price->price,
+            'currency' => $price->currency,
+            'term' => $price->term,
+            'term_name' => $this->getTermName($price->term),
+            'as_usd' => $price->as_usd,
+            'usd_per_month' => $price->usd_per_month,
+            'next_due_date' => $price->next_due_date
+        ] : null;
+    }
+
+
+    /**
+     * id/name sub-array for location/provider/os relations.
+     *
+     * @param object|null $model
+     * @return array|null
+     */
+    private function idName($model): ?array
+    {
+        return $model ? [
+            'id' => $model->id,
+            'name' => $model->name
+        ] : null;
+    }
+
+
+    /**
+     * Assigned IP addresses as address/is_ipv4 pairs.
+     *
+     * @param \Illuminate\Support\Collection $ips
+     * @return array
+     */
+    private function ipList($ips): array
+    {
+        return $ips->map(function ($ip) {
+            return [
+                'address' => $ip->address,
+                'is_ipv4' => $ip->is_ipv4
+            ];
+        })->toArray();
     }
 }

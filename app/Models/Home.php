@@ -39,17 +39,44 @@ class Home extends Model
         });
     }
 
+    /**
+     * Active pricing rows joined to every service table so each row can
+     * carry its service's display name. Shared by dueSoonData/recentlyAdded.
+     */
+    private static function pricingWithServiceNames()
+    {
+        return DB::table('pricings as p')
+            ->leftJoin('servers as s', 'p.service_id', 's.id')
+            ->leftJoin('shared_hosting as sh', 'p.service_id', 'sh.id')
+            ->leftJoin('reseller_hosting as r', 'p.service_id', 'r.id')
+            ->leftJoin('domains as d', 'p.service_id', 'd.id')
+            ->leftJoin('misc_services as ms', 'p.service_id', 'ms.id')
+            ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
+            ->where('p.active', 1);
+    }
+
+    /** One name column per joined service table */
+    private const SERVICE_NAME_COLUMNS = [
+        'p.*', 's.hostname', 'd.domain', 'd.extension',
+        'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title',
+    ];
+
+    /**
+     * Raw DB rows arrive as strings under MySQL; the views compare
+     * service_type strictly (=== 1), so normalize to int here.
+     */
+    private static function castServiceTypes($rows)
+    {
+        return $rows->map(function ($row) {
+            $row->service_type = (int) $row->service_type;
+            return $row;
+        });
+    }
+
     public static function dueSoonData()
     {
         return Cache::remember('due_soon', now()->addHours(6), function () {
-            return DB::table('pricings as p')
-                ->leftJoin('servers as s', 'p.service_id', 's.id')
-                ->leftJoin('shared_hosting as sh', 'p.service_id', 'sh.id')
-                ->leftJoin('reseller_hosting as r', 'p.service_id', 'r.id')
-                ->leftJoin('domains as d', 'p.service_id', 'd.id')
-                ->leftJoin('misc_services as ms', 'p.service_id', 'ms.id')
-                ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
-                ->where('p.active', 1)
+            return self::castServiceTypes(self::pricingWithServiceNames()
                 ->where('p.term', '!=', 7)
                 // NULLs sort first on both drivers and would crowd real
                 // renewals out of the limited window (and doDueSoon only
@@ -65,35 +92,35 @@ class Home extends Model
                 })
                 ->orderBy('next_due_date', 'ASC')
                 ->limit(Session::get('due_soon_amount'))
-                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title'])
-                ->map(function ($row) {
-                    // Raw DB rows arrive as strings under MySQL; the views compare
-                    // service_type strictly (=== 1), so normalize to int here.
-                    $row->service_type = (int) $row->service_type;
-                    return $row;
-                });
+                ->get(self::SERVICE_NAME_COLUMNS));
         });
     }
 
     public static function serverSummary()
     {
         return Cache::remember('servers_summary', now()->addHours(6), function () {
-            $cpu_sum = DB::table('servers')->get()->where('active', 1)->sum('cpu');
-            $ram_mb = DB::table('servers')->get()->where('active', 1)->sum('ram_as_mb');
+            // One aggregate query instead of five full-table fetches summed in
+            // PHP. location_id/provider_id are NOT NULL (default 9999), so
+            // COUNT(DISTINCT ...) matches the old groupBy()->count() exactly;
+            // int casts match Collection sums (MySQL returns SUM as string).
+            $totals = DB::table('servers')->where('active', 1)->selectRaw(
+                'COALESCE(SUM(cpu), 0) as cpu_sum, '
+                . 'COALESCE(SUM(ram_as_mb), 0) as ram_mb_sum, '
+                . 'COALESCE(SUM(bandwidth), 0) as bandwidth_sum, '
+                . 'COUNT(DISTINCT location_id) as locations_sum, '
+                . 'COUNT(DISTINCT provider_id) as providers_sum'
+            )->first();
             $disk_gb = DB::table('server_disks')
                 ->join('servers', 'server_disks.server_id', '=', 'servers.id')
                 ->where('servers.active', 1)
                 ->sum('server_disks.disk_as_gb');
-            $bandwidth = DB::table('servers')->get()->where('active', 1)->sum('bandwidth');
-            $locations_sum = DB::table('servers')->get()->where('active', 1)->groupBy('location_id')->count();
-            $providers_sum = DB::table('servers')->get()->where('active', 1)->groupBy('provider_id')->count();
             return array(
-                'cpu_sum' => $cpu_sum,
-                'ram_mb_sum' => $ram_mb,
+                'cpu_sum' => (int) $totals->cpu_sum,
+                'ram_mb_sum' => (int) $totals->ram_mb_sum,
                 'disk_gb_sum' => $disk_gb,
-                'bandwidth_sum' => $bandwidth,
-                'locations_sum' => $locations_sum,
-                'providers_sum' => $providers_sum,
+                'bandwidth_sum' => (int) $totals->bandwidth_sum,
+                'locations_sum' => (int) $totals->locations_sum,
+                'providers_sum' => (int) $totals->providers_sum,
             );
         });
     }
@@ -101,21 +128,10 @@ class Home extends Model
     public static function recentlyAdded()
     {
         return Cache::remember('recently_added', now()->addHours(6), function () {
-            return DB::table('pricings as p')
-                ->leftJoin('servers as s', 'p.service_id', 's.id')
-                ->leftJoin('shared_hosting as sh', 'p.service_id', 'sh.id')
-                ->leftJoin('reseller_hosting as r', 'p.service_id', 'r.id')
-                ->leftJoin('domains as d', 'p.service_id', 'd.id')
-                ->leftJoin('misc_services as ms', 'p.service_id', 'ms.id')
-                ->leftJoin('seedboxes as sb', 'p.service_id', 'sb.id')
-                ->where('p.active', 1)
+            return self::castServiceTypes(self::pricingWithServiceNames()
                 ->orderBy('created_at', 'DESC')
                 ->limit(Session::get('recently_added_amount'))
-                ->get(['p.*', 's.hostname', 'd.domain', 'd.extension', 'r.main_domain as reseller', 'sh.main_domain', 'ms.name', 'sb.title'])
-                ->map(function ($row) {
-                    $row->service_type = (int) $row->service_type;
-                    return $row;
-                });
+                ->get(self::SERVICE_NAME_COLUMNS));
         });
     }
 
@@ -206,10 +222,13 @@ class Home extends Model
         return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($all_pricing) {
             $total_cost_pm = 0;
             $currency = Session::get('dashboard_currency', 'USD');
+            // Look the rate up once, not once per row (each lookup is a cache
+            // read). Same per-row multiply, so the float math is unchanged.
+            $rate = $currency !== 'USD' ? Pricing::convertFromUSD('1', $currency) : 1.0;
 
             foreach ($all_pricing as $price) {
                 if ($currency !== 'USD') {
-                    $total_cost_pm += Pricing::convertFromUSD($price->usd_per_month, $currency);
+                    $total_cost_pm += $price->usd_per_month * $rate;
                 } else {
                     $total_cost_pm += $price->usd_per_month;
                 }

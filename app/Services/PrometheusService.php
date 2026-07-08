@@ -107,15 +107,18 @@ class PrometheusService
     /** Offline instances are missing from uname; look up their last known nodename */
     private function resolveOfflineHostnames(array $upResults, array &$hostnames): void
     {
+        // One batched query for all offline nodes (lazy: none when all are up),
+        // via the resolver so list and detail share the same candidate set.
+        $lastKnown = null;
         foreach ($upResults as $result) {
             $instance = $result['metric']['instance'] ?? '';
             if (PromQL::isUp($result) || isset($hostnames[$instance])) {
                 continue;
             }
 
-            $data = $this->client->query('last_over_time(node_uname_info{job="node",instance="' . PromQL::quote($instance) . '"}[30d])');
-            if (isset($data[0]['metric']['nodename'])) {
-                $hostnames[$instance] = $data[0]['metric']['nodename'];
+            $lastKnown ??= (new PrometheusInstanceResolver($this->client))->lastKnownNodenames();
+            if (isset($lastKnown[$instance])) {
+                $hostnames[$instance] = $lastKnown[$instance];
             }
         }
     }

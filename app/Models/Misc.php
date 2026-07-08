@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Concerns\OrdersBySessionSetting;
+use App\Models\Concerns\SortsByPricing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 class Misc extends Model
 {
-    use HasFactory;
+    use HasFactory, OrdersBySessionSetting, SortsByPricing;
 
     public $incrementing = false;
 
@@ -26,26 +26,11 @@ class Misc extends Model
         'active' => 'integer',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('order', function (Builder $builder) {
-            $array = Settings::orderByProcess(Session::get('sort_on') ?? 2);//created_at desc if not set
-            if (!in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $builder->orderBy($array[0], $array[1]);
-            }
-        });
-    }
-
     public static function allMisc()
     {//All misc and relationships (no using joins)
         return Cache::remember("all_misc", now()->addMonth(1), function () {
             $query = Misc::with(['price']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "misc_services.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }
@@ -54,10 +39,7 @@ class Misc extends Model
     {
         return Cache::remember("all_active_misc", now()->addMonth(1), function () {
             $query = Misc::where('active', 1)->with(['price']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "misc_services.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }

@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Concerns\OrdersBySessionSetting;
+use App\Models\Concerns\SortsByPricing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 class SeedBoxes extends Model
 {
-    use HasFactory;
+    use HasFactory, OrdersBySessionSetting, SortsByPricing;
 
     protected $table = 'seedboxes';
 
@@ -28,18 +28,6 @@ class SeedBoxes extends Model
         'transferrable' => 'integer',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('order', function (Builder $builder) {
-            $array = Settings::orderByProcess(Session::get('sort_on') ?? 2);//created_at desc if not set
-            if (!in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $builder->orderBy($array[0], $array[1]);
-            }
-        });
-    }
-
     public function ips(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(IPs::class, 'service_id', 'id');
@@ -49,10 +37,7 @@ class SeedBoxes extends Model
     {//All seedboxes and relationships (no using joins)
         return Cache::remember("all_seedboxes", now()->addMonth(1), function () {
             $query = SeedBoxes::with(['location', 'provider', 'price', 'ips']);
-            if (in_array(Session::get('sort_on'), [3, 4, 5, 6], true)) {
-                $options = Settings::orderByProcess(Session::get('sort_on'));
-                $query->orderBy(Pricing::select("pricings.$options[0]")->whereColumn("pricings.service_id", "seedboxes.id"), $options[1]);
-            }
+            self::applyPricingSort($query);
             return $query->get();
         });
     }

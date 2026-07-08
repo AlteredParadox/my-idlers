@@ -26,6 +26,9 @@ class ImportServersCommand extends Command
         'USA (Kansas City)' => 'USA (Kansas City, MO)',
     ];
 
+    /** Resolved once on the first imported row; constant for the whole run */
+    private ?int $debianOsId = null;
+
     public function handle(): int
     {
         $file = $this->argument('file');
@@ -191,8 +194,10 @@ class ImportServersCommand extends Command
         DB::transaction(function () use ($serverId, $hostname, $providerName, $locName, $ram, $ramType, $ramAsMb, $firstDisk, $totalDiskGb, $bandwidth, $active, $ownedSince, $disks, $currency, $price, $term, $nextDueDate, $cpu) {
             $provider = Providers::firstOrCreate(['name' => $providerName]);
             $location = Locations::firstOrCreate(['name' => $locName]);
-            // Lazy: a completely invalid import must not add the OS row either
-            $os = OS::firstOrCreate(['name' => 'Debian 13']);
+            // Lazy: a completely invalid import must not add the OS row either.
+            // Memoized after the first row — the OS is the same constant for
+            // every import, no need to re-select it per row.
+            $this->debianOsId ??= OS::firstOrCreate(['name' => 'Debian 13'])->id;
 
             // Pricing FIRST: servers.id has an FK to pricings.service_id
             // (servers_fk_pricing), checked immediately by InnoDB. SQLite
@@ -203,7 +208,7 @@ class ImportServersCommand extends Command
                 'id' => $serverId,
                 'hostname' => $hostname,
                 'server_type' => 1, // KVM
-                'os_id' => $os->id,
+                'os_id' => $this->debianOsId,
                 'provider_id' => $provider->id,
                 'location_id' => $location->id,
                 'ram' => $ram,

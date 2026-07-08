@@ -120,9 +120,10 @@ class Yabs extends Model
      */
     public static function deleteForServer(string $server_id): void
     {
-        foreach (self::where('server_id', $server_id)->pluck('id') as $yabs_id) {
-            DiskSpeed::where('id', $yabs_id)->delete();
-            NetworkSpeed::where('id', $yabs_id)->delete();
+        $yabs_ids = self::where('server_id', $server_id)->pluck('id');
+        DiskSpeed::whereIn('id', $yabs_ids)->delete();
+        NetworkSpeed::whereIn('id', $yabs_ids)->delete();
+        foreach ($yabs_ids as $yabs_id) {
             Cache::forget("yabs.$yabs_id");
         }
         self::where('server_id', $server_id)->delete();

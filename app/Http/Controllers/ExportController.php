@@ -19,158 +19,76 @@ class ExportController extends Controller
 
     /**
      * Export servers data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function servers(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportServers($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportServers');
     }
 
     /**
      * Export domains data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function domains(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportDomains($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportDomains');
     }
 
     /**
      * Export shared hosting data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function shared(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportShared($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportShared');
     }
 
     /**
      * Export reseller hosting data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function reseller(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportReseller($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportReseller');
     }
 
     /**
      * Export seedboxes data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function seedboxes(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportSeedboxes($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportSeedboxes');
     }
 
     /**
      * Export DNS records
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function dns(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportDns($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportDns');
     }
 
     /**
      * Export misc services data
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function misc(Request $request)
     {
-        $format = $request->query('format', 'json');
-
-        if (!$this->exportService->isValidFormat($format)) {
-            return response()->json([
-                'error' => ExportService::ERROR_INVALID_FORMAT
-            ], 400);
-        }
-
-        $export = $this->exportService->exportMisc($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->handleExport($request, 'exportMisc');
     }
 
     /**
      * Export all data (global export)
-     *
-     * @param Request $request
-     * @return StreamedResponse|\Illuminate\Http\JsonResponse
      */
     public function all(Request $request)
+    {
+        return $this->handleExport($request, 'exportAll');
+    }
+
+    /**
+     * Validate the requested format and run one ExportService export method
+     *
+     * @param Request $request
+     * @param string $method ExportService method name
+     * @return StreamedResponse|\Illuminate\Http\JsonResponse
+     */
+    protected function handleExport(Request $request, string $method)
     {
         $format = $request->query('format', 'json');
 
@@ -180,9 +98,7 @@ class ExportController extends Controller
             ], 400);
         }
 
-        $export = $this->exportService->exportAll($format);
-
-        return $this->createStreamedResponse($export);
+        return $this->createStreamedResponse($this->exportService->{$method}($format));
     }
 
     /**
