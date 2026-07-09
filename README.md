@@ -330,6 +330,8 @@ docker run \
 docker exec ... php artisan migrate:fresh --seed --force  # Set up database one time
 ```
 
+The container serves the app with nginx + php-fpm (supervised) on port 8000.
+
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
 `ghcr.io/alteredparadox/my-idlers:4.1.0-ap.1` — note the Docker tag uses `-ap.1` since `+` is not

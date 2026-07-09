@@ -38,4 +38,6 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     php artisan migrate --force
 fi
 
-php artisan serve --host=0.0.0.0 --port=8000 --env=production
+# Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
+# (replaces artisan serve, which is PHP's single-threaded dev server)
+exec supervisord -c /etc/supervisord.conf
