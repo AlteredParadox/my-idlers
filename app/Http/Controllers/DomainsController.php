@@ -125,14 +125,19 @@ class DomainsController extends Controller
 
     public function destroy(Domains $domain)
     {
-        if ($domain->delete()){
-            $p = new Pricing();
-            $p->deletePricing($domain->id);
-
+        // Atomic: child rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted domain.
+        $deleted = DB::transaction(function () use ($domain) {
+            if (!$domain->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($domain->id);
             Labels::deleteLabelsAssignedTo($domain->id);
-
             Note::deleteForService($domain->id);
+            return true;
+        });
 
+        if ($deleted) {
             Home::forgetServiceCacheByType(4, $domain->id);
             Home::homePageCacheForget();
 

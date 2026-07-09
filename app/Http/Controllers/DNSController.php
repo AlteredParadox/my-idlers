@@ -147,12 +147,19 @@ class DNSController extends Controller
 
     public function destroy(DNS $dn): \Illuminate\Http\RedirectResponse
     {
-        if ( $dn->delete()){
-            Cache::forget('dns_count');
-
+        // Atomic: label/note rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted record.
+        $deleted = DB::transaction(function () use ($dn) {
+            if (!$dn->delete()) {
+                return false;
+            }
             Labels::deleteLabelsAssignedTo($dn->id);
-
             Note::deleteForService($dn->id);
+            return true;
+        });
+
+        if ($deleted) {
+            Cache::forget('dns_count');
 
             return redirect()->route('dns.index')
                 ->with('success', 'DNS was deleted Successfully.');

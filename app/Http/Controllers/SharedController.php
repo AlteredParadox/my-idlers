@@ -158,16 +158,20 @@ class SharedController extends Controller
 
     public function destroy(Shared $shared)
     {
-        if ($shared->delete()) {
-            $p = new Pricing();
-            $p->deletePricing($shared->id);
-
+        // Atomic: child rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted service.
+        $deleted = DB::transaction(function () use ($shared) {
+            if (!$shared->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($shared->id);
             Labels::deleteLabelsAssignedTo($shared->id);
-
             IPs::deleteIPsAssignedTo($shared->id);
-
             Note::deleteForService($shared->id);
+            return true;
+        });
 
+        if ($deleted) {
             Home::forgetServiceCacheByType(2, $shared->id);
             Home::homePageCacheForget();
 

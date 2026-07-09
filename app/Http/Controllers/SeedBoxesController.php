@@ -134,19 +134,23 @@ class SeedBoxesController extends Controller
 
     public function destroy(SeedBoxes $seedbox)
     {
-        if ($seedbox->delete()) {
-            $p = new Pricing();
-            $p->deletePricing($seedbox->id);
-
+        // Atomic: child rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted service.
+        $deleted = DB::transaction(function () use ($seedbox) {
+            if (!$seedbox->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($seedbox->id);
             Labels::deleteLabelsAssignedTo($seedbox->id);
-
             // IPs can be assigned to seedboxes (ips.create lists them) —
             // every other IP-capable type deletes them on destroy.
             IPs::deleteIPsAssignedTo($seedbox->id);
-
             // Legacy/forged notes keyed to this id would linger as ghost rows
             Note::deleteForService($seedbox->id);
+            return true;
+        });
 
+        if ($deleted) {
             Home::forgetServiceCacheByType(6, $seedbox->id);
             Home::homePageCacheForget();
 

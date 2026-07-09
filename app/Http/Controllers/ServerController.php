@@ -233,20 +233,23 @@ class ServerController extends Controller
 
     public function destroy(Server $server)
     {
-        if ($server->delete()) {
-            $p = new Pricing();
-            $p->deletePricing($server->id);
-
+        // Atomic: child rows (pricing, labels, IPs, disks, notes, YABS) have
+        // no DB cascades — a failure mid-cleanup must not orphan them behind
+        // an already-deleted server.
+        $deleted = DB::transaction(function () use ($server) {
+            if (!$server->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($server->id);
             Labels::deleteLabelsAssignedTo($server->id);
-
             IPs::deleteIPsAssignedTo($server->id);
-
             Disk::deleteDisksForServer($server->id);
-
             Note::deleteForService($server->id);
-
             Yabs::deleteForServer($server->id);
+            return true;
+        });
 
+        if ($deleted) {
             Server::serverRelatedCacheForget();
             Server::serverSpecificCacheForget($server->id);
 

@@ -161,16 +161,20 @@ class ResellerController extends Controller
 
     public function destroy(Reseller $reseller)
     {
-        if ($reseller->delete()) {
-            $p = new Pricing();
-            $p->deletePricing($reseller->id);
-
+        // Atomic: child rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted service.
+        $deleted = DB::transaction(function () use ($reseller) {
+            if (!$reseller->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($reseller->id);
             Labels::deleteLabelsAssignedTo($reseller->id);
-
             IPs::deleteIPsAssignedTo($reseller->id);
-
             Note::deleteForService($reseller->id);
+            return true;
+        });
 
+        if ($deleted) {
             Home::forgetServiceCacheByType(3, $reseller->id);
             Home::homePageCacheForget();
 

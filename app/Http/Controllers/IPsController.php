@@ -11,6 +11,7 @@ use App\Models\Shared;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class IPsController extends Controller
@@ -78,9 +79,18 @@ class IPsController extends Controller
     {
         $service_id = $ip->service_id;
 
-        if ($ip->delete()) {
-            self::forgetServiceCaches($service_id);
+        // Atomic: an attached note has no DB cascade — it must not outlive
+        // its IP as a ghost row.
+        $deleted = DB::transaction(function () use ($ip) {
+            if (!$ip->delete()) {
+                return false;
+            }
             Note::deleteForService($ip->id);
+            return true;
+        });
+
+        if ($deleted) {
+            self::forgetServiceCaches($service_id);
 
             return redirect()->route('IPs.index')
                 ->with('success', 'IP address was deleted Successfully.');
