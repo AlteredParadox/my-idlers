@@ -317,6 +317,7 @@ If you already have at least version 2.0 installed:
 ```
 docker run \
   -p 8000:8000 \
+  -e APP_KEY=base64:... \
   -e APP_URL=https://... \
   -e TRUSTED_PROXIES='*' \
   -e DB_HOST=... \
@@ -331,6 +332,11 @@ docker exec ... php artisan migrate:fresh --seed --force  # Set up database one 
 ```
 
 The container serves the app with nginx + php-fpm (supervised) on port 8000.
+
+`APP_KEY` is required and must stay the same across redeploys — rotating it invalidates
+sessions, signed URLs and encrypted data. Generate one once with
+`docker run --rm ghcr.io/alteredparadox/my-idlers:latest php artisan key:generate --show`
+and keep it with your other secrets.
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
