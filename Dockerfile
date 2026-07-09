@@ -1,7 +1,8 @@
 FROM php:8.4-fpm-alpine
 
-# Install dependencies for PHP extensions
-RUN apk add --no-cache linux-headers
+# Build deps for PHP extensions + the production web stack:
+# nginx fronts php-fpm (the base image's actual runtime), supervisor runs both
+RUN apk add --no-cache linux-headers nginx supervisor
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql sockets bcmath pcntl
@@ -16,6 +17,10 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
+COPY docker/php-fpm-pool.conf /usr/local/etc/php-fpm.d/zz-myidlers.conf
 
 ENV APP_ENV=production
 EXPOSE 8000
