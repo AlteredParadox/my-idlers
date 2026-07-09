@@ -21,8 +21,11 @@ ENV APP_ENV=production
 EXPOSE 8000
 
 # Hit a real HTTP endpoint: proves the web server answers and the app
-# boots (artisan --version passed even when HTTP serving was broken)
+# boots (artisan --version passed even when HTTP serving was broken).
+# The Host header must be APP_URL's domain — TrustHosts rejects requests
+# for any other host (a bare 127.0.0.1 probe 400s and flips the container
+# unhealthy while the app works fine through the proxy).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD wget --spider -q http://127.0.0.1:8000/login || exit 1
+    CMD H="${APP_URL#*://}"; H="${H%%/*}"; wget --spider -q --header="Host: ${H:-localhost}" http://127.0.0.1:8000/login || exit 1
 
 ENTRYPOINT ["/app/run.sh"]
