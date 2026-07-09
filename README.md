@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.1-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.2-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -71,6 +71,62 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.2` — July 2026
+
+_A full-codebase simplification and dead-code pass, another multi-round security review, and a
+production-grade container — all independently reviewed (multi-agent + cross-model) with every
+fix pinned by a regression test._
+
+**Simplification & dead-code removal** (~2,800 net lines gone)
+
+* Table-driven export layer: one section registry drives the seven per-type exports, the combined
+  JSON export and the CSV ZIP; shared pricing/relation transform helpers
+* Shared model traits for the session sort scope and pricing sort (was five copied `boot()`s and
+  nine copied sort blocks); controllers share validation rules, cache fan-out helpers and the
+  pricing/labels update tail
+* Shared blade partials for the home-page tables, the DataTables init (14 index pages) and the
+  server-list Prometheus/status script (both index variants, one parameterized partial)
+* Removed ~45 dead files: legacy laravel/ui auth controllers (and the `laravel/ui` package),
+  32 orphaned blade components, empty controllers, unused factories, dead config/scripts, and
+  unused composer/npm dependencies
+* Drift guard: every CSV header list is asserted per-section against its transform's actual output
+
+**Performance**
+
+* Dashboard summary is one aggregate query (was five full-table fetches summed in PHP)
+* Prometheus offline-host resolution batched into a single query, shared by the list and detail
+  pages (was one HTTP round-trip per offline node on each)
+* Fixed O(n²) CSV header collection; pricing totals via SQL subqueries; dropdown pages fetch only
+  the columns they render; halved currency-rate cache reads
+
+**Security & data integrity**
+
+* `make:database` validates identifiers against an allowlist instead of interpolating raw
+  input/config into `CREATE DATABASE`
+* Every write path — store, update **and destroy** for all service types — now runs in a single
+  DB transaction: no partial updates and no orphaned child rows on failure
+* The signed YABS API answers malformed payloads with 422 (500 only for genuine server failures);
+  API note misses use the JSON 404 contract; the password-reset form no longer reveals whether an
+  account exists
+* `.dockerignore` keeps `.env`, VCS internals and local artifacts out of image builds;
+  `APP_KEY` is now **required** at container start (fail fast — previously a redeploy without a
+  persisted volume silently rotated the key, invalidating sessions and signed URLs)
+* Production install docs: `--no-dev` (no Ignition/dev tooling), cached config/routes/views, a
+  real web server rooted at `public/`, and `SESSION_SECURE_COOKIE` guidance for HTTPS
+
+**Docker: nginx + php-fpm**
+
+* The container serves via nginx + php-fpm under supervisord, replacing `php artisan serve`
+  (PHP's single-threaded dev server) — same port 8000, same env vars otherwise
+* Healthcheck hits a real HTTP endpoint with the correct `Host` header (the old probe was
+  rejected by TrustHosts); container logs now show real client addresses via nginx
+
+Test suite: **498 tests / 1,528 assertions**, run against both SQLite and MySQL.
+`composer validate --strict`, `composer audit` and `npm audit` all pass clean.
+
+> **Breaking change for Docker users:** the `APP_KEY` environment variable is now required —
+> see [Run using Docker](#run-using-docker).
 
 ## Fork revision `ap.1` — July 2026
 
@@ -179,7 +235,7 @@ _The history below is the `4.1.0` baseline the fork's `+ap` revisions build on._
 
 ### Test Suite
 
-The application includes a comprehensive test suite — 489 tests / 1488 assertions as of ap.1 —
+The application includes a comprehensive test suite — 498 tests / 1,528 assertions as of ap.2 —
 run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
 under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
@@ -345,7 +401,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.1` — note the Docker tag uses `-ap.1` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.2` — note the Docker tag uses `-ap.2` since `+` is not
 a valid Docker tag character).
 
 Notes:
