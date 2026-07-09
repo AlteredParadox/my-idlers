@@ -3,11 +3,19 @@
 # Run setup only if .env file doesn't exist.
 if [ ! -e .env.production ]
 then
+# Fail fast without a provided key: generating one at startup silently
+# rotated the key on every unpersisted redeploy, invalidating sessions,
+# signed URLs and any encrypted data.
+if [ -z "${APP_KEY}" ]; then
+    echo "ERROR: APP_KEY is required (e.g. docker run -e APP_KEY=base64:...)." >&2
+    echo "Generate one once with: docker run --rm <image> php artisan key:generate --show" >&2
+    exit 1
+fi
 cat > .env.production << EOF
 APP_NAME=MyIdlers
 APP_ENV=production
 APP_DEBUG=false
-APP_KEY=
+APP_KEY=${APP_KEY}
 
 LOG_CHANNEL=stderr
 
@@ -25,7 +33,6 @@ SESSION_DRIVER=file
 SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-false}
 QUEUE_CONNECTION=sync
 EOF
-php artisan key:generate --no-interaction --force
 fi
 
 # Clear and cache config for production
