@@ -15,8 +15,11 @@ COPY . .
 # Install dependencies (production only)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set permissions for Laravel
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+# Set permissions for Laravel. /app/database included: with
+# DB_CONNECTION=sqlite the fpm workers (www-data) must write the db file
+# AND its directory (journal/WAL files) — artisan serve ran as root and
+# masked this.
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
