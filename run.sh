@@ -8,7 +8,7 @@ then
 # signed URLs and any encrypted data.
 if [ -z "${APP_KEY}" ]; then
     echo "ERROR: APP_KEY is required (e.g. docker run -e APP_KEY=base64:...)." >&2
-    echo "Generate one once with: docker run --rm <image> php artisan key:generate --show" >&2
+    echo "Generate one once with: echo \"base64:\$(openssl rand -base64 32)\"" >&2
     exit 1
 fi
 cat > .env.production << EOF
