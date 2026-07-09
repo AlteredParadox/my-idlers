@@ -98,13 +98,19 @@ class MiscController extends Controller
 
     public function destroy(Misc $misc)
     {
-        if ($misc->delete()) {
-            $p = new Pricing();
-            $p->deletePricing($misc->id);
-
+        // Atomic: child rows have no DB cascades — a failure mid-cleanup
+        // must not orphan them behind an already-deleted service.
+        $deleted = DB::transaction(function () use ($misc) {
+            if (!$misc->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($misc->id);
             // Legacy/forged notes keyed to this id would linger as ghost rows
             Note::deleteForService($misc->id);
+            return true;
+        });
 
+        if ($deleted) {
             Home::forgetServiceCacheByType(5, $misc->id);
             Home::homePageCacheForget();
 
