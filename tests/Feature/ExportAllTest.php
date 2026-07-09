@@ -265,7 +265,7 @@ class ExportAllTest extends TestCase
         $this->assertArrayHasKey('export_date', $data['export_metadata']);
         $this->assertArrayHasKey('version', $data['export_metadata']);
         $this->assertArrayHasKey('counts', $data['export_metadata']);
-        $this->assertEquals('4.1.0', $data['export_metadata']['version']);
+        $this->assertEquals('4.1.0+ap.2', $data['export_metadata']['version']);
     }
 
     /**
@@ -468,7 +468,7 @@ class ExportAllTest extends TestCase
         $this->assertArrayHasKey('export_date', $metadata);
         $this->assertArrayHasKey('version', $metadata);
         $this->assertArrayHasKey('counts', $metadata);
-        $this->assertEquals('4.1.0', $metadata['version']);
+        $this->assertEquals('4.1.0+ap.2', $metadata['version']);
         $this->assertEquals(1, $metadata['counts']['servers']);
         $this->assertEquals(1, $metadata['counts']['domains']);
 
