@@ -334,9 +334,14 @@ docker exec ... php artisan migrate:fresh --seed --force  # Set up database one 
 The container serves the app with nginx + php-fpm (supervised) on port 8000.
 
 `APP_KEY` is required and must stay the same across redeploys — rotating it invalidates
-sessions, signed URLs and encrypted data. Generate one once with
-`docker run --rm ghcr.io/alteredparadox/my-idlers:latest php artisan key:generate --show`
-and keep it with your other secrets.
+sessions, signed URLs and encrypted data. Generate one once and keep it with your other
+secrets:
+
+```
+echo "base64:$(openssl rand -base64 32)"
+# or, via the image (the entrypoint must be bypassed):
+docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan key:generate --show
+```
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
