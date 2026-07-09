@@ -414,6 +414,10 @@ Notes:
 * `SESSION_SECURE_COOKIE=true` keeps the session cookie HTTPS-only — set it whenever the
   app is reached over HTTPS (drop it only for plain-HTTP LAN setups, where the cookie
   would otherwise never be sent).
+* **SQLite setups** (`DB_CONNECTION=sqlite`): PHP runs as `www-data` (uid 82) since the
+  nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
+  uid — `chown -R 82:82` the mounted directory (SQLite writes journal files next to the
+  db, so the directory itself needs write access, not just the file).
 
 ## Managed Hosting
 
