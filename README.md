@@ -272,7 +272,7 @@ php artisan cache:clear
 * REST API for all resources
 * Registration limit control (MAX_USERS)
 
-## Install
+## Install (development)
 
 * Run `git clone https://github.com/cp6/my-idlers.git` into your directory of choice
 * Run `composer install`
@@ -284,6 +284,20 @@ php artisan cache:clear
 * Run `npm run prod` to build assets
 * Run `php artisan migrate:fresh --seed` to create tables and seed data
 * Run `php artisan serve`
+
+## Install (production, non-Docker)
+
+The steps above are for development: a plain `composer install` also installs dev tooling
+(Ignition and its `_ignition/*` routes), and `php artisan serve` is PHP's single-threaded dev
+server. For a production host, instead:
+
+* Run `composer install --no-dev --optimize-autoloader`
+* In `.env`: set `APP_ENV=production`, `APP_DEBUG=false`, and `SESSION_SECURE_COOKIE=true`
+  when the app is served over HTTPS (recommended)
+* Serve the `public/` directory with a real web server (nginx/Apache/Caddy + PHP-FPM) —
+  never expose the repository root
+* Run `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+  (re-run after any .env change)
 
 ## Updating
 
@@ -311,6 +325,7 @@ docker run \
   -e DB_PASSWORD=... \
   -e MAX_USERS=0 \
   -e SEED_DEMO_DATA=false \
+  -e SESSION_SECURE_COOKIE=true \
   ghcr.io/alteredparadox/my-idlers:latest
 docker exec ... php artisan migrate:fresh --seed --force  # Set up database one time
 ```
@@ -327,6 +342,9 @@ Notes:
 * `TRUSTED_PROXIES` is required when TLS terminates at a reverse proxy in front of the
   container (`*` to trust any upstream, or a comma-separated list of proxy IPs/CIDRs).
   Without it, signed YABS URLs fail validation because the app sees requests as plain http.
+* `SESSION_SECURE_COOKIE=true` keeps the session cookie HTTPS-only — set it whenever the
+  app is reached over HTTPS (drop it only for plain-HTTP LAN setups, where the cookie
+  would otherwise never be sent).
 
 ## Managed Hosting
 

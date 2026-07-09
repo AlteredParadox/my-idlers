@@ -22,6 +22,7 @@ APP_URL=${APP_URL}
 
 CACHE_DRIVER=file
 SESSION_DRIVER=file
+SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-false}
 QUEUE_CONNECTION=sync
 EOF
 php artisan key:generate --no-interaction --force
