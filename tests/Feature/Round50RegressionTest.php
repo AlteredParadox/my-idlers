@@ -46,6 +46,7 @@ class Round50RegressionTest extends TestCase
         // failure (Flysystem swallows UnableToWriteFile into `false`)
         Storage::shouldReceive('disk')->with('public_uploads')->andReturn(
             \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class, function ($mock) {
+                $mock->shouldReceive('exists')->andReturn(false);
                 $mock->shouldReceive('putFileAs')->andReturn(false);
                 $mock->shouldNotReceive('delete');
             })
