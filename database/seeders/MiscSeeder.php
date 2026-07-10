@@ -25,7 +25,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id1,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 149.00,
             'term' => 4,
@@ -46,7 +46,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id2,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 72.00,
             'term' => 1,
@@ -67,7 +67,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id3,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 20.00,
             'term' => 1,
@@ -88,7 +88,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id4,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 7.00,
             'term' => 1,
@@ -109,7 +109,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id5,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 2.50,
             'term' => 1,
@@ -130,7 +130,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id6,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 5.00,
             'term' => 1,
@@ -151,7 +151,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id7,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 60.00,
             'term' => 1,
@@ -172,7 +172,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id8,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 44.00,
             'term' => 1,
@@ -193,7 +193,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id9,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 30.00,
             'term' => 1,
@@ -214,7 +214,7 @@ class MiscSeeder extends Seeder
         ];
         $pricing[] = [
             'service_id' => $id10,
-            'service_type' => 6,
+            'service_type' => 5,
             'currency' => 'USD',
             'price' => 26.00,
             'term' => 1,

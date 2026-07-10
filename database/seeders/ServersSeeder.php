@@ -390,5 +390,20 @@ class ServersSeeder extends Seeder
         DB::table('pricings')->insert($pricing);
         DB::table('servers')->insert($servers);
         DB::table('ips')->insert($ips);
+
+        // Disk-parity rows: every real write path (web store/update, API,
+        // import) records server_disks, and Home::serverSummary sums ONLY
+        // that table — without these the demo dashboard shows 0 GB disk.
+        foreach ($servers as $server) {
+            DB::table('server_disks')->insert([
+                'id' => Str::random(8),
+                'server_id' => $server['id'],
+                'disk_size' => $server['disk'],
+                'disk_unit' => $server['disk_type'],
+                'disk_as_gb' => $server['disk_as_gb'],
+                'disk_media' => 'SSD',
+                'created_at' => Carbon::now(),
+            ]);
+        }
     }
 }
