@@ -50,5 +50,13 @@ class Round61RegressionTest extends TestCase
             Pricing::whereIn('service_id', $miscIds)->where('service_type', '!=', 5)->count(),
             'misc pricing rows must use service_type 5'
         );
+
+        // Round 62: re-seeding must skip gracefully — not crash on the demo
+        // user's unique email, and not duplicate the demo set under fresh
+        // random ids
+        $pricingCount = Pricing::count();
+        $this->seed();
+        $this->assertSame($serverCount, DB::table('servers')->count(), 're-seed must not duplicate demo servers');
+        $this->assertSame($pricingCount, Pricing::count(), 're-seed must not duplicate pricing rows');
     }
 }

@@ -33,6 +33,16 @@ class DatabaseSeeder extends Seeder
 
         // Optional: Demo user and sample data (set SEED_DEMO_DATA=true in .env)
         if ($this->shouldSeedDemoData()) {
+            // Same already-seeded guard as the core seeders: a re-run with
+            // the flag still set (it survives in the cached config) would
+            // otherwise crash on the demo user's unique email — or, with
+            // that user renamed/deleted, silently duplicate the entire demo
+            // set under fresh random ids.
+            if (DB::table('users')->count() > 0 || DB::table('servers')->count() > 0) {
+                $this->command?->warn('Skipping demo data: users/servers already have rows.');
+
+                return;
+            }
             $this->call(UsersSeeder::class);
             $this->call(ServersSeeder::class);
             $this->call(SharedSeeder::class);
