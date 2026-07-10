@@ -74,4 +74,27 @@ class Round61RegressionTest extends TestCase
         $this->assertSame(0, DB::table('servers')->count(), 'demo data must not be injected into an install with a real user');
         $this->assertSame(1, DB::table('users')->count());
     }
+
+    public function test_demo_seed_skips_an_install_with_real_servers_but_no_users()
+    {
+        // Round 64: the inverse single-operand state — deleting the servers
+        // operand from the guard survived both prior cases (users > 0 alone
+        // skipped them). This is exactly the 'user renamed/deleted' arm the
+        // round-62 commit named: real servers, empty users table.
+        config(['custom.seed_demo_data' => 'true']);
+        // servers.id has an FK to pricings.service_id — pricing first
+        (new Pricing())->insertPricing(1, 'r64probe', 'USD', 5.00, 1, now()->addMonth()->format('Y-m-d'));
+        DB::table('servers')->insert([
+            'id' => 'r64probe', 'hostname' => 'real.example.com', 'server_type' => 1,
+            'os_id' => 1, 'provider_id' => 1, 'location_id' => 1,
+            'ram' => 1024, 'ram_type' => 'MB', 'ram_as_mb' => 1024,
+            'disk' => 10, 'disk_type' => 'GB', 'disk_as_gb' => 10,
+            'cpu' => 1, 'active' => 1, 'was_promo' => 0, 'owned_since' => '2024-01-01',
+        ]);
+
+        $this->seed();
+
+        $this->assertSame(0, DB::table('users')->count(), 'demo data must not be injected into an install with real servers');
+        $this->assertSame(1, DB::table('servers')->count());
+    }
 }
