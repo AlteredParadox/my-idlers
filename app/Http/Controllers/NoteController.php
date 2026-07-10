@@ -110,10 +110,12 @@ class NoteController extends Controller
 
         $old_service_id = $note->service_id;
 
-        $note->update([
+        // The unique rule (ignore-self) races a concurrent writer taking the
+        // same service_id; the loser would hit notes_service_id_unique raw.
+        $this->createUniquely(fn() => $note->update([
             'service_id' => $request->service_id,
             'note' => $request->note
-        ]);
+        ]), 'service_id');
 
         Cache::forget('all_notes');
         Cache::forget("note.$old_service_id");

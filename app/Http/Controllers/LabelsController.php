@@ -32,10 +32,13 @@ class LabelsController extends Controller
             'label' => 'required|string|min:2|max:255|unique:labels,label'
         ]);
 
-        Labels::create([
+        // The random char(8) PK is a second unique surface, but an id
+        // collision is astronomically rarer than a same-label race, so
+        // attributing a UCVE to the label field is the right call.
+        $this->createUniquely(fn() => Labels::create([
             'id' => Str::random(8),
             'label' => $request->label
-        ]);
+        ]), 'label');
 
         Cache::forget('all_labels');
         Cache::forget('labels_count');
