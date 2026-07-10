@@ -144,12 +144,15 @@ class YabsIngestService
         [$ram_f, $ram_type] = $this->scaleRam($data['mem']['ram']);
         [$disk_f, $disk_type] = $this->scaleDisk($data['mem']['disk']);
 
-        // `vm` is a boolean column. CURRENT yabs.sh reports the is-a-VM
-        // answer in os.vm (systemd-detect-virt: "KVM"/"NONE"/...) and made
-        // cpu.virt a boolean meaning "host CPU has vmx/svm flags" — deriving
-        // from cpu.virt inverts the flag for a KVM guest without nested
-        // virt AND for bare metal with VT-x. Prefer os.vm; fall back to the
-        // legacy cpu.virt STRING shape (older reports), never its boolean.
+        // `vm` is a boolean column. yabs.sh reports the is-a-VM answer in
+        // os.vm (systemd-detect-virt: "KVM"/"NONE"/...); cpu.virt has been
+        // a boolean meaning "host CPU has vmx/svm flags" in EVERY JSON-
+        // emitting yabs.sh version — deriving from it inverted the flag for
+        // a KVM guest without nested virt AND for bare metal with VT-x.
+        // Prefer os.vm. The string fallback below serves only hand-edited
+        // web-paste JSON (no yabs.sh version ever emitted a string there);
+        // a boolean cpu.virt without os.vm carries no is-a-VM signal at
+        // all, so 0 is the only defensible answer for that shape.
         $os_vm = strtolower((string) ($data['os']['vm'] ?? ''));
         if ($os_vm !== '') {
             $is_vm = ($os_vm === 'none') ? 0 : 1;
