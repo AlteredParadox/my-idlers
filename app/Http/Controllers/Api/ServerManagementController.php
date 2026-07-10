@@ -421,10 +421,26 @@ class ServerManagementController extends Controller
             return;
         }
 
+        $currency = $validated['currency'] ?? $pricing_row->currency;
+        $price = (float) ($validated['price'] ?? $pricing_row->price);
+
+        // The request-level PriceFitsStorableUsd rule cannot see the row
+        // half of a partial PUT (price-only merges the row's currency and
+        // vice versa), so the MERGED pair must be re-checked here — else
+        // the overflow lands unchecked: MySQL 1264 500 mid-transaction,
+        // SQLite silently out-of-spec. HttpResponseException rolls the
+        // transaction back and returns this endpoint's native fail shape.
+        if (Pricing::usdEquivalent($price, $currency) > \App\Rules\PriceFitsStorableUsd::MAX_STORABLE_USD) {
+            throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
+                'result' => 'fail',
+                'messages' => ['price' => ['The price exceeds the maximum storable USD equivalent.']],
+            ], 400));
+        }
+
         (new Pricing())->updatePricing(
             $id,
-            $validated['currency'] ?? $pricing_row->currency,
-            (float) ($validated['price'] ?? $pricing_row->price),
+            $currency,
+            $price,
             (int) ($validated['payment_term'] ?? $pricing_row->term),
             $validated['next_due_date'] ?? $pricing_row->next_due_date,
             (int) ($validated['active'] ?? $pricing_row->active)
