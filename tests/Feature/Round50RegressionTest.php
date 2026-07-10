@@ -46,9 +46,10 @@ class Round50RegressionTest extends TestCase
         // failure (Flysystem swallows UnableToWriteFile into `false`)
         Storage::shouldReceive('disk')->with('public_uploads')->andReturn(
             \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class, function ($mock) {
-                $mock->shouldReceive('exists')->andReturn(false);
                 $mock->shouldReceive('putFileAs')->andReturn(false);
-                $mock->shouldNotReceive('delete');
+                // Only the temp-file cleanup may be deleted — any delete of
+                // the real favicon here would fail this expectation
+                $mock->shouldReceive('delete')->once()->with('favicon.png.tmp')->andReturn(true);
             })
         );
 

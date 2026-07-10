@@ -38,6 +38,7 @@
         <server name="DB_PASSWORD" value="idlers"/>
         <server name="EXCHANGE_RATES_URL" value=""/>
         <server name="MAIL_MAILER" value="array"/>
+        <server name="MAIL_FROM_ADDRESS" value="test@example.com"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
         <server name="TELESCOPE_ENABLED" value="false"/>
