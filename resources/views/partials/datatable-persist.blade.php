@@ -3,21 +3,23 @@
      preferences endpoint. Guests get plain, non-persistent tables. --}}
 @php($userPrefs = auth()->check() ? \App\Models\UserPreference::valuesFor(auth()->id()) : [])
 @php($colvisDark = in_array((int) session('dark_mode'), [1, 2], true))
-{{-- Explicit colors per theme: the dark stylesheets' .dropdown-item rules
-     render near-invisible text on the .dropdown-menu background (only the
-     navbar has scoped colors). Palette mirrors the navbar dropdown, which
-     is readable on every theme; !important ends the specificity fight. --}}
+{{-- Explicit styling per theme. Two traps: the themes hide the filter
+     label's "Search:" text with `.dataTables_filter label { font-size: 0 }`
+     — and this menu's labels live inside that filter div, so they MUST
+     restore their own font-size — and the dark themes' .dropdown-item
+     color is near-invisible on the .dropdown-menu background. --}}
 <style>
     .idlers-colvis-menu {
-        background-color: {{ $colvisDark ? '#1e293b' : '#ffffff' }} !important;
-        color: {{ $colvisDark ? '#e2e8f0' : '#212529' }} !important;
-        border: 1px solid {{ $colvisDark ? '#334155' : 'rgba(0,0,0,.15)' }} !important;
+        background-color: {{ $colvisDark ? '#111' : '#ffffff' }} !important;
+        color: {{ $colvisDark ? '#e1e1e1' : '#212529' }} !important;
+        border: 1px solid {{ $colvisDark ? 'hsla(0,0%,98%,.15)' : 'rgba(0,0,0,.15)' }} !important;
     }
     .idlers-colvis-menu .dropdown-item {
         color: inherit !important;
+        font-size: .875rem !important;
     }
     .idlers-colvis-menu .dropdown-item:hover {
-        background-color: {{ $colvisDark ? '#334155' : '#e9ecef' }} !important;
+        background-color: {{ $colvisDark ? 'rgba(255,255,255,.08)' : '#e9ecef' }} !important;
     }
 </style>
 <script>
