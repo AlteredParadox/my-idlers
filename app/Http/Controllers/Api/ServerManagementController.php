@@ -412,7 +412,10 @@ class ServerManagementController extends Controller
      */
     private function applyPricingFields(string $id, array $validated): void
     {
-        $pricing_row = Pricing::where('service_id', $id)->first();
+        // Locked: runs inside the update transaction, and the merged values
+        // below are derived from this row — an unlocked read could silently
+        // revert a concurrent PUT /api/pricing/{id} commit.
+        $pricing_row = Pricing::where('service_id', $id)->lockForUpdate()->first();
         if (is_null($pricing_row)) {
             return;
         }
@@ -465,21 +468,30 @@ class ServerManagementController extends Controller
             $updateData['active'] = $validated['active'];
         }
 
-        $row = Pricing::where('id', $id)->first(['service_id', 'service_type']);
+        // Locked read inside the transaction, like every other update path:
+        // a destroy committing between an unlocked read and the UPDATE would
+        // return success for a deleted service (and fan caches out from a
+        // stale service_type). Success is keyed on existence, not update()'s
+        // changed-row count (0 on an idempotent re-save under MySQL).
+        $row = DB::transaction(function () use ($id, $updateData) {
+            $row = Pricing::where('id', $id)->lockForUpdate()->first(['service_id', 'service_type']);
+            if (is_null($row)) {
+                return null;
+            }
+            Pricing::where('id', $id)->update($updateData);
+
+            return $row;
+        });
+
         if (is_null($row)) {
             return $this->notFound();
         }
-        $service_id = $row->service_id;
-
-        // Success is keyed on existence, not update()'s changed-row count (0 on
-        // an idempotent re-save under MySQL).
-        Pricing::where('id', $id)->update($updateData);
 
         // This route takes any pricing row, not just a server's — fan out to
         // the owning type's caches plus every home-page key embedding prices
         // (due_soon, recently_added, all_active_pricing, pricing_breakdown).
         Home::homePageCacheForget();
-        Home::forgetServiceCacheByType((int) $row->service_type, $service_id);
+        Home::forgetServiceCacheByType((int) $row->service_type, $row->service_id);
 
         return response()->json(array('result' => 'success', 'server_id' => $id), 200);
     }

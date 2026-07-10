@@ -101,7 +101,11 @@ class IPs extends Model
                     }
                     // The winner's cached note (possibly primed null) is now
                     // stale — every other note-write path forgets this key.
-                    Cache::forget('note.' . $kept[$key]->id);
+                    // afterCommit: this runs inside the caller's update
+                    // transaction, and a forget BEFORE commit can be re-primed
+                    // with pre-merge text by a concurrent read.
+                    $winner_id = $kept[$key]->id;
+                    DB::afterCommit(fn () => Cache::forget('note.' . $winner_id));
                 }
                 Note::deleteForService($loser->id);
                 self::where('id', $loser->id)->delete();
