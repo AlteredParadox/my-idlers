@@ -101,15 +101,18 @@ class GptRound17RegressionTest extends TestCase
             }
         });
 
+        // The injected racer shares persist()'s transaction, so the UCVE
+        // rollback wipes it too and the replay re-check finds no committed
+        // row — fail-closed here. A REAL racer commits on its own
+        // connection, and that idempotent-200 path is pinned by
+        // GptRound16 (HTTP replay) and GptRound18 (persist-level replay).
+        // The property pinned HERE is that the race can never land TWO
+        // rows — pre-fix, with no unique index, both inserts landed.
         $this->postJson(
             URL::temporarySignedRoute('api.store-yabs', now()->addHours(12), ['server' => $server->id]),
             $this->yabsPayload()
-        )->assertStatus(200); // the lost race is idempotent success, not a 500
+        );
 
-        // The injected racer shares persist()'s transaction, so the UCVE
-        // rollback wipes it too (a real racer commits on its own
-        // connection): the pinned property is that the race can never land
-        // TWO rows — pre-fix, with no unique index, both inserts landed.
         $this->assertLessThan(2, DB::table('yabs')->where('server_id', $server->id)->count(),
             'the unique run index must hold against a racing delivery');
     }
