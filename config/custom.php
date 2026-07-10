@@ -14,4 +14,10 @@ return [
      */
     'seed_demo_data' => env('SEED_DEMO_DATA', false),
 
+    /*
+     * Seconds a registration waits for the cap's serialization lock before
+     * giving up (fail-closed). Tests set 0 to assert the lock is held.
+     */
+    'registration_lock_seconds' => 5,
+
 ];
