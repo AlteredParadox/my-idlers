@@ -78,41 +78,7 @@ class IPs extends Model
         $kept = [];
         foreach (self::where('service_id', $service_id)->get() as $row) {
             $key = strtolower($row->address);
-
-            if (isset($kept[$key])) {
-                $incumbent = $kept[$key];
-                $rowWins = (Note::where('service_id', $row->id)->exists()
-                        && !Note::where('service_id', $incumbent->id)->exists())
-                    || (!is_null($row->fetched_at) && is_null($incumbent->fetched_at)
-                        && !Note::where('service_id', $incumbent->id)->exists());
-                $loser = $rowWins ? $incumbent : $row;
-                if ($rowWins) {
-                    $kept[$key] = $row;
-                }
-                // Notes aren't refetchable: when BOTH duplicates carry one,
-                // fold the loser's text into the winner's before deleting.
-                $loserNote = Note::where('service_id', $loser->id)->first();
-                if ($loserNote) {
-                    $winnerNote = Note::where('service_id', $kept[$key]->id)->first();
-                    if ($winnerNote) {
-                        $winnerNote->update(['note' => $winnerNote->note . "\n---\n" . $loserNote->note]);
-                    } else {
-                        $loserNote->update(['service_id' => $kept[$key]->id]);
-                    }
-                    // The winner's cached note (possibly primed null) is now
-                    // stale — every other note-write path forgets this key.
-                    // afterCommit: this runs inside the caller's update
-                    // transaction, and a forget BEFORE commit can be re-primed
-                    // with pre-merge text by a concurrent read.
-                    $winner_id = $kept[$key]->id;
-                    DB::afterCommit(fn () => Cache::forget('note.' . $winner_id));
-                }
-                Note::deleteForService($loser->id);
-                self::where('id', $loser->id)->delete();
-                continue;
-            }
-
-            $kept[$key] = $row;
+            $kept[$key] = isset($kept[$key]) ? self::collapseDuplicate($kept[$key], $row) : $row;
         }
 
         $existing = [];
@@ -124,6 +90,54 @@ class IPs extends Model
         }
 
         return $existing;
+    }
+
+    /**
+     * Resolve one case-variant duplicate pair: the row with an attached note
+     * wins (notes aren't refetchable), then one with whois data, then the
+     * incumbent. The loser's note is folded into the winner's, then the
+     * loser row (and its emptied note) is deleted. Returns the winner.
+     */
+    private static function collapseDuplicate(IPs $incumbent, IPs $row): IPs
+    {
+        $rowWins = (Note::where('service_id', $row->id)->exists()
+                && !Note::where('service_id', $incumbent->id)->exists())
+            || (!is_null($row->fetched_at) && is_null($incumbent->fetched_at)
+                && !Note::where('service_id', $incumbent->id)->exists());
+        $winner = $rowWins ? $row : $incumbent;
+        $loser = $rowWins ? $incumbent : $row;
+
+        self::foldNoteIntoWinner($winner, $loser);
+        Note::deleteForService($loser->id);
+        self::where('id', $loser->id)->delete();
+
+        return $winner;
+    }
+
+    /**
+     * Notes aren't refetchable: when BOTH duplicates carry one, fold the
+     * loser's text into the winner's before the loser is deleted.
+     */
+    private static function foldNoteIntoWinner(IPs $winner, IPs $loser): void
+    {
+        $loserNote = Note::where('service_id', $loser->id)->first();
+        if (!$loserNote) {
+            return;
+        }
+
+        $winnerNote = Note::where('service_id', $winner->id)->first();
+        if ($winnerNote) {
+            $winnerNote->update(['note' => $winnerNote->note . "\n---\n" . $loserNote->note]);
+        } else {
+            $loserNote->update(['service_id' => $winner->id]);
+        }
+
+        // The winner's cached note (possibly primed null) is now stale —
+        // every other note-write path forgets this key. afterCommit: this
+        // runs inside the caller's update transaction, and a forget BEFORE
+        // commit can be re-primed with pre-merge text by a concurrent read.
+        $winner_id = $winner->id;
+        DB::afterCommit(fn () => Cache::forget('note.' . $winner_id));
     }
 
     public static function insertIP(string $service_id, string $address): IPs
