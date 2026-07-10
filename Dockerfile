@@ -19,9 +19,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # DB_CONNECTION=sqlite the fpm workers (www-data) must write the db file
 # AND its directory (journal/WAL files) — artisan serve ran as root and
 # masked this.
-# public: favicon uploads land in the webroot; without ownership the
-# fpm workers (www-data) cannot write there and uploads fail
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database /app/public
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
+# public: favicon uploads create files in the webroot, which needs only
+# DIRECTORY write — deliberately non-recursive so the shipped files
+# (index.php and friends) stay root-owned; nginx additionally executes
+# exactly /index.php and no other .php.
+RUN chown www-data:www-data /app/public
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
