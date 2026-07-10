@@ -24,7 +24,10 @@ class AccountController extends Controller
         $user = Auth::user();
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->save();
+        // The ignore-self unique rule races a concurrent registration or
+        // account update committing the same email (reachable with
+        // MAX_USERS >= 2); the loser would hit users_email_unique raw.
+        $this->createUniquely(fn() => $user->save(), 'email');
 
         if ($request->boolean('rotate_api_token')) {
             $token = $user->rotateApiToken();
