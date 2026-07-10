@@ -271,8 +271,14 @@ class ServerManagementController extends Controller
         }
 
         $speed = $validated['link_speed'];
+        if (!$speed) {
+            $data['link_speed'] = null;
+
+            return $data;
+        }
+
         $type = $validated['link_speed_type'] ?? null;
-        $data['link_speed'] = $speed ? (int) ($type === 'Gbps' ? $speed * 1000 : $speed) : null;
+        $data['link_speed'] = (int) ($type === 'Gbps' ? $speed * 1000 : $speed);
 
         return $data;
     }
