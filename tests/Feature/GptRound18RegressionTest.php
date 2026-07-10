@@ -111,7 +111,11 @@ class GptRound18RegressionTest extends TestCase
         $this->assertStringContainsString('add_header X-Frame-Options "SAMEORIGIN" always;', $conf);
         $this->assertStringContainsString('add_header Referrer-Policy "strict-origin-when-cross-origin" always;', $conf);
         foreach (["default-src 'self'", "object-src 'none'", "base-uri 'self'",
-                     "form-action 'self'", "frame-ancestors 'self'", "img-src 'self' data:"] as $directive) {
+                     "form-action 'self'", "frame-ancestors 'self'", "img-src 'self' data:",
+                     // Vue 2's standalone build compiles in-DOM templates with
+                     // new Function(): without unsafe-eval every Vue-managed
+                     // index (delete modal) blanks after first paint.
+                     "script-src 'self' 'unsafe-inline' 'unsafe-eval'"] as $directive) {
             $this->assertStringContainsString($directive, $conf, "CSP lost its $directive directive");
         }
 
