@@ -45,6 +45,12 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     php artisan migrate --force
 fi
 
+# SQLite: this script runs as root, so a boot-time migration can leave the
+# db (or its journal files) root-owned in the bind-mounted directory —
+# php-fpm runs as www-data and then 500s with "readonly database" on the
+# first write. Re-assert ownership every boot; harmless for MySQL setups.
+chown -R www-data:www-data /app/database
+
 # Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
 # (replaces artisan serve, which is PHP's single-threaded dev server)
 exec supervisord -c /etc/supervisord.conf
