@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -52,24 +51,7 @@ class IPs extends Model
         // a case-sensitive diff would 500 on insert (or wipe an unchanged
         // row's whois/notes just to reinsert a case-variant of it).
         $submitted = array_values(array_unique(array_map('strtolower', array_filter($addresses, 'is_string'))));
-        $existing = self::where('service_id', $service_id)->pluck('address', 'id')
-            ->map(fn($address) => strtolower($address))->all(); // id => address
-
-        // Legacy duplicates (SQLite's unique index is case-SENSITIVE, so
-        // pre-normalization case-variants of one address can coexist as
-        // rows): keep the first, delete the rest — otherwise array_diff
-        // never selects either row and the duplicate is undeletable from
-        // the edit form.
-        $seen = [];
-        foreach ($existing as $ip_id => $address) {
-            if (isset($seen[$address])) {
-                Note::deleteForService($ip_id);
-                self::where('id', $ip_id)->delete();
-                unset($existing[$ip_id]);
-                continue;
-            }
-            $seen[$address] = true;
-        }
+        $existing = self::normalizeLegacyRows($service_id); // id => lowercase address
 
         foreach (array_keys(array_diff($existing, $submitted)) as $ip_id) {
             Note::deleteForService($ip_id);
@@ -79,6 +61,50 @@ class IPs extends Model
         foreach (array_diff($submitted, $existing) as $address) {
             self::insertIP($service_id, $address);
         }
+    }
+
+    /**
+     * Bring a service's legacy rows onto the lowercase convention and
+     * collapse case-variant duplicates (SQLite's unique index is
+     * case-SENSITIVE, so pre-normalization variants of one address can
+     * coexist as rows — and an un-normalized survivor would let insertIP
+     * mint a fresh duplicate). Among duplicates the row with an attached
+     * note wins (notes aren't refetchable), then one with whois data,
+     * then any. Returns the surviving id => lowercase-address map.
+     */
+    private static function normalizeLegacyRows(string $service_id): array
+    {
+        $kept = [];
+        foreach (self::where('service_id', $service_id)->get() as $row) {
+            $key = strtolower($row->address);
+
+            if (isset($kept[$key])) {
+                $incumbent = $kept[$key];
+                $rowWins = (Note::where('service_id', $row->id)->exists()
+                        && !Note::where('service_id', $incumbent->id)->exists())
+                    || (!is_null($row->fetched_at) && is_null($incumbent->fetched_at)
+                        && !Note::where('service_id', $incumbent->id)->exists());
+                $loser = $rowWins ? $incumbent : $row;
+                if ($rowWins) {
+                    $kept[$key] = $row;
+                }
+                Note::deleteForService($loser->id);
+                self::where('id', $loser->id)->delete();
+                continue;
+            }
+
+            $kept[$key] = $row;
+        }
+
+        $existing = [];
+        foreach ($kept as $key => $row) {
+            if ($row->address !== $key) {
+                self::where('id', $row->id)->update(['address' => $key]);
+            }
+            $existing[$row->id] = $key;
+        }
+
+        return $existing;
     }
 
     public static function insertIP(string $service_id, string $address): IPs

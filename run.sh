@@ -44,13 +44,24 @@ php artisan view:cache
 # with pending migrations — the session middleware queries the sessions table
 # on EVERY request, so booting anyway would serve 500s on every page
 # (including /login and the healthcheck) with no hint at the cause.
+# The check is retried: a database container that starts slower than the
+# app (host reboot, compose ordering) must not read as "pending".
 if [ "${AUTO_MIGRATE}" = "true" ]; then
     php artisan migrate --force
-elif ! php artisan migrate:status --pending=1 > /dev/null 2>&1; then
-    echo "ERROR: the database has pending migrations, is not initialized, or is unreachable." >&2
-    echo "Set AUTO_MIGRATE=true (recommended), or run the migrations once with:" >&2
-    echo "  docker exec -u www-data <container> php artisan migrate --force" >&2
-    exit 1
+else
+    tries=0
+    until php artisan migrate:status --pending=1 > /dev/null 2>&1; do
+        tries=$((tries + 1))
+        if [ "$tries" -ge 10 ]; then
+            echo "ERROR: the database has pending migrations, is not initialized, or is unreachable." >&2
+            echo "Set AUTO_MIGRATE=true (recommended), or run the migrations once with:" >&2
+            echo "  docker run --rm --env-file <your env file> --entrypoint php <image> artisan migrate --force" >&2
+            echo "(docker exec cannot be used here — this container refuses to start until migrated)" >&2
+            exit 1
+        fi
+        echo "Database not ready or not migrated, retrying (${tries}/10)..." >&2
+        sleep 3
+    done
 fi
 
 # SQLite: this script runs as root, so a boot-time migration can leave the

@@ -35,7 +35,8 @@ class ExportCsvHeaders
             'dns_type',
             'address',
             'server_id',
-            'domain_id'
+            'domain_id',
+            'labels',
         ];
     }
 

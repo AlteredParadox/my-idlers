@@ -87,6 +87,11 @@ class ExportHeaderParityTest extends TestCase
             'owned_since' => '2026-01-15'
         ]);
         IPs::insertIP($server->id, '192.0.2.10');
+        // Populate the nested relations too — parity must hold for the
+        // populated shapes, not just empty lists
+        \App\Models\Disk::insertDisk($server->id, 100, 'GB', 'NVMe');
+        \App\Models\Labels::create(['id' => 'paritylb', 'label' => 'parity-label']);
+        \App\Models\LabelsAssigned::create(['label_id' => 'paritylb', 'service_id' => $server->id]);
         $this->assertSame(
             $headers->getServerCsvHeaders(),
             $this->flattenedKeys($transformer->transformServerForExport($server->fresh())),
@@ -114,6 +119,7 @@ class ExportHeaderParityTest extends TestCase
             'db_limit' => 10, 'active' => 1, 'owned_since' => '2026-01-01'
         ]);
         IPs::insertIP($shared->id, '192.0.2.11');
+        \App\Models\LabelsAssigned::create(['label_id' => 'paritylb', 'service_id' => $shared->id]);
         $this->assertSame(
             $headers->getSharedCsvHeaders(),
             $this->flattenedKeys($transformer->transformSharedForExport($shared->fresh())),

@@ -73,13 +73,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers-compare/{server1}/{server2}', [ServerController::class, 'compareServers'])->name('servers.compare');
 
     Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
-    $hostnameRegex = '[a-zA-Z0-9._-]+';
+    // ':' included — a tracker hostname may be a bare IPv6 address, which
+    // the status matcher deliberately supports; without it the index shows
+    // live status while the detail/ping routes 404. Domain lookups keep
+    // the colon-less form.
+    $hostnameRegex = '[a-zA-Z0-9.:_-]+';
+    $domainRegex = '[a-zA-Z0-9._-]+';
     Route::get('tools/online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
         ->where('hostname', $hostnameRegex)
         ->middleware(['throttle:10,1'])
         ->name('tools.online');
     Route::get('tools/dns/{domainName}/{type}', [ToolsController::class, 'getIpForDomain'])
-        ->where(['domainName' => $hostnameRegex, 'type' => 'A|AAAA'])
+        ->where(['domainName' => $domainRegex, 'type' => 'A|AAAA'])
         ->middleware(['throttle:20,1'])
         ->name('tools.dns');
     Route::get('tools/prometheus/status', [ToolsController::class, 'prometheusStatus'])

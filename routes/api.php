@@ -81,7 +81,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('prometheus/status', [ToolsController::class, 'prometheusStatus']);
     Route::get('prometheus/detail/{hostname}/{period}/{back}', [ToolsController::class, 'prometheusDetail'])
-        ->where(['hostname' => '[a-zA-Z0-9._-]+', 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+']);
+        ->where(['hostname' => '[a-zA-Z0-9.:_-]+', 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+']);
 
     Route::get('dns/{domainName}/{type}', [ToolsController::class, 'getIpForDomain'])
         ->where(['domainName' => '[a-zA-Z0-9._-]+', 'type' => 'A|AAAA']);

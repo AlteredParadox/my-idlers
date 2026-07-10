@@ -27,6 +27,7 @@ class ExportTransformer
             'address' => $dns->address,
             'server_id' => $dns->server_id,
             'domain_id' => $dns->domain_id,
+            'labels' => $this->labelList($dns->labels),
         ];
     }
 

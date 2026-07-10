@@ -37,9 +37,11 @@ final class PromQL
     {
         // Hostnames are case-insensitive (DNS) and Prometheus instance
         // labels are lowercase — a mixed-case hostname (or uppercase IPv6
-        // used as one) must still match.
-        $stored = strtolower($stored);
-        $candidate = strtolower($candidate);
+        // used as one) must still match. mb_strtolower, not strtolower:
+        // the JS matcher uses Unicode toLowerCase, and the two sides must
+        // share one truth table for non-ASCII hostnames too.
+        $stored = mb_strtolower($stored);
+        $candidate = mb_strtolower($candidate);
 
         if ($stored === '' || $candidate === '') {
             return false;

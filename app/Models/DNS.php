@@ -31,4 +31,11 @@ class DNS extends Model
         return $this->hasOne(Note::class, 'service_id', 'id');
     }
 
+    // DNS records take up to 4 labels through the web form (DNSController
+    // syncs LabelsAssigned) — the relation exists so exports can read them
+    public function labels(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LabelsAssigned::class, 'service_id', 'id');
+    }
+
 }
