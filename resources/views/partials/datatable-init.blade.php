@@ -1,6 +1,7 @@
 {{-- Shared DataTables init used by every index page.
      Params: $tables (array of selectors), $noSort (array of column indexes),
      $empty (emptyTable text), optional $placeholder (default "Search..."). --}}
+@include('partials.datatable-persist')
 <script>
     window.addEventListener('load', function () {
         $.fn.dataTable.ext.errMode = 'none';
@@ -20,7 +21,7 @@
             }
         };
         @foreach($tables as $table)
-        $('{{ $table }}').DataTable(dtConfig);
+        window.idlersDataTable('{{ $table }}', dtConfig);
         @endforeach
     });
 </script>

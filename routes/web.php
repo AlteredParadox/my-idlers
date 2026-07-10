@@ -12,6 +12,7 @@ use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\MiscController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\OsController;
+use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ProvidersController;
 use App\Http\Controllers\ResellerController;
 use App\Http\Controllers\SeedBoxesController;
@@ -52,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('servers', ServerController::class);
 
     Route::resource('settings', SettingsController::class)->only(['index', 'update']);
+
+    Route::put('preferences/{key}', [PreferenceController::class, 'update'])->name('preferences.update');
 
     Route::resource('seedboxes', SeedBoxesController::class);
 

@@ -297,6 +297,7 @@
     </div>
 
     @section('scripts')
+    @include('partials.datatable-persist')
     <script>
         window.addEventListener('load', function () {
             @include('servers.partials.status-js', ['withLinkUsage' => true, 'roundedUptime' => false])
@@ -320,12 +321,20 @@
                     emptyTable: "No servers found"
                 }
             };
-            $('#servers-table').DataTable(dtConfig);
-            $('#inactive-servers-table').DataTable(dtConfig);
+            window.idlersDataTable('#servers-table', dtConfig);
+            window.idlersDataTable('#inactive-servers-table', dtConfig);
 
-            // Toggle state from localStorage
-            var domainHidden = localStorage.getItem('idlers_hide_domains') === '1';
-            var statsHidden = localStorage.getItem('idlers_hide_stats') === '1';
+            // Toggle state from the user's DB-backed preferences
+            var uiPrefs = window.idlersPrefs['ui.servers'] || {};
+            var domainHidden = uiPrefs.hide_domains === 1;
+            var statsHidden = uiPrefs.hide_stats === 1;
+
+            function saveToggles() {
+                window.idlersSavePref('ui.servers', {
+                    hide_domains: domainHidden ? 1 : 0,
+                    hide_stats: statsHidden ? 1 : 0
+                });
+            }
 
             function applyDomainToggle() {
                 document.querySelectorAll('.toggle-domains-btn').forEach(function(b) {
@@ -367,7 +376,7 @@
                 domainBtn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-domains-btn';
                 domainBtn.addEventListener('click', function() {
                     domainHidden = !domainHidden;
-                    localStorage.setItem('idlers_hide_domains', domainHidden ? '1' : '0');
+                    saveToggles();
                     applyDomainToggle();
                 });
                 el.appendChild(domainBtn);
@@ -378,7 +387,7 @@
                 statsBtn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-stats-btn';
                 statsBtn.addEventListener('click', function() {
                     statsHidden = !statsHidden;
-                    localStorage.setItem('idlers_hide_stats', statsHidden ? '1' : '0');
+                    saveToggles();
                     applyStatsToggle();
                 });
                 el.appendChild(statsBtn);
