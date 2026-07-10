@@ -26,7 +26,13 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (config('app.env') === 'production') {
+        // Keyed on the CONFIGURED scheme, not APP_ENV: run.sh hardcodes
+        // APP_ENV=production into every container, and an unconditional
+        // force made plain-HTTP LAN installs (an explicitly supported
+        // deployment — see the SESSION_SECURE_COOKIE default) silently
+        // unusable: every asset/form/redirect URL pointed at an unserved
+        // https origin with zero server-side errors to diagnose.
+        if (self::shouldForceHttps(config('app.url'))) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
         $this->configureRateLimiting();
@@ -41,6 +47,15 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
         });
+    }
+
+    /**
+     * Force-https only when the operator configured an https origin —
+     * the deployment's declared intent, unlike APP_ENV.
+     */
+    public static function shouldForceHttps(?string $app_url): bool
+    {
+        return str_starts_with((string) $app_url, 'https://');
     }
 
     /**
