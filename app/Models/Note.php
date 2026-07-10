@@ -39,8 +39,15 @@ class Note extends Model
     public static function deleteForService(string $service_id): void
     {
         self::where('service_id', $service_id)->delete();
-        Cache::forget("note.$service_id");
-        Cache::forget('all_notes');
+        // afterCommit: callers routinely run this inside their update/destroy
+        // transactions, and a forget BEFORE commit lets a concurrent read
+        // re-prime both keys from the pre-commit snapshot for a month.
+        // Outside a transaction the callbacks run immediately; on rollback
+        // they're discarded, leaving cache and DB consistently pre-change.
+        \Illuminate\Support\Facades\DB::afterCommit(function () use ($service_id) {
+            Cache::forget("note.$service_id");
+            Cache::forget('all_notes');
+        });
     }
 
     public function server(): \Illuminate\Database\Eloquent\Relations\BelongsTo

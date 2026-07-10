@@ -77,12 +77,15 @@ class Round44RegressionTest extends TestCase
         // locks must fail SOMETHING. Pin the load-bearing source shapes.
         $api = file_get_contents(app_path('Http/Controllers/Api/ServerManagementController.php'));
 
-        // updateServer: locked server read inside the transaction
-        $this->assertMatchesRegularExpression(
-            '/\$found = DB::transaction\(function \(\) use [^)]+\) \{\s*\n\s*\$server_row = Server::where\(\'id\', \$id\)->lockForUpdate\(\)/s',
-            $api,
-            'updateServer must read the server row lockForUpdate() inside its transaction'
-        );
+        // updateServer: locked server read inside the transaction. Ordering
+        // via strpos, not one rigid regex — a comment or reformat between
+        // the two lines must not false-fail the pin.
+        $method = Str::between($api, 'public function updateServer', 'private function applyLinkSpeed');
+        $txnPos = strpos($method, 'DB::transaction');
+        $lockPos = strpos($method, "Server::where('id', \$id)->lockForUpdate()");
+        $this->assertNotFalse($txnPos, 'updateServer must wrap its writes in a transaction');
+        $this->assertNotFalse($lockPos, 'updateServer must read the server row lockForUpdate()');
+        $this->assertLessThan($lockPos, $txnPos, 'the locked read must sit inside the transaction');
         // applyPricingFields: locked pricing read (merged values derive from it)
         $this->assertStringContainsString(
             "Pricing::where('service_id', \$id)->lockForUpdate()->first()",
