@@ -30,7 +30,22 @@
             timer = setTimeout(function () { window.idlersSavePref(key, data); }, 500);
         };
         config.stateLoadCallback = function () {
-            return window.idlersPrefs[key] || null;
+            var s = window.idlersPrefs[key] || null;
+            // Self-heal states saved before the raw-body fix: the input
+            // middleware had rewritten "" search terms to null, which
+            // crashes DataTables' restore.
+            if (s && s.search && s.search.search == null) {
+                s.search.search = '';
+            }
+            if (s && s.columns) {
+                for (var i = 0; i < s.columns.length; i++) {
+                    var cs = s.columns[i] && s.columns[i].search;
+                    if (cs && cs.search == null) {
+                        cs.search = '';
+                    }
+                }
+            }
+            return s;
         };
         @endif
         // Guarded: a table DataTables chokes on must degrade to a plain
@@ -85,10 +100,17 @@
         $(selector).closest('.dataTables_wrapper').find('.dataTables_filter').append(btn).append(menu);
     }
 
-    $(document).on('click', function () { $('.idlers-colvis-menu.show').removeClass('show'); });
+    // Vanilla JS: this runs at parse time, before app.js has defined $.
+    function idlersCloseColvisMenus() {
+        document.querySelectorAll('.idlers-colvis-menu.show').forEach(function (m) {
+            m.classList.remove('show');
+        });
+    }
+    document.addEventListener('click', idlersCloseColvisMenus);
     window.addEventListener('scroll', function (e) {
-        if (!$(e.target).closest('.idlers-colvis-menu').length) {
-            $('.idlers-colvis-menu.show').removeClass('show');
+        if (e.target && e.target.closest && e.target.closest('.idlers-colvis-menu')) {
+            return;
         }
+        idlersCloseColvisMenus();
     }, true);
 </script>
