@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\QueryException;
 
 class Labels extends Model
 {
@@ -51,8 +50,10 @@ class Labels extends Model
                     'label_id' => $label_id,
                     'service_id' => $service_id
                 ]);
-            } catch (QueryException $exception) {
-                // Ignore duplicate (label_id, service_id) assignments
+            } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+                // Ignore duplicate (label_id, service_id) assignments — and
+                // ONLY those: the old QueryException catch disguised any
+                // other database error as a successful write.
             }
         }
     }
