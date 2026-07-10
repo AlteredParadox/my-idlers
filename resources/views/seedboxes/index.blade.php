@@ -25,6 +25,7 @@
                             <th class="text-center">Bandwidth</th>
                             <th class="text-center">Port</th>
                             <th>Price</th>
+                            <th class="text-center">Price/yr (USD)</th>
                             <th class="text-center">Due</th>
                             <th class="text-center">Since</th>
                             <th class="text-center">Actions</th>
@@ -64,6 +65,7 @@
                                 {{ $row->price->price }} {{ $row->price->currency }}
                                 <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
                             </td>
+                            <td class="text-center text-nowrap" data-order="{{ $row->price->usd_per_month * 12 }}">${{ number_format($row->price->usd_per_month * 12, 2) }}</td>
                             <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
                                 @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                             </td>
@@ -86,7 +88,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="12" class="text-center text-muted py-4">No seedboxes found</td>
+                            <td colspan="13" class="text-center text-muted py-4">No seedboxes found</td>
                         </tr>
                     @endif
                     </tbody>
@@ -103,6 +105,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    @include('partials.datatable-init', ['tables' => ['#seedbox-table'], 'noSort' => [11], 'empty' => 'No seedboxes found'])
+    @include('partials.datatable-init', ['tables' => ['#seedbox-table'], 'noSort' => [12], 'empty' => 'No seedboxes found'])
     @endsection
 </x-app-layout>

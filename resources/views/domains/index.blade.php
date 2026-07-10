@@ -39,6 +39,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Transferrable</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Due In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -59,6 +60,7 @@
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">${{ number_format($domain->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
                                         @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -81,7 +83,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No active domains found</td>
+                                    <td colspan="8" class="text-center text-muted py-4">No active domains found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -98,6 +100,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Transferrable</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -117,6 +120,7 @@
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">${{ number_format($domain->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
                                         @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -139,7 +143,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No inactive domains found</td>
+                                    <td colspan="8" class="text-center text-muted py-4">No inactive domains found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -158,6 +162,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    @include('partials.datatable-init', ['tables' => ['#domain-table', '#inactive-domain-table'], 'noSort' => [6], 'empty' => 'No domains found'])
+    @include('partials.datatable-init', ['tables' => ['#domain-table', '#inactive-domain-table'], 'noSort' => [7], 'empty' => 'No domains found'])
     @endsection
 </x-app-layout>

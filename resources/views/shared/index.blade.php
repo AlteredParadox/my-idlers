@@ -44,6 +44,7 @@
                                     <th class="text-center">Domains</th>
                                     <th class="text-center">Link</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Due</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -73,6 +74,7 @@
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->price->usd_per_month * 12 }}">${{ number_format($row->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
                                         @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -95,7 +97,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="12" class="text-center text-muted py-4">No active shared hosting found</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No active shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -117,6 +119,7 @@
                                     <th class="text-center">Domains</th>
                                     <th class="text-center">Link</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -147,6 +150,7 @@
                                         {{ $row->price->price }} {{ $row->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $row->price->usd_per_month * 12 }}">${{ number_format($row->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
                                         @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -169,7 +173,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="12" class="text-center text-muted py-4">No inactive shared hosting found</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No inactive shared hosting found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -188,6 +192,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    @include('partials.datatable-init', ['tables' => ['#shared-table', '#inactive-shared-table'], 'noSort' => [11], 'empty' => 'No shared hosting found'])
+    @include('partials.datatable-init', ['tables' => ['#shared-table', '#inactive-shared-table'], 'noSort' => [12], 'empty' => 'No shared hosting found'])
     @endsection
 </x-app-layout>
