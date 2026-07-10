@@ -123,10 +123,18 @@ class Yabs extends Model
         $yabs_ids = self::where('server_id', $server_id)->pluck('id');
         DiskSpeed::whereIn('id', $yabs_ids)->delete();
         NetworkSpeed::whereIn('id', $yabs_ids)->delete();
-        foreach ($yabs_ids as $yabs_id) {
-            Cache::forget("yabs.$yabs_id");
-        }
         self::where('server_id', $server_id)->delete();
-        Cache::forget('all_yabs');
+        // afterCommit: the destroy paths call this inside their transactions,
+        // and forgetting before COMMIT lets a concurrent yabs index/show read
+        // re-prime the keys from the pre-delete snapshot — the deleted
+        // server's benchmarks then ghost-render for up to a month. Immediate
+        // outside a transaction; discarded on rollback (cache stays
+        // consistent with the restored rows).
+        \Illuminate\Support\Facades\DB::afterCommit(function () use ($yabs_ids) {
+            foreach ($yabs_ids as $yabs_id) {
+                Cache::forget("yabs.$yabs_id");
+            }
+            Cache::forget('all_yabs');
+        });
     }
 }

@@ -75,10 +75,20 @@ class LabelsController extends Controller
         // show pages lazy-load the now-deleted label and 500.
         $serviceIds = LabelsAssigned::where('label_id', $label->id)->pluck('service_id');
 
-        if ($label->delete()) {
-            Cache::forget('labels_count');
-
+        // Atomic: the assignment rows have no DB cascade — a failure between
+        // the label delete and their cleanup would strand orphaned
+        // assignments (rendered as empty badges) behind a deleted label.
+        $deleted = \Illuminate\Support\Facades\DB::transaction(function () use ($label) {
+            if (!$label->delete()) {
+                return false;
+            }
             Labels::deleteLabelAssignedAs($label->id);
+
+            return true;
+        });
+
+        if ($deleted) {
+            Cache::forget('labels_count');
 
             Cache::forget('all_labels');
 
