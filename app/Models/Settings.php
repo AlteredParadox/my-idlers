@@ -66,17 +66,18 @@ class Settings extends Model
     {
         Session::put('dark_mode', $settings->dark_mode ?? 0);
         Session::put('timer_version_footer', $settings->show_versions_footer ?? 1);
-        // show_servers_public / show_server_value_* / servers_index_cards are
-        // deliberately NOT snapshotted here: nothing reads the session copies —
-        // their consumers use the live Settings row (session snapshots are
-        // written once per visitor and never re-synced).
+        // show_servers_public / show_server_value_* / servers_index_cards /
+        // favicon are deliberately NOT snapshotted here: nothing reads the
+        // session copies — their consumers use the live Settings row
+        // (session snapshots are written once per visitor and never
+        // re-synced; a stale favicon snapshot 404'd the icon in every OTHER
+        // session after an extension change deleted the old file).
         Session::put('default_currency', $settings->default_currency ?? 'USD');
         Session::put('default_server_os', $settings->default_server_os ?? 1);
         Session::put('due_soon_amount', $settings->due_soon_amount ?? 6);
         Session::put('recently_added_amount', $settings->recently_added_amount ?? 6);
         Session::put('dashboard_currency', $settings->dashboard_currency ?? 'USD');
         Session::put('sort_on', $settings->sort_on ?? 1);
-        Session::put('favicon', $settings->favicon ?? 'favicon.ico');
         Session::put('default_per_page', $settings->default_per_page ?? 100);
         Session::put('prometheus_enabled', $settings->prometheus_enabled ?? 0);
         Session::put('prometheus_url', $settings->prometheus_url ?? '');
