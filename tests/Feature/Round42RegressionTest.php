@@ -60,6 +60,11 @@ class Round42RegressionTest extends TestCase
         Note::create(['id' => 'r42nta', 'service_id' => $a->id, 'note' => 'first note']);
         Note::create(['id' => 'r42ntb', 'service_id' => $b->id, 'note' => 'second note']);
 
+        // Prime the winner's note cache — the merge must invalidate it
+        // (round 43: the only note-write path that didn't forget note.{id})
+        Note::note($a->id);
+        Note::note($b->id);
+
         IPs::syncForService('r42note1', ['2001:db8::e']);
 
         $this->assertSame(1, IPs::where('service_id', 'r42note1')->count());
@@ -68,5 +73,7 @@ class Round42RegressionTest extends TestCase
         $this->assertNotNull($merged);
         $this->assertStringContainsString('first note', $merged->note);
         $this->assertStringContainsString('second note', $merged->note);
+        // Cached copy reflects the merge, not the primed pre-merge text
+        $this->assertStringContainsString('second note', Note::note($survivor->id)->note);
     }
 }

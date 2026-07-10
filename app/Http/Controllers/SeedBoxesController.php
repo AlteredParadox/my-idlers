@@ -104,7 +104,10 @@ class SeedBoxesController extends Controller
 
         // Atomic: a failure in the pricing/labels writes must not leave a
         // partially updated service.
-        DB::transaction(function () use ($request, $seedbox, $is_active) {
+        $updated = DB::transaction(function () use ($request, $seedbox, $is_active) {
+            if (!$this->lockedRowStillExists($seedbox)) {
+                return false;
+            }
             $seedbox->update([
                 'title' => $request->title,
                 'hostname' => $request->hostname,
@@ -123,7 +126,14 @@ class SeedBoxesController extends Controller
             ]);
 
             $this->syncPricingAndLabels($request, $seedbox->id, $is_active);
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('seedboxes.index')
+                ->with('error', 'Seed box no longer exists.');
+        }
 
         Home::forgetServiceCacheByType(6, $seedbox->id);
         Home::homePageCacheForget();

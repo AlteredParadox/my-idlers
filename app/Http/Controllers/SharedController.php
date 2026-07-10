@@ -120,7 +120,10 @@ class SharedController extends Controller
 
         // Atomic: a failure in any later write (pricing, labels, IPs) must
         // not leave a partially updated service.
-        DB::transaction(function () use ($request, $shared, $is_active, $link_speed_mbps, $submitted_ips) {
+        $updated = DB::transaction(function () use ($request, $shared, $is_active, $link_speed_mbps, $submitted_ips) {
+            if (!$this->lockedRowStillExists($shared)) {
+                return false;
+            }
             $shared->update([
                 'main_domain' => $request->domain,
                 'shared_type' => $request->shared_type,
@@ -145,7 +148,14 @@ class SharedController extends Controller
             $this->syncPricingAndLabels($request, $shared->id, $is_active);
 
             IPs::syncForService($shared->id, $submitted_ips);
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('shared.index')
+                ->with('error', 'Shared hosting no longer exists.');
+        }
 
         Cache::forget("note.{$shared->id}");//embeds the shared relation
         Cache::forget('all_notes');

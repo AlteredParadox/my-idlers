@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -98,6 +99,9 @@ class IPs extends Model
                     } else {
                         $loserNote->update(['service_id' => $kept[$key]->id]);
                     }
+                    // The winner's cached note (possibly primed null) is now
+                    // stale — every other note-write path forgets this key.
+                    Cache::forget('note.' . $kept[$key]->id);
                 }
                 Note::deleteForService($loser->id);
                 self::where('id', $loser->id)->delete();

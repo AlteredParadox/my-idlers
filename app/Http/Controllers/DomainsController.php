@@ -95,7 +95,10 @@ class DomainsController extends Controller
 
         // Atomic: a failure in the model/labels writes must not leave the
         // already-written pricing row pointing at stale service data.
-        DB::transaction(function () use ($request, $domain, $is_active) {
+        $updated = DB::transaction(function () use ($request, $domain, $is_active) {
+            if (!$this->lockedRowStillExists($domain)) {
+                return false;
+            }
             (new Pricing())->updatePricing($domain->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
 
             $domain->update([
@@ -112,7 +115,14 @@ class DomainsController extends Controller
 
             Labels::deleteLabelsAssignedTo($domain->id);
             Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $domain->id);
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('domains.index')
+                ->with('error', 'Domain no longer exists.');
+        }
 
         Cache::forget("note.{$domain->id}");//embeds the domain relation
         Cache::forget('all_notes');

@@ -193,7 +193,10 @@ class ServerController extends Controller
         // Atomic: a failure in any later write (pricing, labels, disks, IPs)
         // must not leave a partially updated server; caches are only cleared
         // after the whole sequence commits.
-        DB::transaction(function () use ($request, $server, $is_active, $link_speed_mbps, $total_disk_gb, $ip_fields) {
+        $updated = DB::transaction(function () use ($request, $server, $is_active, $link_speed_mbps, $total_disk_gb, $ip_fields) {
+            if (!$this->lockedRowStillExists($server)) {
+                return false;
+            }
             $server->update([
                 'hostname' => $request->hostname,
                 'server_type' => $request->server_type,
@@ -233,7 +236,14 @@ class ServerController extends Controller
             }
 
             IPs::syncForService($server->id, array_values($ip_fields));
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('servers.index')
+                ->with('error', 'Server no longer exists.');
+        }
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($server->id);

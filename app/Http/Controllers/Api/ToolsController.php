@@ -17,7 +17,7 @@ class ToolsController extends Controller
         // label — the web route's regex permits a leading dash and the API
         // route had no constraint at all, so enforce it here for both.
         if (!filter_var($hostname, FILTER_VALIDATE_IP)
-            && !preg_match('/^[A-Za-z0-9]([A-Za-z0-9._:-]*[A-Za-z0-9])?$/', $hostname)) {
+            && !preg_match('/^[A-Za-z0-9]([A-Za-z0-9._:-]*[A-Za-z0-9])?$/D', $hostname)) {
             return response(array('is_online' => false, 'error' => 'Invalid hostname'), 422);
         }
 
