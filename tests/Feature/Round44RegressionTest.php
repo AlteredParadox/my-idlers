@@ -79,7 +79,16 @@ class Round44RegressionTest extends TestCase
 
         // updateServer: locked server read inside the transaction. Ordering
         // via strpos, not one rigid regex — a comment or reformat between
-        // the two lines must not false-fail the pin.
+        // the two lines must not false-fail the pin. Both anchors must
+        // exist, or Str::between degrades to the whole file and the check
+        // vacuously passes against some OTHER method's transaction.
+        $this->assertStringContainsString('public function updateServer', $api);
+        $this->assertStringContainsString('private function applyLinkSpeed', $api);
+        $this->assertLessThan(
+            strpos($api, 'private function applyLinkSpeed'),
+            strpos($api, 'public function updateServer'),
+            'the extraction anchors must delimit updateServer'
+        );
         $method = Str::between($api, 'public function updateServer', 'private function applyLinkSpeed');
         $txnPos = strpos($method, 'DB::transaction');
         $lockPos = strpos($method, "Server::where('id', \$id)->lockForUpdate()");

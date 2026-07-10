@@ -55,7 +55,16 @@ class YabsController extends Controller
 
     public function destroy(Yabs $yab)
     {
-        if ($yab->delete()) {
+        // Atomic like every other destroy path (this one was missed by the
+        // destroy-atomicity pass): a failure mid-cleanup must not leave
+        // orphaned disk_speed/network_speed rows on the dead yabs id (a
+        // future ingest drawing that random id 500s on its child insert) or
+        // a has_yabs=1 server with zero YABS rows (permanently ghost-listed
+        // on compare-choose while its compare page 404s).
+        $deleted = DB::transaction(function () use ($yab) {
+            if (!$yab->delete()) {
+                return false;
+            }
             // Delete the disk_speed/network_speed rows created with this YABS
             // (keyed on the yabs id; no DB cascades).
             DiskSpeed::where('id', $yab->id)->delete();
@@ -67,6 +76,10 @@ class YabsController extends Controller
                     ->update(['has_yabs' => 0]);
             }
 
+            return true;
+        });
+
+        if ($deleted) {
             Cache::forget('all_yabs');
             Cache::forget("yabs.{$yab->id}");
             // Server caches embed the yabs relation; mirror the add path.
