@@ -260,17 +260,21 @@ class ServerManagementController extends Controller
             $updateData['ssh'] = $request->integer('ssh_port');
         }
 
-        $server_row = Server::find($id);
-        if (is_null($server_row)) {
-            return $this->notFound();
-        }
-
-        $updateData = $this->deriveAsColumns($updateData, $validated, $server_row);
-        $updateData = $this->applyLinkSpeed($updateData, $validated);
-
         // Atomic like the web update: server row, disk parity row, pricing,
-        // labels and IPs commit or roll back together.
-        DB::transaction(function () use ($request, $id, $validated, $updateData, $server_row) {
+        // labels and IPs commit or roll back together. The row is read
+        // LOCKED inside the transaction: the derived columns are computed
+        // from it (a concurrent partial PUT could interleave and persist
+        // an inconsistent ram/ram_as_mb pair), and a concurrent destroy
+        // must yield a 404 here — not ghost child inserts for a deleted id.
+        $found = DB::transaction(function () use ($request, $id, $validated, $updateData) {
+            $server_row = Server::where('id', $id)->lockForUpdate()->first();
+            if (is_null($server_row)) {
+                return false;
+            }
+
+            $updateData = $this->deriveAsColumns($updateData, $validated, $server_row);
+            $updateData = $this->applyLinkSpeed($updateData, $validated);
+
             // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
             // reports 0 for an idempotent re-save, so success is keyed on existence,
             // not the dirty count. Empty set (labels/ips-only PUT): nothing to write.
@@ -289,7 +293,13 @@ class ServerManagementController extends Controller
             if (array_key_exists('ips', $validated)) {
                 IPs::syncForService($id, $validated['ips']);
             }
+
+            return true;
         });
+
+        if (!$found) {
+            return $this->notFound();
+        }
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($id);

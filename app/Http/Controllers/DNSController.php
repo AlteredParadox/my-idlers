@@ -124,19 +124,36 @@ class DNSController extends Controller
             ...\App\Models\Labels::validationRules(),
         ]);
 
-        $dn->update([
-            'hostname' => $request->hostname,
-            'dns_type' => $request->dns_type,
-            'address' => $request->address,
-            'server_id' => ($request->server_id !== 'null') ? $request->server_id : null,
-            'shared_id' => ($request->shared_id !== 'null') ? $request->shared_id : null,
-            'reseller_id' => ($request->reseller_id !== 'null') ? $request->reseller_id : null,
-            'domain_id' => ($request->domain_id !== 'null') ? $request->domain_id : null
-        ]);
+        // Atomic (this update predated the round-14 atomicity pass): the
+        // model write and label re-sync must commit together, and the
+        // locked re-check stops a concurrent destroy from letting the
+        // label inserts recreate rows for a deleted record.
+        $updated = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $dn) {
+            if (!$this->lockedRowStillExists($dn)) {
+                return false;
+            }
 
-        Labels::deleteLabelsAssignedTo($dn->id);
+            $dn->update([
+                'hostname' => $request->hostname,
+                'dns_type' => $request->dns_type,
+                'address' => $request->address,
+                'server_id' => ($request->server_id !== 'null') ? $request->server_id : null,
+                'shared_id' => ($request->shared_id !== 'null') ? $request->shared_id : null,
+                'reseller_id' => ($request->reseller_id !== 'null') ? $request->reseller_id : null,
+                'domain_id' => ($request->domain_id !== 'null') ? $request->domain_id : null
+            ]);
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $dn->id);
+            Labels::deleteLabelsAssignedTo($dn->id);
+
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $dn->id);
+
+            return true;
+        });
+
+        if (!$updated) {
+            return redirect()->route('dns.index')
+                ->with('error', 'DNS record no longer exists.');
+        }
 
         Cache::forget("note.{$dn->id}");//embeds the dns relation
         Cache::forget('all_notes');

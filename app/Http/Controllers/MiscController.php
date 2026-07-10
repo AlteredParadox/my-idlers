@@ -79,7 +79,10 @@ class MiscController extends Controller
 
         // Atomic: a failure in the pricing write must not leave a partially
         // updated service.
-        DB::transaction(function () use ($request, $misc, $is_active) {
+        $updated = DB::transaction(function () use ($request, $misc, $is_active) {
+            if (!$this->lockedRowStillExists($misc)) {
+                return false;
+            }
             $misc->update([
                 'name' => $request->name,
                 'owned_since' => $request->owned_since,
@@ -87,7 +90,14 @@ class MiscController extends Controller
             ]);
 
             (new Pricing())->updatePricing($misc->id, $request->currency, $request->price, $request->payment_term, $request->next_due_date, $is_active);
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('misc.index')
+                ->with('error', 'Misc service no longer exists.');
+        }
 
         Home::forgetServiceCacheByType(5, $misc->id);
         Home::homePageCacheForget();

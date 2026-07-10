@@ -122,7 +122,10 @@ class ResellerController extends Controller
 
         // Atomic: a failure in any later write (pricing, labels, IPs) must
         // not leave a partially updated service.
-        DB::transaction(function () use ($request, $reseller, $is_active, $link_speed_mbps, $submitted_ips) {
+        $updated = DB::transaction(function () use ($request, $reseller, $is_active, $link_speed_mbps, $submitted_ips) {
+            if (!$this->lockedRowStillExists($reseller)) {
+                return false;
+            }
             $reseller->update([
                 'main_domain' => $request->domain,
                 'reseller_type' => $request->reseller_type,
@@ -148,7 +151,14 @@ class ResellerController extends Controller
             $this->syncPricingAndLabels($request, $reseller->id, $is_active);
 
             IPs::syncForService($reseller->id, $submitted_ips);
+
+            return true;
         });
+
+        if (!$updated) {
+            return redirect()->route('reseller.index')
+                ->with('error', 'Reseller hosting no longer exists.');
+        }
 
         Cache::forget("note.{$reseller->id}");//embeds the reseller relation
         Cache::forget('all_notes');
