@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -63,29 +63,40 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        Settings::getSettings(); // the sentinel must exist for the lock to bite
-
         // Count-then-insert is a check/read-then-write race: two concurrent
         // POSTs both read 0 users and both insert, landing 2 accounts under
         // MAX_USERS=1 — and no service table is user-scoped, so the second
-        // account reads and writes everything. Serialize on the always-present
-        // settings row (there is no user row to lock when the table is empty),
-        // then re-check the cap inside the transaction: the same locked-re-read
-        // discipline the update and destroy paths use.
-        $user = DB::transaction(function () use ($request) {
-            Settings::where('id', 1)->lockForUpdate()->first();
+        // account reads and writes everything.
+        //
+        // Serialize on an out-of-band atomic lock, NOT on a data row: there
+        // is no user row to lock while the table is empty, and locking the
+        // settings row silently no-ops whenever a warm `settings` cache
+        // entry shadows a missing row (getSettings() returns the cached
+        // ghost, lockForUpdate()->first() finds nothing, no lock is taken).
+        // The transaction and the re-check inside it are defence in depth.
+        $lock = Cache::lock('registration.cap', 10);
 
-            if ($this->registrationClosed()) {
-                return null;
-            }
+        try {
+            // Fail closed: a lock we cannot take means someone else is
+            // registering right now, and we must not count-then-insert past
+            // them. Timeout is configurable so tests can assert the wait.
+            $lock->block((int) config('custom.registration_lock_seconds', 5));
 
-            return User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'api_token' => User::hashApiToken(Str::random(60))
-            ]);
-        });
+            $user = DB::transaction(function () use ($request) {
+                if ($this->registrationClosed()) {
+                    return null;
+                }
+
+                return User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'api_token' => User::hashApiToken(Str::random(60))
+                ]);
+            });
+        } finally {
+            $lock->release();
+        }
 
         if (is_null($user)) {
             abort(403, 'Registration is closed.');
