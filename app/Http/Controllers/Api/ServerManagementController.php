@@ -86,7 +86,8 @@ class ServerManagementController extends Controller
             'labels' => 'array|max:4',
             'labels.*' => 'string|distinct|exists:labels,id',
             'currency' => $required . 'string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'price' => $required . 'numeric|min:0|max:99999999',
+            'price' => array_merge($for_store ? ['required'] : [],
+                ['numeric', 'min:0', 'max:99999999', new \App\Rules\PriceFitsStorableUsd()]),
             'payment_term' => $required . 'integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
@@ -433,7 +434,7 @@ class ServerManagementController extends Controller
     public function updatePricing(Request $request, string $id)
     {
         $rules = [
-            'price' => 'required|numeric|min:0|max:99999999',
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999', new \App\Rules\PriceFitsStorableUsd()],
             'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
             'term' => 'required|integer|in:1,2,3,4,5,6,7',
             'active' => 'integer|in:0,1',
