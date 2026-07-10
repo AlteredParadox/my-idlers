@@ -2,6 +2,24 @@
      visibility, page length) and misc view toggles persist via the
      preferences endpoint. Guests get plain, non-persistent tables. --}}
 @php($userPrefs = auth()->check() ? \App\Models\UserPreference::valuesFor(auth()->id()) : [])
+@php($colvisDark = in_array((int) session('dark_mode'), [1, 2], true))
+{{-- Explicit colors per theme: the dark stylesheets' .dropdown-item rules
+     render near-invisible text on the .dropdown-menu background (only the
+     navbar has scoped colors). Palette mirrors the navbar dropdown, which
+     is readable on every theme; !important ends the specificity fight. --}}
+<style>
+    .idlers-colvis-menu {
+        background-color: {{ $colvisDark ? '#1e293b' : '#ffffff' }} !important;
+        color: {{ $colvisDark ? '#e2e8f0' : '#212529' }} !important;
+        border: 1px solid {{ $colvisDark ? '#334155' : 'rgba(0,0,0,.15)' }} !important;
+    }
+    .idlers-colvis-menu .dropdown-item {
+        color: inherit !important;
+    }
+    .idlers-colvis-menu .dropdown-item:hover {
+        background-color: {{ $colvisDark ? '#334155' : '#e9ecef' }} !important;
+    }
+</style>
 <script>
     window.idlersPrefs = @json((object) $userPrefs);
 
@@ -65,19 +83,10 @@
     // the .table-responsive overflow container bootstrap dropdowns sit in.
     function idlersColumnMenu(dt, selector) {
         var menu = $('<ul class="dropdown-menu idlers-colvis-menu" style="max-height: 60vh; overflow-y: auto;"></ul>');
-        // The three theme stylesheets disagree on .dropdown-menu/.dropdown-item
-        // colors (dark mode paints near-invisible text); inherit the page's
-        // own colors inline so the menu is readable under every theme.
-        var bodyStyle = window.getComputedStyle(document.body);
-        menu.css('color', bodyStyle.color);
-        var bg = bodyStyle.backgroundColor;
-        if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
-            menu.css('background-color', bg);
-        }
         dt.columns().every(function (i) {
             var col = this;
             var title = $(col.header()).text().trim() || 'Column ' + (i + 1);
-            var label = $('<label class="dropdown-item mb-0" style="cursor: pointer; color: inherit;"></label>');
+            var label = $('<label class="dropdown-item mb-0" style="cursor: pointer;"></label>');
             var box = $('<input type="checkbox" class="form-check-input me-2">')
                 .prop('checked', col.visible())
                 .on('change', function () { col.visible(this.checked); });

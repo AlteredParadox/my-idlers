@@ -102,6 +102,10 @@ class UserPreferenceTest extends TestCase
         $servers->assertSee('idlersPrefs', false);
         $servers->assertSee('dt.servers-table', false);
         $servers->assertSee('idlersDataTable(\'#servers-table\'', false);
+        // Theme-explicit colvis colors: the theme stylesheets render
+        // near-invisible dropdown text, so the menu ships its own palette
+        $servers->assertSee('.idlers-colvis-menu', false);
+        $servers->assertSee('color: #212529 !important', false);
 
         // Pages on the shared partial get the same treatment
         $this->actingAs($user)->get('/domains')
