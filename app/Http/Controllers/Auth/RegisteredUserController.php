@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
@@ -87,12 +89,22 @@ class RegisteredUserController extends Controller
                     return null;
                 }
 
-                return User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'api_token' => User::hashApiToken(Str::random(60))
-                ]);
+                // unique:users validated BEFORE the lock, so two concurrent
+                // same-email submits can both pass it; the loser lands here
+                // on the unique index. Surface it as the normal validation
+                // error instead of a raw QueryException 500.
+                try {
+                    return User::create([
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'password' => Hash::make($request->password),
+                        'api_token' => User::hashApiToken(Str::random(60))
+                    ]);
+                } catch (UniqueConstraintViolationException) {
+                    throw ValidationException::withMessages([
+                        'email' => trans('validation.unique', ['attribute' => 'email']),
+                    ]);
+                }
             });
         } finally {
             $lock->release();
