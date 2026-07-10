@@ -56,6 +56,15 @@ class SettingsController extends Controller
             }
             $favicon_filename = "favicon.$extension";
 
+            // An .ico upload targets the SHIPPED favicon.ico's name, which is
+            // deliberately root-owned in the container (non-recursive public
+            // chown) — in-place truncation needs FILE write, but directory
+            // write lets us unlink and recreate instead.
+            if (Storage::disk('public_uploads')->exists($favicon_filename)
+                && !is_writable(Storage::disk('public_uploads')->path($favicon_filename))) {
+                Storage::disk('public_uploads')->delete($favicon_filename);
+            }
+
             // Write FIRST, verify, and only then touch the old file or the
             // settings row: storeAs returns false on an unwritable webroot
             // (the fpm container's /app/public was root-owned for a while),
