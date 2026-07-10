@@ -541,6 +541,12 @@ Body content template
     "disk": 30,
     "disk_type": "GB",
     "cpu": 2,
+    "cpu_model": "EPYC 7402P",
+    "disk_media": "NVMe",
+    "link_speed": 1,
+    "link_speed_type": "Gbps",
+    "network_type": "IPv4+IPv6",
+    "labels": ["labelID1", "labelID2"],
     "was_promo": 1,
     "ip1": "127.0.0.1",
     "ip2": null,
@@ -561,13 +567,22 @@ Validation notes (as of ap.1):
   `GB`/`TB`; `active`/`show_public`/`was_promo`/`transferrable` are `0`/`1`
 * `currency` must be a currently-convertible code; `price` and capacity fields must be `>= 0`
 
+Web-form parity fields (as of ap.4, all optional on POST and PUT):
+
+* `link_speed` is a value + `link_speed_type` (`Mbps`/`Gbps`) pair — stored as Mbps; sending a
+  speed without its unit is rejected
+* `network_type` is one of `IPv4`, `IPv6`, `IPv4+IPv6`, `IPv4 NAT`, `IPv4 NAT + IPv6`
+* `disk_media` is `SSD`/`HDD`/`NVMe` (defaults to `SSD` on create)
+* `labels` is an array of up to 4 existing label IDs (see `GET labels/`) — when sent on PUT it
+  **replaces** the assignments (`[]` clears them, absent leaves them untouched)
+
 **PUT requests**
 
 Update a server
 
 `/servers/ID`
 
-Body content template
+Updates are partial: send only the fields you want to change. Body content template
 
 ```json
 {
@@ -586,11 +601,22 @@ Body content template
     "ram_type": "MB",
     "disk": 30,
     "disk_type": "GB",
+    "disk_media": "SSD",
     "cpu": 2,
+    "cpu_model": "EPYC 7402P",
+    "link_speed": 1,
+    "link_speed_type": "Gbps",
+    "network_type": "IPv4+IPv6",
+    "labels": ["labelID1", "labelID2"],
+    "ips": ["127.0.0.1", "2001:db8::1"],
     "was_promo": 1,
     "owned_since": "2022-01-01"
 }
 ```
+
+`ips` replaces the server's full IP set like the web edit form: addresses already assigned keep
+their row (whois data and notes survive), removed addresses are deleted, `[]` clears all IPs and
+an absent key leaves them untouched.
 
 Update pricing
 

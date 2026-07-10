@@ -38,49 +38,81 @@ class ServerManagementController extends Controller
     ];
 
 
-    protected function storeServer(Request $request)
+    /**
+     * Store and update share one field contract (like the web controller's
+     * rules(bool)): every field required at create is optional on update,
+     * so a partial PUT touches only the submitted columns.
+     */
+    private function rules(bool $for_store): array
     {
+        $required = $for_store ? 'required|' : '';
+
         $rules = [
-            'hostname' => 'required|min:3',
-            'server_type' => 'required|integer|in:1,2,3,4,5,6,7',
+            'hostname' => $required . 'string|min:3',
+            'server_type' => $required . 'integer|in:1,2,3,4,5,6,7',
             // exists: no FK guards these columns, and a dangling id 500s the
             // servers index and public page on the null relation
-            'os_id' => 'required|integer|exists:os,id',
-            'provider_id' => 'required|integer|exists:providers,id',
-            'location_id' => 'required|integer|exists:locations,id',
-            'ssh_port' => 'required|integer|min:1|max:65535',
-            'ram' => 'required|integer|min:0|max:100000000',
-            'disk' => 'required|integer|min:0|max:1000000',
-            'cpu' => 'required|integer|min:1|max:1024',
-            'bandwidth' => 'required|integer|min:0|max:100000000',
-            'was_promo' => 'required|integer|in:0,1',
+            'os_id' => $required . 'integer|exists:os,id',
+            'provider_id' => $required . 'integer|exists:providers,id',
+            'location_id' => $required . 'integer|exists:locations,id',
+            'ssh_port' => $required . 'integer|min:1|max:65535',
+            'ram' => $required . 'integer|min:0|max:100000000',
+            'disk' => $required . 'integer|min:0|max:1000000',
+            'cpu' => $required . 'integer|min:1|max:1024',
+            'bandwidth' => $required . 'integer|min:0|max:100000000',
+            'was_promo' => $required . 'integer|in:0,1',
             'transferrable' => 'integer|in:0,1',
-            'active' => 'required|integer|in:0,1',
-            'show_public' => 'required|integer|in:0,1',
-            'ip1' => 'ip',
-            // different:ip1 — duplicate would hit the (service_id, address)
-            // unique index as a QueryException 500 instead of a 400
-            'ip2' => 'ip|different:ip1',
-            'owned_since' => 'required|date_format:Y-m-d',
+            'active' => $required . 'integer|in:0,1',
+            'show_public' => $required . 'integer|in:0,1',
+            'owned_since' => $required . 'date_format:Y-m-d',
             // in: enums (not size:2) — the case-sensitive === derivations turn
             // e.g. 'gb' into a silent 1024x disk_as_gb corruption, no error
-            'ram_type' => 'required|in:MB,GB',
-            'disk_type' => 'required|in:GB,TB',
-            'currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'price' => 'required|numeric|min:0|max:99999999',
-            'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
+            'ram_type' => $required . 'in:MB,GB',
+            'disk_type' => $required . 'in:GB,TB',
+            // Web-form parity fields; all optional in both directions
+            'disk_media' => 'nullable|in:SSD,HDD,NVMe',
+            'ns1' => 'nullable|string|max:255',
+            'ns2' => 'nullable|string|max:255',
+            'cpu_model' => 'nullable|string|max:255',
+            'network_type' => 'nullable|string|in:IPv4,IPv6,IPv4+IPv6,IPv4 NAT,IPv4 NAT + IPv6',
+            'link_speed' => 'nullable|numeric|min:0|max:1000000',
+            // a unit-less speed would be silently stored as Mbps
+            'link_speed_type' => 'required_with:link_speed|in:Mbps,Gbps',
+            'labels' => 'array|max:4',
+            'labels.*' => 'string|distinct|exists:labels,id',
+            'currency' => $required . 'string|size:3|' . \App\Models\Pricing::currencyRule(),
+            'price' => $required . 'numeric|min:0|max:99999999',
+            'payment_term' => $required . 'integer|in:1,2,3,4,5,6,7',
             'next_due_date' => 'date_format:Y-m-d',
         ];
 
-        $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
+        if ($for_store) {
+            $rules['ip1'] = 'nullable|ip';
+            // different:ip1 — duplicate would hit the (service_id, address)
+            // unique index as a QueryException 500 instead of a 400
+            $rules['ip2'] = 'nullable|ip|different:ip1';
+        } else {
+            // update replaces the full IP set (web edit-form semantics):
+            // [] clears, absent leaves the assigned IPs untouched
+            $rules['ips'] = 'array';
+            $rules['ips.*'] = 'ip|distinct';
+        }
+
+        return $rules;
+    }
+
+    protected function storeServer(Request $request)
+    {
+        $validator = Validator::make($request->all(), $this->rules(true), self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
         }
 
+        $validated = $validator->validated();
         $server_id = Str::random(8);
 
-        $insert = DB::transaction(function () use ($request, $server_id) {
+        $insert = DB::transaction(function () use ($request, $validated, $server_id) {
             (new Pricing())->insertPricing(1, $server_id, $request->currency, $request->price, $request->payment_term, $request->next_due_date);
 
             if (!is_null($request->ip1)) {
@@ -91,7 +123,7 @@ class ServerManagementController extends Controller
                 IPs::insertIP($server_id, $request->ip2);
             }
 
-            $server = Server::create([
+            $server = Server::create($this->applyLinkSpeed([
                 'id' => $server_id,
                 'hostname' => $request->hostname,
                 'server_type' => $request->server_type,
@@ -108,17 +140,21 @@ class ServerManagementController extends Controller
                 'owned_since' => $request->owned_since,
                 'ns1' => $request->ns1,
                 'ns2' => $request->ns2,
+                'network_type' => $request->network_type,
                 'bandwidth' => $request->bandwidth,
                 'cpu' => $request->cpu,
+                'cpu_model' => $request->cpu_model,
                 'was_promo' => $request->was_promo,
                 'transferrable' => $request->transferrable,
                 'active' => $request->boolean('active') ? 1 : 0,
                 'show_public' => $request->boolean('show_public') ? 1 : 0
-            ]);
+            ], $validated));
 
             // Parity with the web create path: record a server_disks row so disk
             // totals (which join server_disks) include API-created servers.
-            Disk::insertDisk($server_id, (int) $request->disk, $request->disk_type, 'SSD');
+            Disk::insertDisk($server_id, (int) $request->disk, $request->disk_type, $request->disk_media ?? 'SSD');
+
+            $this->syncLabels($server_id, $validated);
 
             return $server;
         });
@@ -143,20 +179,25 @@ class ServerManagementController extends Controller
             return $this->notFound();
         }
 
-        $result = $items->delete();
+        // Atomic like the web destroy: child rows have no DB cascades — a
+        // failure mid-cleanup must not orphan them behind a deleted server.
+        $deleted = DB::transaction(function () use ($items, $id) {
+            if (!$items->delete()) {
+                return false;
+            }
+            (new Pricing())->deletePricing($id);
+            Labels::deleteLabelsAssignedTo($id);
+            IPs::deleteIPsAssignedTo($id);
+            Disk::deleteDisksForServer($id);
+            Note::deleteForService($id);
+            Yabs::deleteForServer($id);
+            return true;
+        });
 
-        $p = new Pricing();
-        $p->deletePricing($id);
+        if ($deleted) {
+            Server::serverRelatedCacheForget();
+            Server::serverSpecificCacheForget($id);
 
-        Labels::deleteLabelsAssignedTo($id);
-        IPs::deleteIPsAssignedTo($id);
-        Disk::deleteDisksForServer($id);
-        Note::deleteForService($id);
-        Yabs::deleteForServer($id);
-        Server::serverRelatedCacheForget();
-        Server::serverSpecificCacheForget($id);
-
-        if ($result) {
             return response()->json(array('result' => 'success'), 200);
         }
 
@@ -166,31 +207,7 @@ class ServerManagementController extends Controller
 
     public function updateServer(Request $request, string $id)
     {
-        $rules = [
-            'hostname' => 'string|min:3',
-            'server_type' => 'integer|in:1,2,3,4,5,6,7',
-            'os_id' => 'integer|exists:os,id',
-            'provider_id' => 'integer|exists:providers,id',
-            'location_id' => 'integer|exists:locations,id',
-            'ssh_port' => 'integer|min:1|max:65535',
-            'ram' => 'integer|min:0|max:100000000',
-            'disk' => 'integer|min:0|max:1000000',
-            'cpu' => 'integer|min:1|max:1024',
-            'bandwidth' => 'integer|min:0|max:100000000',
-            'was_promo' => 'integer|in:0,1',
-            'transferrable' => 'integer|in:0,1',
-            'active' => 'integer|in:0,1',
-            'show_public' => 'integer|in:0,1',
-            'owned_since' => 'date_format:Y-m-d',
-            'ram_type' => 'in:MB,GB',
-            'disk_type' => 'in:GB,TB',
-            'currency' => 'string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'price' => 'numeric|min:0|max:99999999',
-            'payment_term' => 'integer|in:1,2,3,4,5,6,7',
-            'next_due_date' => 'date_format:Y-m-d',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, self::VALIDATION_MESSAGES);
+        $validator = Validator::make($request->all(), $this->rules(false), self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
             return response()->json(['result' => 'fail', 'messages' => $validator->messages()], 400);
@@ -198,7 +215,7 @@ class ServerManagementController extends Controller
 
         $validated = $validator->validated();
         $updateData = collect($validated)
-            ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port'])
+            ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port', 'link_speed_type', 'disk_media', 'labels', 'ips'])
             ->toArray();
 
         if ($request->has('ssh_port')) {
@@ -211,23 +228,68 @@ class ServerManagementController extends Controller
         }
 
         $updateData = $this->deriveAsColumns($updateData, $validated, $server_row);
+        $updateData = $this->applyLinkSpeed($updateData, $validated);
 
+        // Atomic like the web update: server row, disk parity row, pricing,
+        // labels and IPs commit or roll back together.
+        DB::transaction(function () use ($request, $id, $validated, $updateData, $server_row) {
+            // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
+            // reports 0 for an idempotent re-save, so success is keyed on existence,
+            // not the dirty count. Empty set (labels/ips-only PUT): nothing to write.
+            if ($updateData !== []) {
+                Server::where('id', $id)->update($updateData);
+            }
 
-        // update() returns the CHANGED-row count; MySQL (no MYSQL_ATTR_FOUND_ROWS)
-        // reports 0 for an idempotent re-save, so success is keyed on existence,
-        // not the dirty count.
-        Server::where('id', $id)->update($updateData);
+            $this->syncDiskParityRow($id, $validated, $server_row);
 
-        $this->syncDiskParityRow($id, $validated, $server_row);
+            if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date', 'active'])) {
+                $this->applyPricingFields($id, $validated);
+            }
 
-        if ($request->hasAny(['currency', 'price', 'payment_term', 'next_due_date', 'active'])) {
-            $this->applyPricingFields($id, $validated);
-        }
+            $this->syncLabels($id, $validated);
+
+            if (array_key_exists('ips', $validated)) {
+                IPs::syncForService($id, $validated['ips']);
+            }
+        });
 
         Server::serverRelatedCacheForget();
         Server::serverSpecificCacheForget($id);
 
         return response()->json(array('result' => 'success', 'server_id' => $id), 200);
+    }
+
+    /**
+     * link_speed arrives as a value + Mbps/Gbps unit pair (web-form parity)
+     * but is stored as a single Mbps column. Clients can't set the column
+     * directly: an unconverted Gbps figure would corrupt the stored speed.
+     */
+    private function applyLinkSpeed(array $data, array $validated): array
+    {
+        if (!array_key_exists('link_speed', $validated)) {
+            return $data;
+        }
+
+        $speed = $validated['link_speed'];
+        $type = $validated['link_speed_type'] ?? null;
+        $data['link_speed'] = $speed ? (int) ($type === 'Gbps' ? $speed * 1000 : $speed) : null;
+
+        return $data;
+    }
+
+    /**
+     * Replace the label assignments when `labels` was submitted: [] clears,
+     * absent leaves them untouched (partial-update semantics).
+     */
+    private function syncLabels(string $id, array $validated): void
+    {
+        $labels = $validated['labels'] ?? null;
+        if (!is_array($labels)) {
+            return;
+        }
+
+        Labels::deleteLabelsAssignedTo($id);
+        Labels::insertLabelsAssigned(array_pad(array_values($labels), 4, null), $id);
     }
 
 
@@ -263,7 +325,9 @@ class ServerManagementController extends Controller
      */
     private function syncDiskParityRow(string $id, array $validated, Server $server_row): void
     {
-        if (!array_key_exists('disk', $validated) && !array_key_exists('disk_type', $validated)) {
+        $media = $validated['disk_media'] ?? null;
+
+        if (!array_key_exists('disk', $validated) && !array_key_exists('disk_type', $validated) && is_null($media)) {
             return;
         }
 
@@ -272,13 +336,17 @@ class ServerManagementController extends Controller
         $disk_rows = Disk::where('server_id', $id)->get();
 
         if ($disk_rows->count() === 1) {
-            $disk_rows->first()->update([
+            $row = [
                 'disk_size' => $size,
                 'disk_unit' => $unit,
                 'disk_as_gb' => ($unit === 'TB') ? ($size * 1024) : $size,
-            ]);
+            ];
+            if (!is_null($media)) {
+                $row['disk_media'] = $media;
+            }
+            $disk_rows->first()->update($row);
         } elseif ($disk_rows->isEmpty()) {
-            Disk::insertDisk($id, $size, $unit, 'SSD');
+            Disk::insertDisk($id, $size, $unit, $media ?? 'SSD');
         }
     }
 
