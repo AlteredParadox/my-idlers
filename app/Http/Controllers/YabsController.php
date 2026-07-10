@@ -70,11 +70,16 @@ class YabsController extends Controller
             DiskSpeed::where('id', $yab->id)->delete();
             NetworkSpeed::where('id', $yab->id)->delete();
 
-            if (Server::serverYabsAmount($yab->server_id) === 0) {
-                DB::table('servers')
-                    ->where('id', $yab->server_id)
-                    ->update(['has_yabs' => 0]);
-            }
+            // Unconditional set-from-truth, NOT count-then-maybe-clear: under
+            // MySQL REPEATABLE READ two concurrent destroys of the last two
+            // YABS each see the other's uncommitted row in their snapshot,
+            // both skip the clear, and has_yabs strands at 1 (the show page
+            // then 500s on yabs[0]). The UPDATE's subquery is a current read
+            // serialized on the servers row lock, so the last committer wins
+            // with the real answer.
+            DB::table('servers')
+                ->where('id', $yab->server_id)
+                ->update(['has_yabs' => DB::raw('EXISTS(SELECT 1 FROM yabs WHERE yabs.server_id = servers.id)')]);
 
             return true;
         });
