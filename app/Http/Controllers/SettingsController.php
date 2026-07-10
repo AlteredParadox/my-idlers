@@ -56,21 +56,18 @@ class SettingsController extends Controller
             }
             $favicon_filename = "favicon.$extension";
 
-            // An .ico upload targets the SHIPPED favicon.ico's name, which is
-            // deliberately root-owned in the container (non-recursive public
-            // chown) — in-place truncation needs FILE write, but directory
-            // write lets us unlink and recreate instead.
-            if (Storage::disk('public_uploads')->exists($favicon_filename)
-                && !is_writable(Storage::disk('public_uploads')->path($favicon_filename))) {
-                Storage::disk('public_uploads')->delete($favicon_filename);
-            }
+            // Atomic replace: write to a temp name, verify, then rename over
+            // the target. rename(2) needs only DIRECTORY write — it replaces
+            // even the root-owned shipped favicon.ico (the hardened container
+            // keeps shipped files root-owned) — and a failed or partial write
+            // leaves the existing favicon untouched instead of destroying it.
+            // Blindly repointing settings.favicon at a file that was never
+            // written 404s the favicon site-wide behind a success flash.
+            $tmp_name = "$favicon_filename.tmp";
+            if ($file->storeAs("", $tmp_name, "public_uploads") === false
+                || Storage::disk('public_uploads')->move($tmp_name, $favicon_filename) === false) {
+                Storage::disk('public_uploads')->delete($tmp_name);
 
-            // Write FIRST, verify, and only then touch the old file or the
-            // settings row: storeAs returns false on an unwritable webroot
-            // (the fpm container's /app/public was root-owned for a while),
-            // and blindly repointing settings.favicon at a file that was
-            // never written 404s the favicon site-wide behind a success flash.
-            if ($file->storeAs("", $favicon_filename, "public_uploads") === false) {
                 return redirect()->route('settings.index')
                     ->with('error', 'Favicon could not be saved — the web server cannot write to the public directory.');
             }
