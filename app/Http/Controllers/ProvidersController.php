@@ -30,9 +30,9 @@ class ProvidersController extends Controller
             'provider_name' => 'required|string|min:2|max:255|unique:providers,name'
         ]);
 
-        Providers::create([
+        $this->createUniquely(fn() => Providers::create([
             'name' => $request->provider_name
-        ]);
+        ]), 'provider_name');
 
         Cache::forget('providers');
 

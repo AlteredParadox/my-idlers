@@ -31,9 +31,9 @@ class LocationsController extends Controller
             'location_name' => 'required|string|min:2|max:255|unique:locations,name'
         ]);
 
-        Locations::create([
+        $this->createUniquely(fn() => Locations::create([
             'name' => $request->location_name
-        ]);
+        ]), 'location_name');
 
         Cache::forget('locations');
 

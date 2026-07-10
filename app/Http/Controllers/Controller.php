@@ -23,4 +23,24 @@ class Controller extends BaseController
     {
         return !is_null($model->newQuery()->whereKey($model->getKey())->lockForUpdate()->first());
     }
+
+    /**
+     * Run an insert whose unique rule was already validated, surfacing a
+     * lost duplicate race as the standard validation error instead of a
+     * raw QueryException 500: the unique:... rule runs before the insert,
+     * so two concurrent same-value submits can both pass it and the loser
+     * lands on the unique index.
+     */
+    protected function createUniquely(callable $create, string $field): mixed
+    {
+        try {
+            return $create();
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                // Match the validator's own message byte-for-byte
+                // (it displays attributes with underscores as spaces).
+                $field => trans('validation.unique', ['attribute' => str_replace('_', ' ', $field)]),
+            ]);
+        }
+    }
 }
