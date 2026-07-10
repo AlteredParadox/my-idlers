@@ -6,8 +6,8 @@ use App\Models\DNS;
 use App\Models\Home;
 use App\Models\Labels;
 use App\Models\Pricing;
+use App\Models\Settings;
 use App\Process;
-use Illuminate\Support\Facades\Session;
 
 
 class HomeController extends Controller
@@ -58,7 +58,9 @@ class HomeController extends Controller
             'newest' => $recently_added,
             'execution_time' => number_format($p->getTimeTaken(), 2),
             'servers_summary' => $server_summary,
-            'currency' => Session::get('dashboard_currency')
+            // Live settings, matching the cached totals it labels — the
+            // session snapshot never re-syncs and could label EUR sums 'USD'
+            'currency' => Settings::getSettings()->dashboard_currency ?? 'USD'
         ];
 
         return view('home', compact('information'));

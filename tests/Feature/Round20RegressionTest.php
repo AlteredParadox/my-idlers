@@ -123,7 +123,9 @@ class Round20RegressionTest extends TestCase
         $this->makePricing('sbnull01', 6, null);
         $this->makePricing('sbdate01', 6, now()->addDays(3)->format('Y-m-d'));
 
-        Session::put('due_soon_amount', 1);
+        // The limit reads the live settings row (round 47), not the session
+        \App\Models\Settings::firstOrCreate(['id' => 1])->update(['due_soon_amount' => 1]);
+        Cache::forget('settings');
         Cache::forget('due_soon');
 
         $ids = Home::dueSoonData()->pluck('service_id')->all();

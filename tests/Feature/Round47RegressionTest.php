@@ -66,11 +66,15 @@ class Round47RegressionTest extends TestCase
         $user = User::factory()->create();
         Settings::firstOrCreate(['id' => 1]);
         $this->makeServer('r47srv01', 5.00);
-        Server::where('id', 'r47srv01')->update(['has_yabs' => 1]);
         $this->makeYabs('r47yabs1', 'r47srv01');
         $this->makeYabs('r47yabs2', 'r47srv01');
 
-        // Destroying one of two must keep the flag...
+        // Ghost shape: flag WRONG at 0 with two rows present. The old
+        // count-then-maybe-clear code could only ever clear — set-from-truth
+        // must REPAIR it to 1 when rows remain (this is the observable delta
+        // of the fix; the RR double-miss itself needs two connections).
+        Server::where('id', 'r47srv01')->update(['has_yabs' => 0]);
+
         $this->actingAs($user)->delete(route('yabs.destroy', 'r47yabs1'));
         $this->assertDatabaseHas('servers', ['id' => 'r47srv01', 'has_yabs' => 1]);
 
@@ -90,6 +94,9 @@ class Round47RegressionTest extends TestCase
 
         $this->makeServer('r47chp01', 1.00);   // cheap, created first
         $this->makeServer('r47exp01', 99.00);  // expensive, created second
+        // Distinct created_at: same-second rows tie under the stale-session
+        // ordering and would return insertion order — masking the regression
+        Server::where('id', 'r47exp01')->update(['created_at' => now()->addMinute()]);
 
         $ordered = Server::allActiveServers()->pluck('id')->all();
 

@@ -76,7 +76,9 @@ class ImportServersCommand extends Command
 
         $this->info("Imported $count servers." . ($errors > 0 ? " $errors errors." : ""));
 
-        return 0;
+        // Exit codes are part of the contract (file-not-found returns 1):
+        // a scripted/cron run must not report success when rows failed.
+        return $errors > 0 ? 1 : 0;
     }
 
     /** Same invariants the controllers enforce (shared rule sources). */
