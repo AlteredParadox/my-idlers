@@ -27,6 +27,15 @@ class Round53RegressionTest extends TestCase
         Settings::firstOrCreate(['id' => 1])->update(['favicon' => 'favicon.png']);
         Cache::forget('settings');
 
+        // The GUEST layout first (before actingAs — /login bounces authed
+        // users): it is a sibling consumer, and post-fix nothing writes the
+        // session key at all, so a regressed guest layout would emit the
+        // shipped default forever on login/register pages (round 54:
+        // reverting only guest.blade.php left the suite green)
+        $guest = $this->withSession(['dark_mode' => 0, 'favicon' => 'favicon.ico'])->get('/login');
+        $guest->assertStatus(200);
+        $this->assertStringContainsString('favicon.png', $guest->getContent());
+
         // A stale session claiming the old icon must not leak into the markup
         $response = $this->actingAs($user)
             ->withSession(['dark_mode' => 0, 'favicon' => 'favicon.ico'])
