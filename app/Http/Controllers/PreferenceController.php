@@ -22,8 +22,13 @@ class PreferenceController extends Controller
             return response()->json(['result' => 'fail', 'error' => 'Unknown preference key'], 422);
         }
 
-        $value = $request->json()->all();
-        if ($value === [] || strlen(json_encode($value)) > self::MAX_BYTES) {
+        // Raw body, NOT $request->json(): the global TrimStrings and
+        // ConvertEmptyStringsToNull middleware rewrite the "" search terms
+        // inside a DataTables state to null, and restoring a null search
+        // crashes the table init on the next page load.
+        $raw = $request->getContent();
+        $value = json_decode($raw, true);
+        if (!is_array($value) || $value === [] || strlen($raw) > self::MAX_BYTES) {
             return response()->json(['result' => 'fail', 'error' => 'Invalid preference payload'], 422);
         }
 

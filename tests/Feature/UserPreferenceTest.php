@@ -60,6 +60,27 @@ class UserPreferenceTest extends TestCase
         $this->assertDatabaseCount('user_preferences', 0);
     }
 
+    public function test_empty_string_search_terms_survive_the_input_middleware()
+    {
+        $user = User::factory()->create();
+
+        // A real DataTables state carries "" search terms. The global
+        // ConvertEmptyStringsToNull middleware rewrote them to null in the
+        // parsed input; restoring a null search crashes the table init on
+        // the next page load (escapeRegex on null). The controller must
+        // read the raw body so "" is stored as "".
+        $this->actingAs($user)->putJson('/preferences/dt.servers-table', [
+            'time' => 1783650508198, 'start' => 0, 'length' => 100,
+            'order' => [[0, 'asc']],
+            'search' => ['search' => '', 'smart' => true, 'regex' => false, 'caseInsensitive' => true],
+            'columns' => [['visible' => true, 'search' => ['search' => '', 'smart' => true, 'regex' => false, 'caseInsensitive' => true]]],
+        ])->assertStatus(200);
+
+        $state = UserPreference::valuesFor($user->id)['dt.servers-table'];
+        $this->assertSame('', $state['search']['search']);
+        $this->assertSame('', $state['columns'][0]['search']['search']);
+    }
+
     public function test_preferences_are_per_user()
     {
         $a = User::factory()->create();
