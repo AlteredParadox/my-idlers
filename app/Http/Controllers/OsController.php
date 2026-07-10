@@ -26,9 +26,9 @@ class OsController extends Controller
             'os_name' => 'required|string|min:2|max:255|unique:os,name'
         ]);
 
-        OS::create([
+        $this->createUniquely(fn() => OS::create([
             'name' => $request->os_name
-        ]);
+        ]), 'os_name');
 
         Cache::forget('operating_systems');
 
