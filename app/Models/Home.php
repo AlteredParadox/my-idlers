@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
 
 class Home extends Model
 {
@@ -91,7 +90,10 @@ class Home extends Model
                         ->orWhereIn('p.service_id', DB::table('seedboxes')->where('active', 1)->select('id'));
                 })
                 ->orderBy('next_due_date', 'ASC')
-                ->limit(Session::get('due_soon_amount'))
+                // Live settings, not the session snapshot: this runs inside
+                // the cache closure, and a stale session re-priming it would
+                // bake its old limit into the shared key
+                ->limit(Settings::getSettings()->due_soon_amount ?? 6)
                 ->get(self::SERVICE_NAME_COLUMNS));
         });
     }
@@ -130,7 +132,7 @@ class Home extends Model
         return Cache::remember('recently_added', now()->addHours(6), function () {
             return self::castServiceTypes(self::pricingWithServiceNames()
                 ->orderBy('created_at', 'DESC')
-                ->limit(Session::get('recently_added_amount'))
+                ->limit(Settings::getSettings()->recently_added_amount ?? 6)
                 ->get(self::SERVICE_NAME_COLUMNS));
         });
     }
@@ -242,7 +244,7 @@ class Home extends Model
     {
         return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($all_pricing) {
             $total_cost_pm = 0;
-            $currency = Session::get('dashboard_currency', 'USD');
+            $currency = Settings::getSettings()->dashboard_currency ?? 'USD';
             // Look the rate up once, not once per row (each lookup is a cache
             // read). Same per-row multiply, so the float math is unchanged.
             $rate = $currency !== 'USD' ? Pricing::convertFromUSD('1', $currency) : 1.0;

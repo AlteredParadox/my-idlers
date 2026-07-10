@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class Note extends Model
 {
@@ -44,7 +45,7 @@ class Note extends Model
         // re-prime both keys from the pre-commit snapshot for a month.
         // Outside a transaction the callbacks run immediately; on rollback
         // they're discarded, leaving cache and DB consistently pre-change.
-        \Illuminate\Support\Facades\DB::afterCommit(function () use ($service_id) {
+        DB::afterCommit(function () use ($service_id) {
             Cache::forget("note.$service_id");
             Cache::forget('all_notes');
         });

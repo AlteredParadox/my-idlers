@@ -70,15 +70,16 @@ class LabelsController extends Controller
 
     public function destroy(Labels $label)
     {
-        // Capture affected services before the assignment rows are removed;
-        // their caches embed the labels relation and must be cleared or the
-        // show pages lazy-load the now-deleted label and 500.
-        $serviceIds = LabelsAssigned::where('label_id', $label->id)->pluck('service_id');
-
         // Atomic: the assignment rows have no DB cascade — a failure between
         // the label delete and their cleanup would strand orphaned
         // assignments (rendered as empty badges) behind a deleted label.
-        $deleted = \Illuminate\Support\Facades\DB::transaction(function () use ($label) {
+        // The service-id capture happens INSIDE the transaction: the caches
+        // it feeds embed the labels relation, and an assignment committed
+        // between an outside pluck and the delete would keep serving the
+        // deleted label for a month.
+        $serviceIds = collect();
+        $deleted = DB::transaction(function () use ($label, &$serviceIds) {
+            $serviceIds = LabelsAssigned::where('label_id', $label->id)->pluck('service_id');
             if (!$label->delete()) {
                 return false;
             }

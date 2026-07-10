@@ -130,7 +130,7 @@ class Yabs extends Model
         // server's benchmarks then ghost-render for up to a month. Immediate
         // outside a transaction; discarded on rollback (cache stays
         // consistent with the restored rows).
-        \Illuminate\Support\Facades\DB::afterCommit(function () use ($yabs_ids) {
+        DB::afterCommit(function () use ($yabs_ids) {
             foreach ($yabs_ids as $yabs_id) {
                 Cache::forget("yabs.$yabs_id");
             }
