@@ -426,7 +426,9 @@ a valid Docker tag character).
 Notes:
 
 * `APP_URL` must exactly match the scheme and hostname you use to reach the app — requests
-  with any other `Host` header are rejected in production (TrustHosts).
+  with any other `Host` header are rejected in production (TrustHosts). An `https://` APP_URL
+  also switches all generated URLs to https; plain-HTTP LAN installs keep `http://` and work
+  without TLS.
 * `TRUSTED_PROXIES` is required when TLS terminates at a reverse proxy in front of the
   container (`*` to trust any upstream, or a comma-separated list of proxy IPs/CIDRs).
   Without it, signed YABS URLs fail validation because the app sees requests as plain http.
