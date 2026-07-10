@@ -63,6 +63,33 @@ class Round50RegressionTest extends TestCase
         $this->assertDatabaseHas('settings', ['id' => 1, 'favicon' => 'favicon.ico']);
     }
 
+    public function test_failed_favicon_move_errors_and_leaves_settings_untouched()
+    {
+        // Round 68: the atomic replace's SECOND leg — write succeeds, the
+        // rename over the target fails (I/O error, disk-full copy fallback;
+        // Laravel swallows UnableToMoveFile into false). Dropping that
+        // operand left every test green while the controller flashed
+        // success over a favicon that was never created.
+        $user = User::factory()->create();
+        Settings::firstOrCreate(['id' => 1]);
+
+        Storage::shouldReceive('disk')->with('public_uploads')->andReturn(
+            \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class, function ($mock) {
+                $mock->shouldReceive('putFileAs')->andReturn('favicon.png.tmp');
+                $mock->shouldReceive('move')->with('favicon.png.tmp', 'favicon.png')->andReturn(false);
+                $mock->shouldReceive('delete')->once()->with('favicon.png.tmp')->andReturn(true);
+            })
+        );
+
+        $response = $this->actingAs($user)->put(route('settings.update', 1), array_merge(
+            $this->settingsPayload(),
+            ['favicon' => UploadedFile::fake()->image('icon.png', 32, 32)]
+        ));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('settings', ['id' => 1, 'favicon' => 'favicon.ico']);
+    }
+
     public function test_successful_favicon_upload_updates_settings()
     {
         $user = User::factory()->create();
