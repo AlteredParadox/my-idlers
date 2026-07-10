@@ -12,7 +12,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class IPsController extends Controller
 {
@@ -50,18 +49,13 @@ class IPsController extends Controller
             }],
         ]);
 
-        $ip_id = Str::random(8);
-
         try {
-            $ip = IPs::create([
-                'id' => $ip_id,
-                'address' => $request->address,
-                // Derive from the address itself — the pre-selected dropdown let an
-                // IPv6 paste be stored (and publicly rendered) as IPv4
-                'is_ipv4' => (filter_var($request->address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) ? 0 : 1,
-                'service_id' => $request->service_id,
-                'active' => 1
-            ]);
+            // insertIP, not a raw create: it owns the lowercase-address
+            // convention (the unique index is case-insensitive on MySQL,
+            // case-sensitive on SQLite — verbatim storage minted case-variant
+            // duplicate rows) and it derives is_ipv4 from the address itself,
+            // so an IPv6 paste can't be stored as IPv4 by the dropdown.
+            $ip = IPs::insertIP($request->service_id, $request->address);
         } catch (QueryException $e) {
             // Unique (service_id, address) — this IP is already on the service
             return redirect()->route('IPs.index')

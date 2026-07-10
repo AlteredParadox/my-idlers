@@ -250,8 +250,10 @@ class ServerManagementController extends Controller
         }
 
         $validated = $validator->validated();
+        // ip1/ip2 must be excluded too: 'prohibited' passes them through
+        // validated() when null/empty, and servers has no such columns.
         $updateData = collect($validated)
-            ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port', 'link_speed_type', 'disk_media', 'labels', 'ips'])
+            ->except(['currency', 'price', 'payment_term', 'next_due_date', 'ssh_port', 'link_speed_type', 'disk_media', 'labels', 'ips', 'ip1', 'ip2'])
             ->toArray();
 
         if ($request->has('ssh_port')) {

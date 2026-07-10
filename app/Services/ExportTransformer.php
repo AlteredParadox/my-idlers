@@ -74,6 +74,7 @@ class ExportTransformer
             'location' => $this->idName($seedbox->location),
             'provider' => $this->idName($seedbox->provider),
             'ips' => $this->ipList($seedbox->ips),
+            'labels' => $this->labelList($seedbox->labels),
             'pricing' => $this->priceArray($seedbox->price),
         ];
     }
@@ -125,6 +126,7 @@ class ExportTransformer
                 'disk_type' => $model->disk_type,
                 'disk_as_gb' => $model->disk_as_gb,
                 'bandwidth' => $model->bandwidth,
+                'link_speed' => $model->link_speed,
                 'domains_limit' => $model->domains_limit,
                 'subdomains_limit' => $model->subdomains_limit,
                 'ftp_limit' => $model->ftp_limit,
@@ -137,6 +139,7 @@ class ExportTransformer
                 'location' => $this->idName($model->location),
                 'provider' => $this->idName($model->provider),
                 'ips' => $this->ipList($model->ips),
+                'labels' => $this->labelList($model->labels),
                 'pricing' => $this->priceArray($model->price),
             ];
     }
@@ -162,6 +165,7 @@ class ExportTransformer
             'active' => $domain->active,
             'owned_since' => $domain->owned_since,
             'provider' => $this->idName($domain->provider),
+            'labels' => $this->labelList($domain->labels),
             'pricing' => $this->priceArray($domain->price),
         ];
     }
@@ -178,24 +182,33 @@ class ExportTransformer
         return [
             'id' => $server->id,
             'hostname' => $server->hostname,
+            'ns1' => $server->ns1,
+            'ns2' => $server->ns2,
             'server_type' => $server->server_type,
             'server_type_name' => Server::serviceServerType($server->server_type ?? 0, false),
             'cpu' => $server->cpu,
+            'cpu_model' => $server->cpu_model,
             'ram' => $server->ram,
             'ram_type' => $server->ram_type,
             'ram_as_mb' => $server->ram_as_mb,
             'disk' => $server->disk,
             'disk_type' => $server->disk_type,
             'disk_as_gb' => $server->disk_as_gb,
+            'disks' => $this->diskList($server->disks),
             'bandwidth' => $server->bandwidth,
+            'link_speed' => $server->link_speed,
+            'network_type' => $server->network_type,
             'ssh' => $server->ssh,
+            'was_promo' => $server->was_promo,
             'transferrable' => $server->transferrable,
             'active' => $server->active,
+            'show_public' => $server->show_public,
             'owned_since' => $server->owned_since,
             'os' => $this->idName($server->os),
             'location' => $this->idName($server->location),
             'provider' => $this->idName($server->provider),
             'ips' => $this->ipList($server->ips),
+            'labels' => $this->labelList($server->labels),
             'pricing' => $this->priceArray($server->price),
             'yabs' => $server->yabs->map(function ($yabs) {
                 return $this->transformYabsForExport($yabs);
@@ -325,6 +338,27 @@ class ExportTransformer
             return [
                 'address' => $ip->address,
                 'is_ipv4' => $ip->is_ipv4
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Label names as a scalar list — the CSV formatter joins them with ';'.
+     * The relation rows are LabelsAssigned; the name lives on their label.
+     */
+    private function labelList($labels): array
+    {
+        return $labels->pluck('label.label')->filter()->values()->all();
+    }
+
+    /** Per-disk rows (size/unit/media) — the legacy disk columns only carry disk #1 */
+    private function diskList($disks): array
+    {
+        return $disks->map(function ($disk) {
+            return [
+                'disk_size' => $disk->disk_size,
+                'disk_unit' => $disk->disk_unit,
+                'disk_media' => $disk->disk_media,
             ];
         })->toArray();
     }
