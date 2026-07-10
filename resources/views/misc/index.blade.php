@@ -37,6 +37,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Due In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -51,6 +52,7 @@
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">${{ number_format($m->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
                                         @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -77,7 +79,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No active misc services found</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No active misc services found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -92,6 +94,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     <th class="text-center">Actions</th>
@@ -107,6 +110,7 @@
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">${{ number_format($m->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
                                         @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -133,7 +137,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No inactive misc services found</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No inactive misc services found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -152,6 +156,6 @@
     </x-modal-delete-script>
 
     @section('scripts')
-    @include('partials.datatable-init', ['tables' => ['#misc-table', '#inactive-misc-table'], 'noSort' => [4], 'empty' => 'No misc services found'])
+    @include('partials.datatable-init', ['tables' => ['#misc-table', '#inactive-misc-table'], 'noSort' => [5], 'empty' => 'No misc services found'])
     @endsection
 </x-app-layout>

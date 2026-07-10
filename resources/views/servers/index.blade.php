@@ -50,6 +50,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Transferrable</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Due</th>
                                     <th class="text-center">Since</th>
                                     @if(session('prometheus_enabled') && session('prometheus_url'))
@@ -117,6 +118,7 @@
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $server->price->usd_per_month * 12 }}">${{ number_format($server->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false) : -99999 }}">
                                         @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -152,7 +154,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 18 : 17 }}" class="text-center text-muted py-4">No active servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 19 : 18 }}" class="text-center text-muted py-4">No active servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -179,6 +181,7 @@
                                     <th>Provider</th>
                                     <th class="text-center">Transferrable</th>
                                     <th>Price</th>
+                                    <th class="text-center">Price/yr (USD)</th>
                                     <th class="text-center">Expires In</th>
                                     <th class="text-center">Since</th>
                                     @if(session('prometheus_enabled') && session('prometheus_url'))
@@ -247,6 +250,7 @@
                                         {{ $server->price->price }} {{ $server->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($server->price->term) }}</small>
                                     </td>
+                                    <td class="text-center text-nowrap" data-order="{{ $server->price->usd_per_month * 12 }}">${{ number_format($server->price->usd_per_month * 12, 2) }}</td>
                                     <td class="text-center text-nowrap" data-order="{{ $server->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false) : -99999 }}">
                                         @if($server->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($server->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -282,7 +286,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 18 : 17 }}" class="text-center text-muted py-4">No inactive servers found</td>
+                                    <td colspan="{{ (session('prometheus_enabled') && session('prometheus_url')) ? 19 : 18 }}" class="text-center text-muted py-4">No inactive servers found</td>
                                 </tr>
                             @endif
                             </tbody>
@@ -307,7 +311,7 @@
                 pageLength: {{ session('default_per_page', 100) }},
                 lengthMenu: [10, 25, 50, 100, 250, 500],
                 columnDefs: [
-                    {orderable: false, targets: [2, {{ (session('prometheus_enabled') && session('prometheus_url')) ? 17 : 16 }}]}
+                    {orderable: false, targets: [2, {{ (session('prometheus_enabled') && session('prometheus_url')) ? 18 : 17 }}]}
                 ],
                 language: {
                     search: "",
