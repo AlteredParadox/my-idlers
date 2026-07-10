@@ -59,4 +59,19 @@ class Round61RegressionTest extends TestCase
         $this->assertSame($serverCount, DB::table('servers')->count(), 're-seed must not duplicate demo servers');
         $this->assertSame($pricingCount, Pricing::count(), 're-seed must not duplicate pricing rows');
     }
+
+    public function test_demo_seed_skips_an_install_with_a_real_user_but_no_servers()
+    {
+        // Round 63: the guard is users OR servers — an || → && mutant
+        // survived the both-populated re-seed pin and injected the full
+        // demo set into a real operator's account. Pin the single-operand
+        // state explicitly.
+        config(['custom.seed_demo_data' => 'true']);
+        \App\Models\User::factory()->create();
+
+        $this->seed();
+
+        $this->assertSame(0, DB::table('servers')->count(), 'demo data must not be injected into an install with a real user');
+        $this->assertSame(1, DB::table('users')->count());
+    }
 }
