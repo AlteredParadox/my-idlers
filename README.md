@@ -295,7 +295,7 @@ php artisan migrate:fresh --seed
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SEED_DEMO_DATA` | `false` | Set to `true` to seed demo user and sample data during `migrate:fresh --seed` |
-| `MAX_USERS` | `0` | Maximum number of users allowed to register. `0` = unlimited |
+| `MAX_USERS` | `1` | Registration closes once this many users exist. `0` = unlimited — every account has full access to all stored data, so only raise this deliberately |
 
 ### Demo Login Credentials
 
@@ -391,7 +391,7 @@ docker run \
   -e DB_DATABASE=... \
   -e DB_USERNAME=... \
   -e DB_PASSWORD=... \
-  -e MAX_USERS=0 \
+  -e MAX_USERS=1 \
   -e SEED_DEMO_DATA=false \
   -e SESSION_SECURE_COOKIE=true \
   -e AUTO_MIGRATE=true \
