@@ -48,6 +48,41 @@ class Round43RegressionTest extends TestCase
         $this->assertDatabaseMissing('labels_assigned', ['service_id' => 'r43dns01']);
     }
 
+    public function test_web_update_bails_when_the_row_is_deleted_after_binding()
+    {
+        // Round 56: mutating lockedRowStillExists() to `return true` survived
+        // the suite — the seven web guard sites were unpinned. Simulate the
+        // concurrent destroy by deleting the bound row from a DB::listen hook
+        // once the request's first select on the table has completed (the
+        // route binding), so the locked in-transaction re-read finds it gone.
+        $user = User::factory()->create();
+        DNS::create(['id' => 'r43race1', 'hostname' => 'old.example.com', 'dns_type' => 'A', 'address' => '192.0.2.9']);
+        Labels::create(['id' => 'r43labl9', 'label' => 'race-l']);
+
+        $deleted = false;
+        DB::listen(function ($query) use (&$deleted) {
+            if ($deleted) {
+                return;
+            }
+            $sql = strtolower(ltrim($query->sql));
+            if (str_starts_with($sql, 'select') && str_contains($sql, 'd_n_s')) {
+                $deleted = true;
+                DB::table('d_n_s')->where('id', 'r43race1')->delete();
+            }
+        });
+
+        $response = $this->actingAs($user)->put(route('dns.update', 'r43race1'), [
+            'hostname' => 'new.example.com', 'dns_type' => 'A', 'address' => '192.0.2.10',
+            'label1' => 'r43labl9',
+        ]);
+
+        $response->assertRedirect(route('dns.index'));
+        $response->assertSessionHas('error', 'DNS record no longer exists.');
+        // The bail must leave no ghost rows behind for the deleted record
+        $this->assertDatabaseMissing('labels_assigned', ['service_id' => 'r43race1']);
+        $this->assertDatabaseMissing('d_n_s', ['id' => 'r43race1']);
+    }
+
     public function test_api_update_of_missing_server_writes_no_ghost_child_rows()
     {
         $token = Str::random(60);
