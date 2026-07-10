@@ -23,9 +23,16 @@ class Round66RegressionTest extends TestCase
         $this->assertFalse(RouteServiceProvider::shouldForceHttps(null));
         $this->assertFalse(RouteServiceProvider::shouldForceHttps(''));
 
-        // The boot path must consume the helper (and not the old env check)
+        // The boot path must consume the helper with the RIGHT polarity —
+        // a substring pin survived the negation mutant (round 67), which
+        // would force-https plain-HTTP installs straight back into the
+        // dead-app while https deployments silently lose the force.
+        // Contiguous guard-plus-consequence needle: `! ` breaks it.
         $provider = file_get_contents(app_path('Providers/RouteServiceProvider.php'));
-        $this->assertStringContainsString('self::shouldForceHttps(config(\'app.url\'))', $provider);
+        $this->assertStringContainsString(
+            "if (self::shouldForceHttps(config('app.url'))) {\n            \\Illuminate\\Support\\Facades\\URL::forceScheme('https');",
+            $provider
+        );
         $this->assertStringNotContainsString("config('app.env') === 'production'", $provider);
     }
 }
