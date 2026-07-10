@@ -28,7 +28,9 @@ class SettingsController extends Controller
             'show_server_value_yabs' => 'required|integer|min:0|max:1',
             'show_servers_public' => 'required|integer|min:0|max:1',
             'default_currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
-            'default_server_os' => 'required|integer',
+            // exists: a forged id would persist a dangling default that the
+            // create-server form then silently fails to preselect
+            'default_server_os' => 'required|integer|exists:os,id',
             'due_soon_amount' => 'required|integer|between:0,12',
             'recently_added_amount' => 'required|integer|between:0,12',
             'dashboard_currency' => 'required|string|size:3|' . \App\Models\Pricing::currencyRule(),
@@ -42,10 +44,11 @@ class SettingsController extends Controller
         ]);
 
         $settings = Settings::where('id', 1)->first();
+        $old_favicon = $settings->favicon;
 
         $favicon_filename = null;
         if ($request->favicon) {//Has a favicon upload
-            $stored = $this->storeFavicon($request->favicon, $settings);
+            $stored = $this->storeFavicon($request->favicon);
             if ($stored instanceof \Illuminate\Http\RedirectResponse) {
                 return $stored;
             }
@@ -86,6 +89,17 @@ class SettingsController extends Controller
 
         Settings::setSettingsToSession(Settings::getSettings());
 
+        // FS/DB boundary: the old favicon file outlives the row update so a
+        // failed update never leaves settings referencing a deleted file;
+        // conversely a new file the row never came to reference is removed.
+        // The shipped favicon.ico is never deleted — it is the fallback.
+        if ($favicon_filename !== null && $favicon_filename !== $old_favicon) {
+            $stale = $do_update ? $old_favicon : $favicon_filename;
+            if ($stale !== 'favicon.ico') {
+                Storage::disk('public_uploads')->delete($stale);
+            }
+        }
+
         return redirect()->route('settings.index')
             ->with($do_update ? 'success' : 'error',
                 $do_update ? 'Settings Updated Successfully.' : 'Settings failed to update.');
@@ -93,9 +107,11 @@ class SettingsController extends Controller
 
     /**
      * Validate and atomically store an uploaded favicon. Returns the stored
-     * filename, or an error redirect for the caller to return as-is.
+     * filename, or an error redirect for the caller to return as-is. The
+     * previous favicon is NOT touched here — the caller deletes it only
+     * after the settings row actually references the new one.
      */
-    private function storeFavicon(\Illuminate\Http\UploadedFile $file, Settings $settings): string|\Illuminate\Http\RedirectResponse
+    private function storeFavicon(\Illuminate\Http\UploadedFile $file): string|\Illuminate\Http\RedirectResponse
     {
         // Content-derived extension, never the client filename: the file
         // lands in the webroot, so a PNG/PHP polyglot named x.php would
@@ -121,10 +137,6 @@ class SettingsController extends Controller
 
             return redirect()->route('settings.index')
                 ->with('error', 'Favicon could not be saved — the web server cannot write to the public directory.');
-        }
-
-        if ($favicon_filename !== $settings->favicon && $settings->favicon !== 'favicon.ico') {
-            Storage::disk('public_uploads')->delete($settings->favicon);//Delete old favicon
         }
 
         return $favicon_filename;

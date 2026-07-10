@@ -29,7 +29,9 @@ class YabsController extends Controller
     {
         $request->validate([
             'server_id' => 'required|string|exists:servers,id',
-            'yabs_json' => 'required|string',
+            // Bounded: real yabs -j output is a few KB; an unbounded paste
+            // burns parser/DB time on garbage.
+            'yabs_json' => 'required|string|max:65535',
         ]);
 
         $data = json_decode($request->yabs_json, true);

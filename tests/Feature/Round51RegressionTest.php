@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\OS;
 use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,7 @@ class Round51RegressionTest extends TestCase
                 'show_server_value_ip' => 0, 'show_server_value_hostname' => 1,
                 'show_server_value_provider' => 1, 'show_server_value_location' => 1,
                 'show_server_value_price' => 1, 'show_server_value_yabs' => 1,
-                'default_currency' => 'USD', 'default_server_os' => 1,
+                'default_currency' => 'USD', 'default_server_os' => OS::firstOrCreate(['name' => 'TestOS'])->id,
                 'due_soon_amount' => 6, 'recently_added_amount' => 6,
                 'dashboard_currency' => 'USD', 'sort_on' => 1,
                 'servers_index_cards' => 0, 'default_per_page' => 100,

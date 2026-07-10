@@ -165,7 +165,11 @@ class IPs extends Model
     public static function getUpdateIpInfo(IPs $ip): bool
     {
         try {
-            $response = Http::get("https://ipwhois.app/json/{$ip->address}");
+            // Explicit short timeouts: this runs on the synchronous create
+            // path, and the default (no timeout) let a slow upstream tie up
+            // a web worker indefinitely.
+            $response = Http::connectTimeout(3)->timeout(5)
+                ->get("https://ipwhois.app/json/{$ip->address}");
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             // DNS/timeout/unreachable: don't 500 the IP create; callers treat
             // false as "whois unavailable" and continue.
@@ -179,15 +183,17 @@ class IPs extends Model
             return false;
         }
 
+        // Coalesced: the columns are nullable and a success-true response
+        // missing a field must not throw undefined-key mid-request.
         $ip->update([
-            'continent' => $data['continent'],
-            'country' => $data['country'],
-            'region' => $data['region'],
-            'city' => $data['city'],
-            'org' => $data['org'],
-            'isp' => $data['isp'],
-            'asn' => $data['asn'],
-            'timezone_gmt' => $data['timezone_gmt'],
+            'continent' => $data['continent'] ?? null,
+            'country' => $data['country'] ?? null,
+            'region' => $data['region'] ?? null,
+            'city' => $data['city'] ?? null,
+            'org' => $data['org'] ?? null,
+            'isp' => $data['isp'] ?? null,
+            'asn' => $data['asn'] ?? null,
+            'timezone_gmt' => $data['timezone_gmt'] ?? null,
             'fetched_at' => now()
         ]);
 
