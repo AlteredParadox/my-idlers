@@ -56,11 +56,19 @@ class SettingsController extends Controller
             }
             $favicon_filename = "favicon.$extension";
 
+            // Write FIRST, verify, and only then touch the old file or the
+            // settings row: storeAs returns false on an unwritable webroot
+            // (the fpm container's /app/public was root-owned for a while),
+            // and blindly repointing settings.favicon at a file that was
+            // never written 404s the favicon site-wide behind a success flash.
+            if ($file->storeAs("", $favicon_filename, "public_uploads") === false) {
+                return redirect()->route('settings.index')
+                    ->with('error', 'Favicon could not be saved — the web server cannot write to the public directory.');
+            }
+
             if ($favicon_filename !== $settings->favicon && $settings->favicon !== 'favicon.ico') {
                 Storage::disk('public_uploads')->delete($settings->favicon);//Delete old favicon
             }
-
-            $file->storeAs("", $favicon_filename, "public_uploads");//Save into /public
         }
 
         $do_update = $settings->update([
