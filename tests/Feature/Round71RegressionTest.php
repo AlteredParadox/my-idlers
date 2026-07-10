@@ -92,20 +92,30 @@ class Round71RegressionTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_the_cap_holds_even_when_the_settings_row_is_missing()
+    public function test_serialization_survives_a_missing_settings_row()
     {
-        // Round 72: the old fix locked the settings row, which a warm cache
-        // over a deleted row silently reduced to a no-op. Serialization must
-        // not depend on that row existing at all.
-        config(['custom.max_users' => 1]);
+        // Round 72/73: the old fix locked the settings row, and a warm cache
+        // over a deleted row reduced that to a no-op — no row, no lock, race
+        // reopened. Pin the CONCURRENCY property, not just the sequence
+        // (round 73 caught the sequential version passing on the old design):
+        // with the row gone, a held cap lock must still block registration.
+        config(['custom.max_users' => 1, 'custom.registration_lock_seconds' => 0]);
         Settings::firstOrCreate(['id' => 1]);
         Settings::getSettings();              // warm the cache
         DB::table('settings')->delete();      // ...then lose the row
 
-        $this->post('/register', $this->registerPayload('first'))->assertRedirect('/');
-        auth()->logout();
-        $this->post('/register', $this->registerPayload('second'))->assertStatus(403);
+        $held = Cache::lock('registration.cap', 10);
+        $this->assertTrue($held->get(), 'precondition: the lock is acquirable');
 
+        try {
+            $this->post('/register', $this->registerPayload('raced'))->assertStatus(500);
+            $this->assertSame(0, User::count(), 'a missing settings row must not disable serialization');
+        } finally {
+            $held->release();
+        }
+
+        // And with the lock free, registration proceeds without the row.
+        $this->post('/register', $this->registerPayload('first'))->assertRedirect('/');
         $this->assertSame(1, User::count());
     }
 
