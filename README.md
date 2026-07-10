@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.3-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.4-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -71,6 +71,58 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.4` — July 2026
+
+_Full web/API parity for servers, persistent per-user table customization, and the deepest
+hardening pass yet: the adversarial review loop ran a further 43 rounds until it sealed at two
+consecutive clean audits, alongside three cross-model review rounds and two Sonar batches —
+every fix pinned by a regression test, mutation-tested, and back-tested against its parent
+commit._
+
+**Features**
+
+* **Full REST API / web-form parity for servers** — labels and IP assignments can now be created
+  and updated through the API exactly as through the forms; partial PUTs touch only the submitted
+  fields, applied atomically with the same locked-read discipline as the web paths
+* **Persistent table customization** — column sorting persists, and a new **Columns** menu
+  shows/hides columns per table; both are stored per user in the database (new `user_preferences`
+  table), so they follow you across browsers and survive redeploys
+* **Standardized `Price/yr` column** — every service table can show a normalized
+  price-per-year in USD alongside the native billing term
+* **Database-backed sessions** — logins survive container redeploys instead of living in
+  ephemeral files
+
+**Security & data-integrity hardening**
+
+* **Registration cap race closed** — `MAX_USERS` enforcement serializes on an atomic lock with an
+  authoritative re-check inside the transaction: two concurrent sign-ups can no longer both land
+  under a cap of 1, and the cap no longer depends on a cacheable settings row existing
+* **The duplicate-race 500 class eliminated app-wide** — seven unique-validated write paths
+  (registration, account email, the four catalog stores, note re-pointing) turned a lost
+  concurrent-duplicate race into a raw database 500; all now return the normal validation error
+  through one shared helper
+* **Derived-column overflow rejected at validation** — a price whose USD conversion exceeded the
+  column (any stronger-than-USD currency) was a MySQL 500 mid-transaction and silent corruption
+  on SQLite; USD derivations are now bounds-checked on every pipeline (web, API including partial
+  PUTs, import) and rounded identically on both drivers
+* **Web date rules hardened to `Y-m-d`** — the bare `date` rule accepted any parseable string
+  ("May 2030"), a MySQL 500 and a persistent SQLite dashboard crash once the row came due; the
+  web rules now match the API's
+* **YABS webhook hardened** — bodies bounded at 64 KB with strict nested validation and array
+  caps; replayed deliveries (the signed URL is valid for 12 h) are idempotent, enforced by a new
+  unique run index with a legacy-deduplicating migration; interrupted runs with partial fio
+  output ingest instead of 500ing; and a rolled-back ingest can no longer report success
+* **Atomicity and correctness sweep** — DNS creation is transactional like every other multi-row
+  create; favicon replacement survives failure on either side of the filesystem/DB boundary;
+  label-assignment errors no longer masquerade as duplicate suppressions; WHOIS enrichment has
+  strict timeouts and tolerates sparse responses; `default_server_os` must reference a real OS
+* **Browser-security headers in the container** — `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy` and a Content-Security-Policy audited against the app's actual asset origins
+  (self-hosted only, no foreign script origins, `object-src 'none'`)
+
+Test suite: **607 tests / 1,974 assertions**, green on both SQLite and MySQL.
+`composer audit` and `npm audit` pass clean.
 
 ## Fork revision `ap.3` — July 2026
 
@@ -245,7 +297,7 @@ _The history below is the `4.1.0` baseline the fork's `+ap` revisions build on._
 
 ### Test Suite
 
-The application includes a comprehensive test suite — 498 tests / 1,528 assertions as of ap.2 —
+The application includes a comprehensive test suite — 607 tests / 1,974 assertions as of ap.4 —
 run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
 under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
@@ -420,7 +472,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.3` — note the Docker tag uses `-ap.3` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.4` — note the Docker tag uses `-ap.4` since `+` is not
 a valid Docker tag character).
 
 Notes:
