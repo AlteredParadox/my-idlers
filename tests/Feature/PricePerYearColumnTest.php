@@ -46,6 +46,29 @@ class PricePerYearColumnTest extends TestCase
             ->assertSee('$60.00');
     }
 
+    public function test_one_time_priced_services_show_dash_not_zero()
+    {
+        $user = User::factory()->create();
+        // usd_per_month is deliberately 0 for one-time/lifetime terms — a
+        // $200-lifetime box must not render (and sort) as a $0.00/yr service
+        Pricing::create([
+            'service_id' => 'ppyonce1', 'service_type' => 1, 'currency' => 'USD',
+            'price' => 200.00, 'term' => 7, 'as_usd' => 200.00, 'usd_per_month' => 0,
+            'next_due_date' => null,
+        ]);
+        Server::create([
+            'id' => 'ppyonce1', 'hostname' => 'once.example.com', 'server_type' => 1,
+            'os_id' => 1, 'provider_id' => 1, 'location_id' => 1,
+            'ram' => 1024, 'ram_type' => 'MB', 'ram_as_mb' => 1024,
+            'disk' => 10, 'disk_type' => 'GB', 'disk_as_gb' => 10,
+            'cpu' => 1, 'active' => 1, 'was_promo' => 0, 'owned_since' => '2024-01-01',
+        ]);
+
+        $this->actingAs($user)->get('/servers')
+            ->assertStatus(200)
+            ->assertDontSee('$0.00');
+    }
+
     public function test_domains_and_shared_indexes_show_price_per_year()
     {
         $user = User::factory()->create();

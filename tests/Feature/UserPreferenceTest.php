@@ -81,6 +81,25 @@ class UserPreferenceTest extends TestCase
         $this->assertSame('', $state['columns'][0]['search']['search']);
     }
 
+    public function test_per_user_key_quota_is_enforced()
+    {
+        $user = User::factory()->create();
+
+        // Fill the quota (50 keys), then a NEW key must be rejected while
+        // an existing key stays updatable — the cap bounds rows, not saves.
+        for ($i = 1; $i <= 50; $i++) {
+            UserPreference::put($user->id, "dt.table-$i", ['length' => $i]);
+        }
+
+        $this->actingAs($user)->putJson('/preferences/dt.one-too-many', $this->state())
+            ->assertStatus(422);
+        $this->actingAs($user)->putJson('/preferences/dt.table-1', ['length' => 99])
+            ->assertStatus(200);
+
+        $this->assertDatabaseCount('user_preferences', 50);
+        $this->assertSame(99, UserPreference::valuesFor($user->id)['dt.table-1']['length']);
+    }
+
     public function test_preferences_are_per_user()
     {
         $a = User::factory()->create();

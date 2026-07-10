@@ -26,8 +26,10 @@
     window.idlersPrefs = @json((object) $userPrefs);
 
     window.idlersSavePref = function (key, value) {
+        // keepalive: saves flushed on pagehide must survive the navigation
         fetch('{{ url('preferences') }}/' + key, {
             method: 'PUT',
+            keepalive: true,
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -35,6 +37,16 @@
             body: JSON.stringify(value)
         });
     };
+
+    // Debounced table-state saves waiting out their timer when the user
+    // navigates away would be silently lost — flush them on pagehide.
+    window.idlersPendingSaves = {};
+    window.addEventListener('pagehide', function () {
+        for (var k in window.idlersPendingSaves) {
+            window.idlersSavePref(k, window.idlersPendingSaves[k]);
+        }
+        window.idlersPendingSaves = {};
+    });
 
     // Shared DataTable init: persists state per table for logged-in users
     // and adds the column show/hide dropdown to the table toolbar.
@@ -46,8 +58,13 @@
         config.stateDuration = 0;
         config.stateSaveCallback = function (settings, data) {
             data.search.search = ''; // don't resurrect old searches on reload
+            data.start = 0; // a page offset is meaningless without its search
+            window.idlersPendingSaves[key] = data;
             clearTimeout(timer);
-            timer = setTimeout(function () { window.idlersSavePref(key, data); }, 500);
+            timer = setTimeout(function () {
+                delete window.idlersPendingSaves[key];
+                window.idlersSavePref(key, data);
+            }, 500);
         };
         config.stateLoadCallback = function () {
             var s = window.idlersPrefs[key] || null;
