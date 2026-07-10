@@ -77,7 +77,20 @@ class YabsIngestService
     {
         $parsed = $this->parse($data, $server_id);
 
-        return $parsed !== null && $this->persist($parsed);
+        return $parsed !== null && ($this->isDuplicateRun($parsed) || $this->persist($parsed));
+    }
+
+
+    /**
+     * A run is identified by (server, output timestamp): re-submitting the
+     * same output — a replayed webhook URL within its 12h signature window,
+     * or the same JSON pasted twice — must not insert a duplicate benchmark.
+     */
+    public function isDuplicateRun(array $parsed): bool
+    {
+        return Yabs::where('server_id', $parsed['server_id'])
+            ->where('output_date', $parsed['yabs']['output_date'])
+            ->exists();
     }
 
 
@@ -255,11 +268,15 @@ class YabsIngestService
             $speeds[$ds['bs']] = $ds['speed_rw'];
         }
 
+        // Every disk_speed column is NOT NULL: a partial run (interrupted
+        // fio, changed block sizes) must skip the row entirely — a partial
+        // row 500s the whole ingest on the missing columns.
+        if (array_diff(['4k', '64k', '512k', '1m'], array_keys($speeds)) !== []) {
+            return null;
+        }
+
         $row = ['id' => $yabs_id, 'server_id' => $server_id];
         foreach (['4k' => 'd_4k', '64k' => 'd_64k', '512k' => 'd_512k', '1m' => 'd_1m'] as $bs => $col) {
-            if (!isset($speeds[$bs])) {
-                continue;
-            }
             $speed = $speeds[$bs];
             $row[$col] = ($speed > 999999) ? ($speed / 1000 / 1000) : $speed / 1000;
             $row["{$col}_type"] = ($speed > 999999) ? 'GB/s' : 'MB/s';

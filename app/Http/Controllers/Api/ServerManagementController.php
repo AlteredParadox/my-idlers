@@ -516,17 +516,36 @@ class ServerManagementController extends Controller
 
     public function storeYabs(YabsIngestService $ingest, Request $request, Server $server): \Illuminate\Http\JsonResponse
     {
+        // Bound the body before any parsing: real yabs -j output is a few
+        // KB, and a leaked signed URL must not be able to feed megabytes
+        // into the parser or thousands of inserts into one transaction.
+        if (strlen($request->getContent()) > 65535) {
+            return response()->json(array('error' => 'Payload too large'), 413);
+        }
+
         $request->validate([
-            'time' => ['required', 'string'],
+            'time' => ['required', 'string', 'max:32'],
             'version' => ['required'],
             'net' => ['required', 'array'],
             'os' => ['required', 'array'],
             'cpu' => ['required', 'array'],
             'mem' => ['required', 'array'],
-            // sometimes: yabs.sh omits these keys when a test auto-skips
-            'geekbench' => ['sometimes', 'array'],
-            'fio' => ['sometimes', 'array'],
-            'iperf' => ['sometimes', 'array'],
+            // sometimes: yabs.sh omits these keys when a test auto-skips.
+            // Counts are bounded well above any real run (4 fio block
+            // sizes, ~12 iperf locations x2 modes, 2 geekbench versions).
+            'geekbench' => ['sometimes', 'array', 'max:4'],
+            'geekbench.*.version' => ['required', 'integer'],
+            'geekbench.*.single' => ['required', 'integer'],
+            'geekbench.*.multi' => ['required', 'integer'],
+            'geekbench.*.url' => ['required', 'string', 'max:255'],
+            'fio' => ['sometimes', 'array', 'max:8'],
+            'fio.*.bs' => ['required', 'string', 'max:8'],
+            'fio.*.speed_rw' => ['required', 'numeric'],
+            'iperf' => ['sometimes', 'array', 'max:40'],
+            'iperf.*.mode' => ['required', 'string', 'max:8'],
+            'iperf.*.loc' => ['required', 'string', 'max:64'],
+            'iperf.*.send' => ['required', 'string', 'max:32'],
+            'iperf.*.recv' => ['required', 'string', 'max:32'],
         ]);
 
         // A signed-but-malformed payload is client input (422), not a server
@@ -534,6 +553,12 @@ class ServerManagementController extends Controller
         $parsed = $ingest->parse($request->all(), $server->id);
         if ($parsed === null) {
             return response()->json(array('error' => 'Invalid YABS payload'), 422);
+        }
+
+        // Idempotency: the signed URL is replayable within its 12h window;
+        // the same run (server + output timestamp) must not insert twice.
+        if ($ingest->isDuplicateRun($parsed)) {
+            return response()->json(array('message' => 'Duplicate YABS run; already recorded'), 200);
         }
 
         if ($ingest->persist($parsed)) {

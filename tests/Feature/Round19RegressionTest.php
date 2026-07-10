@@ -217,7 +217,7 @@ class Round19RegressionTest extends TestCase
             'show_server_value_price' => 1,
             'show_server_value_yabs' => 1,
             'default_currency' => 'USD',
-            'default_server_os' => 1,
+            'default_server_os' => OS::first()->id,
             'due_soon_amount' => 5,
             'recently_added_amount' => 5,
             'dashboard_currency' => 'USD',
