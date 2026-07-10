@@ -59,6 +59,9 @@
         config.stateSaveCallback = function (settings, data) {
             data.search.search = ''; // don't resurrect old searches on reload
             data.start = 0; // a page offset is meaningless without its search
+            // don't freeze the page length either: a persisted copy would
+            // silently shadow the default_per_page setting forever
+            delete data.length;
             window.idlersPendingSaves[key] = data;
             clearTimeout(timer);
             timer = setTimeout(function () {
@@ -70,7 +73,10 @@
             var s = window.idlersPrefs[key] || null;
             // Self-heal states saved before the raw-body fix: the input
             // middleware had rewritten "" search terms to null, which
-            // crashes DataTables' restore.
+            // crashes DataTables' restore. Drop legacy frozen lengths too.
+            if (s) {
+                delete s.length;
+            }
             if (s && s.search && s.search.search == null) {
                 s.search.search = '';
             }

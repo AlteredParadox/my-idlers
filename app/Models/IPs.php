@@ -55,6 +55,22 @@ class IPs extends Model
         $existing = self::where('service_id', $service_id)->pluck('address', 'id')
             ->map(fn($address) => strtolower($address))->all(); // id => address
 
+        // Legacy duplicates (SQLite's unique index is case-SENSITIVE, so
+        // pre-normalization case-variants of one address can coexist as
+        // rows): keep the first, delete the rest — otherwise array_diff
+        // never selects either row and the duplicate is undeletable from
+        // the edit form.
+        $seen = [];
+        foreach ($existing as $ip_id => $address) {
+            if (isset($seen[$address])) {
+                Note::deleteForService($ip_id);
+                self::where('id', $ip_id)->delete();
+                unset($existing[$ip_id]);
+                continue;
+            }
+            $seen[$address] = true;
+        }
+
         foreach (array_keys(array_diff($existing, $submitted)) as $ip_id) {
             Note::deleteForService($ip_id);
             self::where('id', $ip_id)->delete();

@@ -79,6 +79,7 @@ class ExportCsvHeaders
                 'provider_id',
                 'provider_name',
                 'ips',
+                'labels',
             ],
             self::PRICING_CSV_HEADERS
         );
@@ -122,6 +123,7 @@ class ExportCsvHeaders
                 'disk_type',
                 'disk_as_gb',
                 'bandwidth',
+                'link_speed',
                 'domains_limit',
                 'subdomains_limit',
                 'ftp_limit',
@@ -136,6 +138,7 @@ class ExportCsvHeaders
                 'provider_id',
                 'provider_name',
                 'ips',
+                'labels',
             ],
             self::PRICING_CSV_HEADERS
         );
@@ -162,6 +165,7 @@ class ExportCsvHeaders
                 'owned_since',
                 'provider_id',
                 'provider_name',
+                'labels',
             ],
             self::PRICING_CSV_HEADERS
         );
@@ -178,19 +182,27 @@ class ExportCsvHeaders
             [
                 'id',
                 'hostname',
+                'ns1',
+                'ns2',
                 'server_type',
                 'server_type_name',
                 'cpu',
+                'cpu_model',
                 'ram',
                 'ram_type',
                 'ram_as_mb',
                 'disk',
                 'disk_type',
                 'disk_as_gb',
+                'disks',
                 'bandwidth',
+                'link_speed',
+                'network_type',
                 'ssh',
+                'was_promo',
                 'transferrable',
                 'active',
+                'show_public',
                 'owned_since',
                 'os_id',
                 'os_name',
@@ -199,6 +211,7 @@ class ExportCsvHeaders
                 'provider_id',
                 'provider_name',
                 'ips',
+                'labels',
             ],
             self::PRICING_CSV_HEADERS,
             ['yabs']

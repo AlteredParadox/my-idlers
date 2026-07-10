@@ -35,6 +35,12 @@ final class PromQL
      */
     public static function hostMatches(string $stored, string $candidate): bool
     {
+        // Hostnames are case-insensitive (DNS) and Prometheus instance
+        // labels are lowercase — a mixed-case hostname (or uppercase IPv6
+        // used as one) must still match.
+        $stored = strtolower($stored);
+        $candidate = strtolower($candidate);
+
         if ($stored === '' || $candidate === '') {
             return false;
         }

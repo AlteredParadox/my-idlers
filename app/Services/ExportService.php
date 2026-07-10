@@ -38,7 +38,7 @@ class ExportService
     protected const EXPORTABLES = [
         'servers' => [
             'model' => Server::class,
-            'with' => ['location', 'provider', 'os', 'price', 'ips', 'yabs', 'yabs.disk_speed', 'yabs.network_speed'],
+            'with' => ['location', 'provider', 'os', 'price', 'ips', 'disks', 'labels.label', 'yabs', 'yabs.disk_speed', 'yabs.network_speed'],
             'transform' => 'transformServerForExport',
             'headers' => 'getServerCsvHeaders',
             'file_prefix' => 'servers_export',
@@ -46,7 +46,7 @@ class ExportService
         ],
         'domains' => [
             'model' => Domains::class,
-            'with' => ['provider', 'price'],
+            'with' => ['provider', 'price', 'labels.label'],
             'transform' => 'transformDomainForExport',
             'headers' => 'getDomainCsvHeaders',
             'file_prefix' => 'domains_export',
@@ -54,7 +54,7 @@ class ExportService
         ],
         'shared' => [
             'model' => Shared::class,
-            'with' => ['location', 'provider', 'price', 'ips'],
+            'with' => ['location', 'provider', 'price', 'ips', 'labels.label'],
             'transform' => 'transformSharedForExport',
             'headers' => 'getSharedCsvHeaders',
             'file_prefix' => 'shared_hosting_export',
@@ -62,7 +62,7 @@ class ExportService
         ],
         'reseller' => [
             'model' => Reseller::class,
-            'with' => ['location', 'provider', 'price', 'ips'],
+            'with' => ['location', 'provider', 'price', 'ips', 'labels.label'],
             'transform' => 'transformResellerForExport',
             'headers' => 'getResellerCsvHeaders',
             'file_prefix' => 'reseller_hosting_export',
@@ -70,7 +70,7 @@ class ExportService
         ],
         'seedboxes' => [
             'model' => SeedBoxes::class,
-            'with' => ['location', 'provider', 'price', 'ips'],
+            'with' => ['location', 'provider', 'price', 'ips', 'labels.label'],
             'transform' => 'transformSeedboxForExport',
             'headers' => 'getSeedboxCsvHeaders',
             'file_prefix' => 'seedboxes_export',

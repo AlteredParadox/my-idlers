@@ -55,6 +55,10 @@ function isIpAddress(s) {
 }
 
 function matchHost(hostname, promHost) {
+    // Case-insensitive like DNS (and PromQL::hostMatches) — a mixed-case
+    // hostname must still match Prometheus's lowercase instance labels.
+    hostname = hostname.toLowerCase();
+    promHost = promHost.toLowerCase();
     // If either side is an IP, only exact equality counts — mirrors
     // PromQL::hostMatches so the list and detail agree.
     if (isIpAddress(hostname) || isIpAddress(promHost)) {

@@ -40,9 +40,17 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Run migrations if AUTO_MIGRATE is set
+# Run migrations if AUTO_MIGRATE is set; otherwise refuse to boot a database
+# with pending migrations — the session middleware queries the sessions table
+# on EVERY request, so booting anyway would serve 500s on every page
+# (including /login and the healthcheck) with no hint at the cause.
 if [ "${AUTO_MIGRATE}" = "true" ]; then
     php artisan migrate --force
+elif ! php artisan migrate:status --pending=1 > /dev/null 2>&1; then
+    echo "ERROR: the database has pending migrations, is not initialized, or is unreachable." >&2
+    echo "Set AUTO_MIGRATE=true (recommended), or run the migrations once with:" >&2
+    echo "  docker exec -u www-data <container> php artisan migrate --force" >&2
+    exit 1
 fi
 
 # SQLite: this script runs as root, so a boot-time migration can leave the
