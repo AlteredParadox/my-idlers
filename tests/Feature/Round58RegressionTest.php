@@ -24,15 +24,17 @@ class Round58RegressionTest extends TestCase
     {
         $partial = file_get_contents(resource_path('views/partials/datatable-persist.blade.php'));
 
+        // Contiguous needles, not isolated fragments (round 59: a dropped
+        // `return;` and a flip relocated into the catch both survived the
+        // fragment pins) — the guard must contain its bail, and the flip
+        // must be the constructor's immediate successor on the success path.
         $declare = strpos($partial, 'var ready = false;');
-        $guard = strpos($partial, 'if (!ready) {');
-        $flip = strpos($partial, 'ready = true;');
-        $init = strpos($partial, '$(selector).DataTable(config);');
+        $guard = strpos($partial, "if (!ready) {\n                return;");
+        $initThenFlip = strpos($partial, "\$(selector).DataTable(config);\n            ready = true;");
 
         $this->assertNotFalse($declare, 'the ready flag must exist');
-        $this->assertNotFalse($guard, 'stateSaveCallback must bail before init completes');
-        $this->assertNotFalse($flip, 'ready must flip after init');
+        $this->assertNotFalse($guard, 'stateSaveCallback must bail (return) before init completes');
+        $this->assertNotFalse($initThenFlip, 'ready must flip immediately after the constructor on the success path');
         $this->assertLessThan($guard, $declare, 'flag declared before the guard');
-        $this->assertLessThan($flip, $init, 'the flip must come AFTER the constructor — the init draw saves synchronously inside it');
     }
 }
