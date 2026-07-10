@@ -43,7 +43,7 @@ class DomainsController extends Controller
             'ns3' => 'sometimes|nullable|min:2|max:255',
             'provider_id' => 'required|integer|exists:providers,id',
             ...\App\Models\Pricing::webValidationRules(),
-            'owned_since' => 'sometimes|nullable|date',
+            'owned_since' => 'sometimes|nullable|date_format:Y-m-d',
             ...\App\Models\Labels::validationRules(),
         ];
     }

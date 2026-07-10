@@ -108,10 +108,14 @@ class Pricing extends Model
     public static function webValidationRules(): array
     {
         return [
-            'price' => 'required|numeric|min:0|max:99999999',
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999', new \App\Rules\PriceFitsStorableUsd()],
             'currency' => 'required|string|size:3|' . self::currencyRule(),
             'payment_term' => 'required|integer|in:1,2,3,4,5,6,7',
-            'next_due_date' => 'sometimes|nullable|date',
+            // date_format (not bare date, which accepts any strtotime string):
+            // a non-Y-m-d parseable value is a MySQL 1292 500 mid-transaction,
+            // and on SQLite persists raw and crashes doDueSoon's
+            // createFromFormat on the home page. Matches the API rules.
+            'next_due_date' => 'sometimes|nullable|date_format:Y-m-d',
         ];
     }
 
@@ -145,12 +149,22 @@ class Pricing extends Model
 
     public function convertToUSD(string $amount, string $convert_from): float
     {
-        return $amount / self::getRates($convert_from);
+        return self::usdEquivalent((float) $amount, $convert_from);
+    }
+
+    /**
+     * Rounded to the decimal(10,2) column precision so both drivers store
+     * the same value (SQLite has no column rounding and kept full floats).
+     */
+    public static function usdEquivalent(float $amount, string $currency): float
+    {
+        return round($amount / self::getRates($currency), 2);
     }
 
     public function costAsPerMonth(string $cost, int $term): float
     {
-        return match ($term) {
+        // Rounded like usdEquivalent: this lands in decimal(10,2) too.
+        return round(match ($term) {
             2 => $cost / 3,
             3 => $cost / 6,
             4 => $cost / 12,
@@ -158,7 +172,7 @@ class Pricing extends Model
             6 => $cost / 36,
             7 => 0,
             default => $cost,
-        };
+        }, 2);
     }
 
     public function termAsMonths(int $term): int

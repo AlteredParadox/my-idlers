@@ -83,7 +83,7 @@ class ServerController extends Controller
             'cpu' => 'required|integer|min:1|max:1024',
             'cpu_model' => 'sometimes|nullable|string|max:255',
             'was_promo' => 'integer|in:0,1',
-            'owned_since' => 'sometimes|nullable|date',
+            'owned_since' => 'sometimes|nullable|date_format:Y-m-d',
             ...\App\Models\Labels::validationRules(),
         ];
     }

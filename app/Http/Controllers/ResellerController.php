@@ -42,7 +42,7 @@ class ResellerController extends Controller
             'location_id' => 'required|integer|exists:locations,id',
             ...\App\Models\Pricing::webValidationRules(),
             'was_promo' => 'integer|in:0,1',
-            'owned_since' => 'sometimes|nullable|date',
+            'owned_since' => 'sometimes|nullable|date_format:Y-m-d',
             'accounts' => 'integer|min:0|max:1000000',
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'dedicated_ip' => 'sometimes|nullable|ip',

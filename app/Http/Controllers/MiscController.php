@@ -36,7 +36,7 @@ class MiscController extends Controller
         return [
             'name' => 'required|string|min:3|max:255',
             ...\App\Models\Pricing::webValidationRules(),
-            'owned_since' => 'sometimes|nullable|date',
+            'owned_since' => 'sometimes|nullable|date_format:Y-m-d',
         ];
     }
 
