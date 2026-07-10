@@ -555,6 +555,11 @@ class ServerManagementController extends Controller
             return response()->json(array('error' => 'Invalid YABS payload'), 422);
         }
 
+        return $this->persistYabsResponse($ingest, $parsed);
+    }
+
+    private function persistYabsResponse(YabsIngestService $ingest, array $parsed): \Illuminate\Http\JsonResponse
+    {
         // Idempotency: the signed URL is replayable within its 12h window;
         // the same run (server + output timestamp) must not insert twice.
         if ($ingest->isDuplicateRun($parsed)) {
