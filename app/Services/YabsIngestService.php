@@ -148,8 +148,12 @@ class YabsIngestService
         } catch (\Illuminate\Database\UniqueConstraintViolationException) {
             // The (server_id, output_date) unique index backstops the
             // raceable isDuplicateRun() check: a concurrent delivery of the
-            // SAME run losing this insert is idempotent success, not error.
-            return true;
+            // SAME run losing this insert is idempotent success. But the
+            // transaction also writes disk_speed and network_speed, which
+            // carry their own unique constraints — treat the loss as a
+            // replay ONLY if the run row actually exists; anything else
+            // (child-table collision) rolled back a genuine failure.
+            return $this->isDuplicateRun($parsed);
         } catch (\Throwable $e) {
             return false;
         }
@@ -296,8 +300,17 @@ class YabsIngestService
     {
         $rows = [];
         $match = $has_ipv4 ? 'IPv4' : 'IPv6';
+        $seen_locations = [];
         foreach ($iperf as $st) {
+            // network_speed is unique on (id, server_id, location) and every
+            // row here shares this run's id: a payload repeating a location
+            // within the matched mode would collide on the second insert and
+            // roll back the whole ingest. First entry wins.
+            if (in_array($st['loc'], $seen_locations, true)) {
+                continue;
+            }
             if ($st['mode'] === $match && ($st['send'] !== "busy " || $st['recv'] !== "busy ")) {
+                $seen_locations[] = $st['loc'];
                 [$send, $send_type, $send_mbps] = $this->parseSpeed($st['send']);
                 [$recv, $recv_type, $recv_mbps] = $this->parseSpeed($st['recv']);
                 $rows[] = [
