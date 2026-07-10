@@ -440,6 +440,9 @@ Notes:
   nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
   uid — `chown -R 82:82` the mounted directory (SQLite writes journal files next to the
   db, so the directory itself needs write access, not just the file).
+* Custom favicons are stored in the container's webroot, which is ephemeral by design —
+  re-upload the favicon after pulling a new image (everything else lives in the database
+  and carries over).
 
 ## Managed Hosting
 
