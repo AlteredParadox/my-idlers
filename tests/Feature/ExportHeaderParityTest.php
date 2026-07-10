@@ -135,6 +135,7 @@ class ExportHeaderParityTest extends TestCase
             'db_limit' => 100, 'active' => 1, 'owned_since' => '2026-01-01'
         ]);
         IPs::insertIP($reseller->id, '192.0.2.12');
+        \App\Models\LabelsAssigned::create(['label_id' => 'paritylb', 'service_id' => $reseller->id]);
         $this->assertSame(
             $headers->getResellerCsvHeaders(),
             $this->flattenedKeys($transformer->transformResellerForExport($reseller->fresh())),
@@ -150,6 +151,7 @@ class ExportHeaderParityTest extends TestCase
             'owned_since' => '2026-01-01'
         ]);
         IPs::insertIP($seedbox->id, '192.0.2.13');
+        \App\Models\LabelsAssigned::create(['label_id' => 'paritylb', 'service_id' => $seedbox->id]);
         $this->assertSame(
             $headers->getSeedboxCsvHeaders(),
             $this->flattenedKeys($transformer->transformSeedboxForExport($seedbox->fresh())),
@@ -160,6 +162,7 @@ class ExportHeaderParityTest extends TestCase
             'id' => 'parity06', 'hostname' => 'parity.example.com', 'dns_type' => 'A',
             'address' => '192.0.2.14'
         ]);
+        \App\Models\LabelsAssigned::create(['label_id' => 'paritylb', 'service_id' => $dns->id]);
         $this->assertSame(
             $headers->getDnsCsvHeaders(),
             $this->flattenedKeys($transformer->transformDnsForExport($dns->fresh())),

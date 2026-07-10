@@ -88,6 +88,17 @@ class IPs extends Model
                 if ($rowWins) {
                     $kept[$key] = $row;
                 }
+                // Notes aren't refetchable: when BOTH duplicates carry one,
+                // fold the loser's text into the winner's before deleting.
+                $loserNote = Note::where('service_id', $loser->id)->first();
+                if ($loserNote) {
+                    $winnerNote = Note::where('service_id', $kept[$key]->id)->first();
+                    if ($winnerNote) {
+                        $winnerNote->update(['note' => $winnerNote->note . "\n---\n" . $loserNote->note]);
+                    } else {
+                        $loserNote->update(['service_id' => $kept[$key]->id]);
+                    }
+                }
                 Note::deleteForService($loser->id);
                 self::where('id', $loser->id)->delete();
                 continue;

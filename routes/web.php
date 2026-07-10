@@ -73,11 +73,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers-compare/{server1}/{server2}', [ServerController::class, 'compareServers'])->name('servers.compare');
 
     Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
-    // ':' included — a tracker hostname may be a bare IPv6 address, which
-    // the status matcher deliberately supports; without it the index shows
-    // live status while the detail/ping routes 404. Domain lookups keep
-    // the colon-less form.
-    $hostnameRegex = '[a-zA-Z0-9.:_-]+';
+    // Any path segment: a tracker hostname may be a bare IPv6 address or
+    // non-ASCII, both of which the status matcher deliberately supports —
+    // an ASCII-only class here made the index show live status while the
+    // detail/ping routes 404ed. Strictness lives in the controllers
+    // (checkHostIsUp's allowlist guard, the PromQL label escaper), which a
+    // route class can't replace anyway. Domain lookups stay strict.
+    $hostnameRegex = '[^/]+';
     $domainRegex = '[a-zA-Z0-9._-]+';
     Route::get('tools/online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
         ->where('hostname', $hostnameRegex)

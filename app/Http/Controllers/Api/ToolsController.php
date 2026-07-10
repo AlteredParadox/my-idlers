@@ -11,10 +11,13 @@ class ToolsController extends Controller
     {//Check if host/ip is "up" via ping
         // escapeshellarg stops metacharacter injection, but a leading-dash
         // value ('-V', '-f') is still consumed by ping as an OPTION, altering
-        // behaviour / faking "online". Accept only real host/IP labels — the
-        // web route's regex permits a leading dash and the API route had no
-        // constraint at all, so enforce it here for both.
-        if (!preg_match('/^[A-Za-z0-9]([A-Za-z0-9._:-]*[A-Za-z0-9])?$/', $hostname)) {
+        // behaviour / faking "online". Accept a validator-confirmed IP (a
+        // valid IP can never start with '-', and edge-compressed IPv6 like
+        // '::1' fails the label regex's alnum-edges rule) or a real host
+        // label — the web route's regex permits a leading dash and the API
+        // route had no constraint at all, so enforce it here for both.
+        if (!filter_var($hostname, FILTER_VALIDATE_IP)
+            && !preg_match('/^[A-Za-z0-9]([A-Za-z0-9._:-]*[A-Za-z0-9])?$/', $hostname)) {
             return response(array('is_online' => false, 'error' => 'Invalid hostname'), 422);
         }
 
