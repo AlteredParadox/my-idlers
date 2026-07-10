@@ -262,12 +262,16 @@
     </div>
 
     @section('scripts')
+    @include('partials.datatable-persist')
     <script>
         window.addEventListener('load', function () {
             @include('servers.partials.status-js', ['withLinkUsage' => false, 'roundedUptime' => true])
 
-            // Stats toggle (persisted via localStorage)
-            var statsHidden = localStorage.getItem('idlers_hide_stats') === '1';
+            // Stats toggle: same ui.servers preference as the table view, so
+            // the two servers views never disagree. Merge on save — this view
+            // must not clobber the table view's hide_domains.
+            var uiPrefs = window.idlersPrefs['ui.servers'] || {};
+            var statsHidden = uiPrefs.hide_stats === 1;
 
             function applyStatsToggle() {
                 var display = statsHidden ? 'none' : '';
@@ -287,7 +291,8 @@
             if (statsToggle) {
                 statsToggle.addEventListener('click', function() {
                     statsHidden = !statsHidden;
-                    localStorage.setItem('idlers_hide_stats', statsHidden ? '1' : '0');
+                    uiPrefs.hide_stats = statsHidden ? 1 : 0;
+                    window.idlersSavePref('ui.servers', uiPrefs);
                     applyStatsToggle();
                 });
             }

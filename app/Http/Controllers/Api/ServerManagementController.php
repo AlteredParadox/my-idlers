@@ -35,6 +35,7 @@ class ServerManagementController extends Controller
         'ip' => ':attribute must be a valid IP address',
         'date' => ':attribute must be a date Y-m-d',
         'date_format' => ':attribute must be a date Y-m-d',
+        'prohibited' => ':attribute is not supported on update — send the full IP set as ips[]',
     ];
 
 
@@ -48,7 +49,9 @@ class ServerManagementController extends Controller
         $required = $for_store ? 'required|' : '';
 
         $rules = [
-            'hostname' => $required . 'string|min:3',
+            // max:255 — over-length passes SQLite silently but is a MySQL
+            // strict "Data too long" 500
+            'hostname' => $required . 'string|min:3|max:255',
             'server_type' => $required . 'integer|in:1,2,3,4,5,6,7',
             // exists: no FK guards these columns, and a dangling id 500s the
             // servers index and public page on the null relation
@@ -56,7 +59,9 @@ class ServerManagementController extends Controller
             'provider_id' => $required . 'integer|exists:providers,id',
             'location_id' => $required . 'integer|exists:locations,id',
             'ssh_port' => $required . 'integer|min:1|max:65535',
-            'ram' => $required . 'integer|min:0|max:100000000',
+            // ram cap: the GB→MB derivation (*1024) must fit the int
+            // ram_as_mb column — 2097151 GB is the largest safe input
+            'ram' => $required . 'integer|min:0|max:2097151',
             'disk' => $required . 'integer|min:0|max:1000000',
             'cpu' => $required . 'integer|min:1|max:1024',
             'bandwidth' => $required . 'integer|min:0|max:100000000',
@@ -94,15 +99,45 @@ class ServerManagementController extends Controller
         } else {
             // update replaces the full IP set (web edit-form semantics):
             // [] clears, absent leaves the assigned IPs untouched
-            $rules['ips'] = 'array';
+            $rules['ips'] = 'array|max:64';
             $rules['ips.*'] = 'ip|distinct';
+            // reject rather than silently ignore a reused POST payload —
+            // clients would think they changed an IP when nothing happened
+            $rules['ip1'] = 'prohibited';
+            $rules['ip2'] = 'prohibited';
         }
 
         return $rules;
     }
 
+    /**
+     * Lowercase submitted addresses BEFORE validation: the ips table's
+     * utf8mb4 collation is case-insensitive, so IPv6 case-variants that
+     * pass the case-sensitive different:/distinct rules would still hit
+     * the (service_id, address) unique index as a QueryException 500.
+     */
+    private function normalizeIpInput(Request $request): void
+    {
+        $merge = [];
+        foreach (['ip1', 'ip2'] as $field) {
+            if (is_string($request->input($field))) {
+                $merge[$field] = strtolower($request->input($field));
+            }
+        }
+        if (is_array($request->input('ips'))) {
+            $merge['ips'] = array_map(
+                fn($ip) => is_string($ip) ? strtolower($ip) : $ip,
+                $request->input('ips')
+            );
+        }
+        if ($merge !== []) {
+            $request->merge($merge);
+        }
+    }
+
     protected function storeServer(Request $request)
     {
+        $this->normalizeIpInput($request);
         $validator = Validator::make($request->all(), $this->rules(true), self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {
@@ -207,6 +242,7 @@ class ServerManagementController extends Controller
 
     public function updateServer(Request $request, string $id)
     {
+        $this->normalizeIpInput($request);
         $validator = Validator::make($request->all(), $this->rules(false), self::VALIDATION_MESSAGES);
 
         if ($validator->fails()) {

@@ -52,7 +52,7 @@
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">${{ number_format($m->price->usd_per_month * 12, 2) }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">@if($m->price->usd_per_month > 0)${{ number_format($m->price->usd_per_month * 12, 2) }}@else - @endif</td>
                                     <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
                                         @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -106,7 +106,7 @@
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">${{ number_format($m->price->usd_per_month * 12, 2) }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $m->price->usd_per_month * 12 }}">@if($m->price->usd_per_month > 0)${{ number_format($m->price->usd_per_month * 12, 2) }}@else - @endif</td>
                                     <td class="text-center text-nowrap" data-order="{{ $m->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false) : -99999 }}">
                                         @if($m->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($m->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>

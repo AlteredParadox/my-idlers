@@ -25,9 +25,13 @@ class UserPreference extends Model
 
     public static function put(int $user_id, string $key, array $value): void
     {
-        self::updateOrCreate(
-            ['user_id' => $user_id, 'key' => $key],
-            ['value' => json_encode($value)]
+        // upsert, not updateOrCreate: two tabs firing the same first-ever
+        // save race SELECT-then-INSERT into the unique index (a 500);
+        // ON CONFLICT UPDATE is atomic on both MySQL and SQLite.
+        self::upsert(
+            [['user_id' => $user_id, 'key' => $key, 'value' => json_encode($value), 'created_at' => now(), 'updated_at' => now()]],
+            ['user_id', 'key'],
+            ['value', 'updated_at']
         );
     }
 }

@@ -393,9 +393,17 @@ docker run \
   -e MAX_USERS=0 \
   -e SEED_DEMO_DATA=false \
   -e SESSION_SECURE_COOKIE=true \
+  -e AUTO_MIGRATE=true \
   ghcr.io/alteredparadox/my-idlers:latest
-docker exec ... php artisan migrate:fresh --seed --force  # Set up database one time
+docker exec -u www-data ... php artisan migrate:fresh --seed --force  # Set up database one time
 ```
+
+Keep `AUTO_MIGRATE=true` set: new releases can add tables (e.g. `sessions`, `user_preferences`),
+and without it an upgraded container serves 500s on every page — including `/login` and the
+container healthcheck — until the migrations are run. It is a no-op when there is nothing to
+migrate. The one-time setup command must run as `www-data` (`-u www-data`): run as root on a
+SQLite setup it creates a root-owned database file that the php-fpm workers cannot write, taking
+the app down until the next container restart re-asserts ownership.
 
 The container serves the app with nginx + php-fpm (supervised) on port 8000.
 
@@ -425,8 +433,8 @@ Notes:
   app is reached over HTTPS (drop it only for plain-HTTP LAN setups, where the cookie
   would otherwise never be sent).
 * Sessions are stored in the database (SQLite or MySQL, whichever the install uses), so
-  logins and per-user view preferences survive container redeploys — nothing is written
-  to the container's local disk.
+  logins and per-user view preferences survive container redeploys. Only ephemeral,
+  rebuildable state (the file cache and compiled views) remains on the container's disk.
 * **SQLite setups** (`DB_CONNECTION=sqlite`): PHP runs as `www-data` (uid 82) since the
   nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
   uid — `chown -R 82:82` the mounted directory (SQLite writes journal files next to the

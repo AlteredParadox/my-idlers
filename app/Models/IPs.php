@@ -47,10 +47,13 @@ class IPs extends Model
      */
     public static function syncForService(string $service_id, array $addresses): void
     {
-        // Dedupe: (service_id, address) is unique — inserting the same
-        // address twice would be a QueryException 500.
-        $submitted = array_values(array_unique($addresses));
-        $existing = self::where('service_id', $service_id)->pluck('address', 'id')->all(); // id => address
+        // Dedupe case-insensitively: (service_id, address) is unique under a
+        // ci collation, so 'DB8' and 'db8' IPv6 variants are the SAME row —
+        // a case-sensitive diff would 500 on insert (or wipe an unchanged
+        // row's whois/notes just to reinsert a case-variant of it).
+        $submitted = array_values(array_unique(array_map('strtolower', array_filter($addresses, 'is_string'))));
+        $existing = self::where('service_id', $service_id)->pluck('address', 'id')
+            ->map(fn($address) => strtolower($address))->all(); // id => address
 
         foreach (array_keys(array_diff($existing, $submitted)) as $ip_id) {
             Note::deleteForService($ip_id);
@@ -64,6 +67,10 @@ class IPs extends Model
 
     public static function insertIP(string $service_id, string $address): IPs
     {
+        // Stored lowercase: the unique index is case-insensitive, so
+        // case-variant IPv6 spellings must normalize to one canonical form
+        $address = strtolower($address);
+
         return self::create(
             [
                 'id' => Str::random(8),

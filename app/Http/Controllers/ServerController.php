@@ -64,7 +64,9 @@ class ServerController extends Controller
             'link_speed' => 'sometimes|nullable|numeric|min:0|max:1000000',
             'link_speed_type' => 'sometimes|nullable|string|in:Mbps,Gbps',
             'network_type' => 'sometimes|nullable|string|in:IPv4,IPv6,IPv4+IPv6,IPv4 NAT,IPv4 NAT + IPv6',
-            'ram' => 'required|numeric|min:0|max:100000000',
+            // ram cap: the GB→MB derivation (*1024) must fit the int
+            // ram_as_mb column — 2097151 GB is the largest safe input
+            'ram' => 'required|numeric|min:0|max:2097151',
             // in: rules — these land in char(2)/varchar(4) columns, so a
             // forged value is a MySQL-strict truncation 500 without them
             'ram_type' => 'required|in:MB,GB',
@@ -88,6 +90,15 @@ class ServerController extends Controller
 
     public function store(Request $request)
     {
+        // Lowercase before validation: different:ip1 is case-sensitive but
+        // the (service_id, address) unique index is not — an IPv6
+        // case-variant pair would pass the rule and 500 on the second insert
+        foreach (['ip1', 'ip2'] as $ip_field) {
+            if (is_string($request->input($ip_field))) {
+                $request->merge([$ip_field => strtolower($request->input($ip_field))]);
+            }
+        }
+
         $request->validate($this->rules(true));
 
         $this->assertDiskArraysAligned($request);

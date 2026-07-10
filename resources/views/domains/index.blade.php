@@ -60,7 +60,7 @@
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">${{ number_format($domain->price->usd_per_month * 12, 2) }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">@if($domain->price->usd_per_month > 0)${{ number_format($domain->price->usd_per_month * 12, 2) }}@else - @endif</td>
                                     <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
                                         @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>
@@ -116,7 +116,7 @@
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>
-                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">${{ number_format($domain->price->usd_per_month * 12, 2) }}</td>
+                                    <td class="text-center text-nowrap" data-order="{{ $domain->price->usd_per_month * 12 }}">@if($domain->price->usd_per_month > 0)${{ number_format($domain->price->usd_per_month * 12, 2) }}@else - @endif</td>
                                     <td class="text-center text-nowrap" data-order="{{ $domain->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false) : -99999 }}">
                                         @if($domain->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($domain->price->next_due_date), false), 0) }}d @else - @endif
                                     </td>

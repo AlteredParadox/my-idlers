@@ -54,7 +54,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('settings', SettingsController::class)->only(['index', 'update']);
 
-    Route::put('preferences/{key}', [PreferenceController::class, 'update'])->name('preferences.update');
+    Route::put('preferences/{key}', [PreferenceController::class, 'update'])
+        ->middleware('throttle:60,1')->name('preferences.update');
 
     Route::resource('seedboxes', SeedBoxesController::class);
 
