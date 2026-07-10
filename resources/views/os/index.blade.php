@@ -34,10 +34,6 @@
                             </td>
                         </tr>
                         @endforeach
-                    @else
-                        <tr>
-                            <td colspan="2" class="text-center text-muted py-4">No operating systems found</td>
-                        </tr>
                     @endif
                     </tbody>
                 </table>

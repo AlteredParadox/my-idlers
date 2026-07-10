@@ -33,19 +33,36 @@
             return window.idlersPrefs[key] || null;
         };
         @endif
-        var dt = $(selector).DataTable(config);
-        idlersColumnMenu(dt, selector);
-        return dt;
+        // Guarded: a table DataTables chokes on must degrade to a plain
+        // table, not abort the page script (killing every later table's
+        // sorting, search and Columns button).
+        try {
+            var dt = $(selector).DataTable(config);
+            idlersColumnMenu(dt, selector);
+            return dt;
+        } catch (e) {
+            console.error('DataTable init failed for ' + selector, e);
+            return null;
+        }
     };
 
     // Hand-rolled dropdown (position:fixed) so the menu isn't clipped by
     // the .table-responsive overflow container bootstrap dropdowns sit in.
     function idlersColumnMenu(dt, selector) {
         var menu = $('<ul class="dropdown-menu idlers-colvis-menu" style="max-height: 60vh; overflow-y: auto;"></ul>');
+        // The three theme stylesheets disagree on .dropdown-menu/.dropdown-item
+        // colors (dark mode paints near-invisible text); inherit the page's
+        // own colors inline so the menu is readable under every theme.
+        var bodyStyle = window.getComputedStyle(document.body);
+        menu.css('color', bodyStyle.color);
+        var bg = bodyStyle.backgroundColor;
+        if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+            menu.css('background-color', bg);
+        }
         dt.columns().every(function (i) {
             var col = this;
             var title = $(col.header()).text().trim() || 'Column ' + (i + 1);
-            var label = $('<label class="dropdown-item mb-0" style="cursor: pointer;"></label>');
+            var label = $('<label class="dropdown-item mb-0" style="cursor: pointer; color: inherit;"></label>');
             var box = $('<input type="checkbox" class="form-check-input me-2">')
                 .prop('checked', col.visible())
                 .on('change', function () { col.visible(this.checked); });

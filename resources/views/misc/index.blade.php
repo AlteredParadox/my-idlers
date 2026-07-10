@@ -77,10 +77,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No active misc services found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>
@@ -135,10 +131,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No inactive misc services found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>

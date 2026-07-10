@@ -97,10 +97,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="14" class="text-center text-muted py-4">No active reseller hosting found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>
@@ -175,10 +171,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="14" class="text-center text-muted py-4">No inactive reseller hosting found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>

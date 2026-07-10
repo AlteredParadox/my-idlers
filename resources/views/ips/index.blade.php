@@ -53,10 +53,6 @@
                             </td>
                         </tr>
                         @endforeach
-                    @else
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No IP addresses found</td>
-                        </tr>
                     @endif
                     </tbody>
                 </table>
