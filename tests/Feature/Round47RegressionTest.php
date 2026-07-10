@@ -54,7 +54,9 @@ class Round47RegressionTest extends TestCase
     {
         Yabs::create([
             'id' => $id, 'server_id' => $server_id, 'has_ipv6' => 0, 'aes' => 1, 'vm' => 1,
-            'output_date' => '2024-01-20 10:30:00', 'cpu_model' => 'EPYC', 'cpu_cores' => 4,
+            // Distinct per row: (server_id, output_date) is unique — two runs
+            // on one server are two different benchmark outputs.
+            'output_date' => '2024-01-20 10:3' . substr($id, -1) . ':00', 'cpu_model' => 'EPYC', 'cpu_cores' => 4,
             'cpu_freq' => 2900, 'ram' => 8, 'ram_type' => 'GB', 'ram_mb' => 8192,
             'disk' => 100, 'disk_type' => 'GB', 'disk_gb' => 100,
             'gb5_single' => 1200, 'gb5_multi' => 4500,

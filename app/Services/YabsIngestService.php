@@ -145,6 +145,11 @@ class YabsIngestService
             // The public servers page renders YABS data too; the delete path
             // clears this via serverRelatedCacheForget, the add path must match.
             Cache::forget("public_server_data");
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            // The (server_id, output_date) unique index backstops the
+            // raceable isDuplicateRun() check: a concurrent delivery of the
+            // SAME run losing this insert is idempotent success, not error.
+            return true;
         } catch (\Throwable $e) {
             return false;
         }

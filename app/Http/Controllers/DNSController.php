@@ -66,18 +66,22 @@ class DNSController extends Controller
 
         $dns_id = Str::random(8);
 
-        DNS::create([
-            'id' => $dns_id,
-            'hostname' => $request->hostname,
-            'dns_type' => $request->dns_type,
-            'address' => $request->address,
-            'server_id' => ($request->server_id !== 'null') ? $request->server_id : null,
-            'shared_id' => ($request->shared_id !== 'null') ? $request->shared_id : null,
-            'reseller_id' => ($request->reseller_id !== 'null') ? $request->reseller_id : null,
-            'domain_id' => ($request->domain_id !== 'null') ? $request->domain_id : null
-        ]);
+        // Atomic like the other multi-row creates (this one was missed by
+        // that pass): a label-insert failure must not strand a DNS row.
+        DB::transaction(function () use ($request, $dns_id) {
+            DNS::create([
+                'id' => $dns_id,
+                'hostname' => $request->hostname,
+                'dns_type' => $request->dns_type,
+                'address' => $request->address,
+                'server_id' => ($request->server_id !== 'null') ? $request->server_id : null,
+                'shared_id' => ($request->shared_id !== 'null') ? $request->shared_id : null,
+                'reseller_id' => ($request->reseller_id !== 'null') ? $request->reseller_id : null,
+                'domain_id' => ($request->domain_id !== 'null') ? $request->domain_id : null
+            ]);
 
-        Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $dns_id);
+            Labels::insertLabelsAssigned([$request->label1, $request->label2, $request->label3, $request->label4], $dns_id);
+        });
 
         Cache::forget('dns_count');
 
