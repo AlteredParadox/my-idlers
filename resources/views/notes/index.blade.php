@@ -75,10 +75,6 @@
                             </td>
                         </tr>
                         @endforeach
-                    @else
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">No notes found</td>
-                        </tr>
                     @endif
                     </tbody>
                 </table>

@@ -86,10 +86,6 @@
                             </td>
                         </tr>
                         @endforeach
-                    @else
-                        <tr>
-                            <td colspan="13" class="text-center text-muted py-4">No seedboxes found</td>
-                        </tr>
                     @endif
                     </tbody>
                 </table>

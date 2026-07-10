@@ -95,10 +95,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="13" class="text-center text-muted py-4">No active shared hosting found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>
@@ -171,10 +167,6 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="13" class="text-center text-muted py-4">No inactive shared hosting found</td>
-                                </tr>
                             @endif
                             </tbody>
                         </table>
