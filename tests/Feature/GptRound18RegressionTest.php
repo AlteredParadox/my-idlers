@@ -103,6 +103,27 @@ class GptRound18RegressionTest extends TestCase
         $this->assertSame(0, DB::table('yabs')->where('server_id', $server->id)->count());
     }
 
+    public function test_nginx_serves_the_browser_security_headers()
+    {
+        $conf = file_get_contents(base_path('docker/nginx.conf'));
+
+        $this->assertStringContainsString('add_header X-Content-Type-Options "nosniff" always;', $conf);
+        $this->assertStringContainsString('add_header X-Frame-Options "SAMEORIGIN" always;', $conf);
+        $this->assertStringContainsString('add_header Referrer-Policy "strict-origin-when-cross-origin" always;', $conf);
+        foreach (["default-src 'self'", "object-src 'none'", "base-uri 'self'",
+                     "form-action 'self'", "frame-ancestors 'self'", "img-src 'self' data:"] as $directive) {
+            $this->assertStringContainsString($directive, $conf, "CSP lost its $directive directive");
+        }
+
+        // nginx add_header inheritance: a location block declaring its own
+        // add_header silently drops every server-level header above — all
+        // add_header lines must sit before the first location block.
+        $firstLocation = strpos($conf, 'location /');
+        $this->assertNotFalse($firstLocation);
+        $this->assertStringNotContainsString('add_header', substr($conf, $firstLocation),
+            'an add_header inside a location block silently disables the server-level security headers');
+    }
+
     public function test_a_genuine_replay_is_still_idempotent_success()
     {
         Settings::firstOrCreate(['id' => 1]);
