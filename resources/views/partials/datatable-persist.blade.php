@@ -52,11 +52,21 @@
     // and adds the column show/hide dropdown to the table toolbar.
     window.idlersDataTable = function (selector, config) {
         var key = 'dt.' + selector.replace('#', '');
+        var ready = false;
         @if(auth()->check())
         var timer = null;
         config.stateSave = true;
         config.stateDuration = 0;
         config.stateSaveCallback = function (settings, data) {
+            // DataTables fires a save on the INIT draw with zero user
+            // interaction. When a stored state was discarded for a
+            // column-count mismatch (prometheus toggle, a deploy adding a
+            // column), that save would permanently overwrite the user's
+            // preference with pristine defaults — only persist changes the
+            // user actually made.
+            if (!ready) {
+                return;
+            }
             data.search.search = ''; // don't resurrect old searches on reload
             data.start = 0; // a page offset is meaningless without its search
             // don't freeze the page length either: a persisted copy would
@@ -96,6 +106,7 @@
         // sorting, search and Columns button).
         try {
             var dt = $(selector).DataTable(config);
+            ready = true; // init draw done — saves now reflect real interaction
             idlersColumnMenu(dt, selector);
             return dt;
         } catch (e) {
