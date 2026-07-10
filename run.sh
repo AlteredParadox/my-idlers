@@ -35,10 +35,14 @@ QUEUE_CONNECTION=sync
 EOF
 fi
 
-# Clear and cache config for production
+# Clear and cache config for production. The app cache is cleared too:
+# it holds only rebuildable query snapshots, and a stale entry cached by
+# an older release (e.g. a pre-fix settings model) must not survive an
+# image upgrade on setups that persist the storage directory.
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan cache:clear > /dev/null 2>&1 || true
 
 # Run migrations if AUTO_MIGRATE is set; otherwise refuse to boot a database
 # with pending migrations — the session middleware queries the sessions table
