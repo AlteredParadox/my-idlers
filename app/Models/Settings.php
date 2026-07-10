@@ -13,6 +13,11 @@ class Settings extends Model
 
     protected $table = 'settings';
 
+    // The PK is the fixed row id 1, NOT auto-increment: without this,
+    // Eloquent overwrites a supplied id with MySQL's lastInsertId (0) on
+    // create(), so ->fresh()/route-key reads chase a nonexistent row.
+    public $incrementing = false;
+
     protected $fillable = ['id', 'show_versions_footer', 'show_servers_public', 'show_server_value_ip', 'show_server_value_hostname', 'show_server_value_provider', 'show_server_value_location', 'show_server_value_price', 'show_server_value_yabs', 'default_currency', 'default_server_os', 'due_soon_amount', 'recently_added_amount', 'dark_mode', 'dashboard_currency', 'sort_on', 'favicon', 'servers_index_cards', 'default_per_page', 'prometheus_enabled', 'prometheus_url', 'prometheus_check_interval'];
 
     // MySQL returns tinyint/int columns as strings, which broke strict `=== 1`
@@ -44,7 +49,14 @@ class Settings extends Model
         return Cache::remember('settings', now()->addWeek(1), function () {
             $settings = self::where('id', 1)->first();
             if (is_null($settings)){
-                $settings = Settings::create();
+                // fresh(): the model create() returns carries only the
+                // attributes PHP supplied — none of the column defaults —
+                // and it gets cached for a week; every ->attribute read on a
+                // fresh install would be null otherwise. The id must be
+                // explicit: settings.id is NOT auto-increment, so MySQL's
+                // lastInsertId is 0 and an id-less create()->fresh() would
+                // re-query id=0 → null (SQLite's rowid alias masks this).
+                $settings = Settings::create(['id' => 1])->fresh();
             }
             return $settings;
         });

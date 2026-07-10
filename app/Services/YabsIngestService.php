@@ -144,11 +144,19 @@ class YabsIngestService
         [$ram_f, $ram_type] = $this->scaleRam($data['mem']['ram']);
         [$disk_f, $disk_type] = $this->scaleDisk($data['mem']['disk']);
 
-        // `vm` is a boolean column, but YABS reports cpu.virt as a string
-        // ("KVM"/"none"/...). Store the is-virtualized flag; the raw string
-        // would fail to insert on MySQL (integer column) and break every ingest.
-        $virt = strtolower((string) ($data['cpu']['virt'] ?? ''));
-        $is_vm = ($virt === '' || $virt === 'none') ? 0 : 1;
+        // `vm` is a boolean column. CURRENT yabs.sh reports the is-a-VM
+        // answer in os.vm (systemd-detect-virt: "KVM"/"NONE"/...) and made
+        // cpu.virt a boolean meaning "host CPU has vmx/svm flags" — deriving
+        // from cpu.virt inverts the flag for a KVM guest without nested
+        // virt AND for bare metal with VT-x. Prefer os.vm; fall back to the
+        // legacy cpu.virt STRING shape (older reports), never its boolean.
+        $os_vm = strtolower((string) ($data['os']['vm'] ?? ''));
+        if ($os_vm !== '') {
+            $is_vm = ($os_vm === 'none') ? 0 : 1;
+        } else {
+            $virt = $data['cpu']['virt'] ?? '';
+            $is_vm = (is_string($virt) && $virt !== '' && strtolower($virt) !== 'none') ? 1 : 0;
+        }
 
         return [
             'id' => $yabs_id,

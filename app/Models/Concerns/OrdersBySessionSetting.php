@@ -20,7 +20,7 @@ trait OrdersBySessionSetting
     protected static function bootOrdersBySessionSetting(): void
     {
         static::addGlobalScope('order', function (Builder $builder) {
-            $sort_on = Settings::getSettings()->sort_on ?? 2;//created_at desc if not set
+            $sort_on = Settings::getSettings()->sort_on ?? 1;//column default: created_at asc
             if (!in_array($sort_on, [3, 4, 5, 6], true)) {
                 $array = Settings::orderByProcess($sort_on);
                 $builder->orderBy($array[0], $array[1]);

@@ -57,7 +57,7 @@
                                     @endif
                                 </span>
                             </td>
-                            <td>{{ strlen($n->note) > 80 ? substr($n->note, 0, 80) . "…" : $n->note }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($n->note, 80, "…") }}</td>
                             <td class="text-center text-nowrap">
                                 <div class="action-buttons">
                                     <a href="{{ route('notes.show', $n->id) }}" class="btn btn-sm btn-action" title="View">
@@ -68,7 +68,7 @@
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
                                             @click="confirmDeleteModal" id="{{ $n->id }}" 
-                                            data-title="{{ strlen($n->note) > 24 ? substr($n->note, 0, 24) . '…' : $n->note }}">
+                                            data-title="{{ \Illuminate\Support\Str::limit($n->note, 24, '…') }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>

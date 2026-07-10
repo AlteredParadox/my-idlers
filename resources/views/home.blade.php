@@ -149,7 +149,7 @@
         </div>
 
         <!-- Due Soon Section -->
-        @if(Session::get('due_soon_amount') > 0 && !empty($information['due_soon']))
+        @if((\App\Models\Settings::getSettings()->due_soon_amount ?? 6) > 0 && !empty($information['due_soon']))
         <div class="row mb-4">
             <div class="col-12">
                 <div class="dashboard-card">
@@ -184,7 +184,7 @@
         @endif
 
         <!-- Recently Added Section -->
-        @if(Session::get('recently_added_amount') > 0 && !empty($information['newest']))
+        @if((\App\Models\Settings::getSettings()->recently_added_amount ?? 6) > 0 && !empty($information['newest']))
         <div class="row mb-4">
             <div class="col-12">
                 <div class="dashboard-card">

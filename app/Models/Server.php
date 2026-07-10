@@ -134,11 +134,6 @@ class Server extends Model
         Cache::forget('all_notes');
     }
 
-    public static function serverYabsAmount(string $server_id): int
-    {//Returns amount of YABS a server has
-        return Yabs::where('server_id', $server_id)->count();
-    }
-
     public function yabs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         // Newest first: yabs ids are random char(8), so without an order

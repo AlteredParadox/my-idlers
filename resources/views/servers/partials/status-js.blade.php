@@ -260,7 +260,10 @@ let app = new Vue({
             this.showModal = true;
             this.modal_hostname = el.dataset.title || el.title;
             this.modal_id = el.id;
-            this.delete_form_action = 'servers/' + this.modal_id;
+            // Absolute like the shared modal component: a relative action on
+            // a page loaded as /servers/ (trailing slash matches without a
+            // redirect) would POST the DELETE to /servers/servers/{id} → 404
+            this.delete_form_action = '/servers/' + this.modal_id;
         }
     }
 });
