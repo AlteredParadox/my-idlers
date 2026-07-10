@@ -43,38 +43,13 @@ class SettingsController extends Controller
 
         $settings = Settings::where('id', 1)->first();
 
+        $favicon_filename = null;
         if ($request->favicon) {//Has a favicon upload
-
-            $file = $request->favicon;
-            // Content-derived extension, never the client filename: the file
-            // lands in the webroot, so a PNG/PHP polyglot named x.php would
-            // otherwise be stored as favicon.php and be executable.
-            $extension = strtolower($file->guessExtension() ?? '');
-            if (!in_array($extension, ['ico', 'png', 'jpg', 'jpeg'], true)) {
-                return redirect()->route('settings.index')
-                    ->with('error', 'Favicon must be an ico, png or jpg file.');
+            $stored = $this->storeFavicon($request->favicon, $settings);
+            if ($stored instanceof \Illuminate\Http\RedirectResponse) {
+                return $stored;
             }
-            $favicon_filename = "favicon.$extension";
-
-            // Atomic replace: write to a temp name, verify, then rename over
-            // the target. rename(2) needs only DIRECTORY write — it replaces
-            // even the root-owned shipped favicon.ico (the hardened container
-            // keeps shipped files root-owned) — and a failed or partial write
-            // leaves the existing favicon untouched instead of destroying it.
-            // Blindly repointing settings.favicon at a file that was never
-            // written 404s the favicon site-wide behind a success flash.
-            $tmp_name = "$favicon_filename.tmp";
-            if ($file->storeAs("", $tmp_name, "public_uploads") === false
-                || Storage::disk('public_uploads')->move($tmp_name, $favicon_filename) === false) {
-                Storage::disk('public_uploads')->delete($tmp_name);
-
-                return redirect()->route('settings.index')
-                    ->with('error', 'Favicon could not be saved — the web server cannot write to the public directory.');
-            }
-
-            if ($favicon_filename !== $settings->favicon && $settings->favicon !== 'favicon.ico') {
-                Storage::disk('public_uploads')->delete($settings->favicon);//Delete old favicon
-            }
+            $favicon_filename = $stored;
         }
 
         $do_update = $settings->update([
@@ -111,13 +86,47 @@ class SettingsController extends Controller
 
         Settings::setSettingsToSession(Settings::getSettings());
 
-        if ($do_update) {
-            return redirect()->route('settings.index')
-                ->with('success', 'Settings Updated Successfully.');
-        }
-
         return redirect()->route('settings.index')
-            ->with('error', 'Settings failed to update.');
+            ->with($do_update ? 'success' : 'error',
+                $do_update ? 'Settings Updated Successfully.' : 'Settings failed to update.');
     }
 
+    /**
+     * Validate and atomically store an uploaded favicon. Returns the stored
+     * filename, or an error redirect for the caller to return as-is.
+     */
+    private function storeFavicon(\Illuminate\Http\UploadedFile $file, Settings $settings): string|\Illuminate\Http\RedirectResponse
+    {
+        // Content-derived extension, never the client filename: the file
+        // lands in the webroot, so a PNG/PHP polyglot named x.php would
+        // otherwise be stored as favicon.php and be executable.
+        $extension = strtolower($file->guessExtension() ?? '');
+        if (!in_array($extension, ['ico', 'png', 'jpg', 'jpeg'], true)) {
+            return redirect()->route('settings.index')
+                ->with('error', 'Favicon must be an ico, png or jpg file.');
+        }
+        $favicon_filename = "favicon.$extension";
+
+        // Atomic replace: write to a temp name, verify, then rename over
+        // the target. rename(2) needs only DIRECTORY write — it replaces
+        // even the root-owned shipped favicon.ico (the hardened container
+        // keeps shipped files root-owned) — and a failed or partial write
+        // leaves the existing favicon untouched instead of destroying it.
+        // Blindly repointing settings.favicon at a file that was never
+        // written 404s the favicon site-wide behind a success flash.
+        $tmp_name = "$favicon_filename.tmp";
+        if ($file->storeAs("", $tmp_name, "public_uploads") === false
+            || Storage::disk('public_uploads')->move($tmp_name, $favicon_filename) === false) {
+            Storage::disk('public_uploads')->delete($tmp_name);
+
+            return redirect()->route('settings.index')
+                ->with('error', 'Favicon could not be saved — the web server cannot write to the public directory.');
+        }
+
+        if ($favicon_filename !== $settings->favicon && $settings->favicon !== 'favicon.ico') {
+            Storage::disk('public_uploads')->delete($settings->favicon);//Delete old favicon
+        }
+
+        return $favicon_filename;
+    }
 }
