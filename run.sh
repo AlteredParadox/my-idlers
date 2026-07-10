@@ -47,7 +47,18 @@ php artisan view:cache
 # The check is retried: a database container that starts slower than the
 # app (host reboot, compose ordering) must not read as "pending".
 if [ "${AUTO_MIGRATE}" = "true" ]; then
-    php artisan migrate --force
+    # Same retry as the guard below: a database container that starts
+    # slower than the app must not leave a silently-unmigrated boot.
+    tries=0
+    until php artisan migrate --force; do
+        tries=$((tries + 1))
+        if [ "$tries" -ge 10 ]; then
+            echo "ERROR: migrations failed after ${tries} attempts (database unreachable or a migration error above)." >&2
+            exit 1
+        fi
+        echo "Migration attempt failed (database not ready?), retrying (${tries}/10)..." >&2
+        sleep 3
+    done
 else
     tries=0
     until php artisan migrate:status --pending=1 > /dev/null 2>&1; do
