@@ -42,11 +42,16 @@ class DatabaseSeeder extends Seeder
             $this->call(SeedBoxesSeeder::class);
             $this->call(DNSSeeder::class);
             $this->call(YabsSeeder::class);
+        } else {
+            $this->command?->warn('Skipping demo data (SEED_DEMO_DATA is not true).');
         }
     }
 
     private function shouldSeedDemoData(): bool
     {
-        return env('SEED_DEMO_DATA', false) === true;
+        // config(), not env(): under a cached config (standard production
+        // step) env() returns null at runtime and the demo set silently
+        // never seeded — the CLI residual of the max_users class.
+        return filter_var(config('custom.seed_demo_data'), FILTER_VALIDATE_BOOL);
     }
 }
