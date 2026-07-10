@@ -383,6 +383,7 @@ If you already have at least version 2.0 installed:
 ```
 docker run \
   -p 8000:8000 \
+  --restart unless-stopped \
   -e APP_KEY=base64:... \
   -e APP_URL=https://... \
   -e TRUSTED_PROXIES='*' \
