@@ -71,7 +71,7 @@ return new class extends Migration {
         // Same constraint as the catalog FK migration: SQLite cannot drop
         // foreign keys — fail loudly instead of half-reverting.
         if (Schema::getConnection()->getDriverName() === 'sqlite') {
-            throw new RuntimeException(
+            throw new \App\Exceptions\IrreversibleMigrationException(
                 'add_default_os_and_dns_foreign_keys cannot be rolled back on SQLite — restore from a backup or use migrate:fresh.'
             );
         }

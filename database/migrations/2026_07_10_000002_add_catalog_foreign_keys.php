@@ -77,7 +77,7 @@ return new class extends Migration {
         // would leave a schema that rejects its own defaults. Fail loudly
         // instead of half-reverting.
         if (Schema::getConnection()->getDriverName() === 'sqlite') {
-            throw new RuntimeException(
+            throw new \App\Exceptions\IrreversibleMigrationException(
                 'add_catalog_foreign_keys cannot be rolled back on SQLite — restore from a backup or use migrate:fresh.'
             );
         }
