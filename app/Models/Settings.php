@@ -73,7 +73,10 @@ class Settings extends Model
         // re-synced; a stale favicon snapshot 404'd the icon in every OTHER
         // session after an extension change deleted the old file).
         Session::put('default_currency', $settings->default_currency ?? 'USD');
-        Session::put('default_server_os', $settings->default_server_os ?? 1);
+        // No coalesce: null means "no default configured" (the FK
+        // migration reconciles dangling defaults to null) and must
+        // preselect nothing, not whichever OS happens to carry id 1.
+        Session::put('default_server_os', $settings->default_server_os);
         Session::put('due_soon_amount', $settings->due_soon_amount ?? 6);
         Session::put('recently_added_amount', $settings->recently_added_amount ?? 6);
         Session::put('dashboard_currency', $settings->dashboard_currency ?? 'USD');
