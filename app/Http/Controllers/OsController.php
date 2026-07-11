@@ -38,15 +38,17 @@ class OsController extends Controller
 
     public function destroy(OS $o)
     {
-        // Friendly fast path; the restrictive FK is the authority — a
-        // server created between this check and the delete blocks it.
-        $inUse = Server::where('os_id', $o->id)->exists();
+        // Friendly fast path; the restrictive FKs are the authority — a
+        // server created (or a default-OS setting saved) between this
+        // check and the delete blocks it.
+        $inUse = Server::where('os_id', $o->id)->exists()
+            || \App\Models\Settings::where('default_server_os', $o->id)->exists();
 
         $deleted = $inUse ? null : $this->deleteUnlessReferenced($o);
 
         if (is_null($deleted)) {
             return redirect()->route('os.index')
-                ->with('error', 'Cannot delete an OS that is assigned to servers.');
+                ->with('error', 'Cannot delete an OS that is assigned to servers or set as the default OS.');
         }
 
         if ($deleted) {

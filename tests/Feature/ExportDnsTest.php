@@ -356,6 +356,15 @@ class ExportDnsTest extends TestCase
      */
     public function test_export_dns_handles_dns_record_with_server_id()
     {
+        // The d_n_s FKs require a real linked service
+        (new \App\Models\Pricing)->insertPricing(1, 'srv001', 'USD', 5, 1, '2027-01-01');
+        \App\Models\Server::create([
+            'id' => 'srv001', 'hostname' => 'linked.example.com', 'server_type' => 1,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
+            'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024, 'disk' => 10,
+            'disk_type' => 'GB', 'disk_as_gb' => 10, 'cpu' => 1, 'active' => 1,
+            'was_promo' => 0, 'owned_since' => '2024-01-01',
+        ]);
         DNS::create([
             'id' => 'dserver',
             'hostname' => 'server.example.com',
@@ -378,6 +387,12 @@ class ExportDnsTest extends TestCase
      */
     public function test_export_dns_handles_dns_record_with_domain_id()
     {
+        // The d_n_s FKs require a real linked service
+        (new \App\Models\Pricing)->insertPricing(4, 'dom001', 'USD', 5, 4, '2027-01-01');
+        \App\Models\Domains::create([
+            'id' => 'dom001', 'domain' => 'linked', 'extension' => '.com',
+            'provider_id' => null, 'owned_since' => '2024-01-01',
+        ]);
         DNS::create([
             'id' => 'ddomain',
             'hostname' => 'domain.example.com',
