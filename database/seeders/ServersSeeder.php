@@ -11,6 +11,14 @@ class ServersSeeder extends Seeder
 {
     public function run()
     {
+        // Demo catalog references are positional — the Nth row of the
+        // seeded catalog lists. Hardcoded ids only matched on virgin
+        // auto-increment counters; under shifted counters (e.g. the MySQL
+        // test database) they dangled, which the catalog FKs now reject.
+        $os = fn (int $n) => DB::table('os')->orderBy('id')->skip($n - 1)->value('id');
+        $provider = fn (int $n) => DB::table('providers')->orderBy('id')->skip($n - 1)->value('id');
+        $location = fn (int $n) => DB::table('locations')->orderBy('id')->skip($n - 1)->value('id');
+
         $servers = [];
         $pricing = [];
         $ips = [];
@@ -21,9 +29,9 @@ class ServersSeeder extends Seeder
             'id' => $id1,
             'hostname' => 'web-prod-01.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 27, // Ubuntu 20.04
-            'provider_id' => 32, // Hetzner
-            'location_id' => 23, // Frankfurt
+            'os_id' => $os(27), // Ubuntu 20.04
+            'provider_id' => $provider(32), // Hetzner
+            'location_id' => $location(23), // Frankfurt
             'bandwidth' => 20000,
             'cpu' => 4,
             'ram' => 8192,
@@ -59,9 +67,9 @@ class ServersSeeder extends Seeder
             'id' => $id2,
             'hostname' => 'db-master.example.com',
             'server_type' => 3, // Dedicated
-            'os_id' => 27, // Ubuntu 20.04
-            'provider_id' => 69, // OVH
-            'location_id' => 56, // Paris
+            'os_id' => $os(27), // Ubuntu 20.04
+            'provider_id' => $provider(69), // OVH
+            'location_id' => $location(56), // Paris
             'bandwidth' => 0, // Unlimited
             'cpu' => 8,
             'ram' => 32768,
@@ -96,9 +104,9 @@ class ServersSeeder extends Seeder
             'id' => $id3,
             'hostname' => 'staging.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 42, // Ubuntu 24.04
-            'provider_id' => 17, // Digital Ocean
-            'location_id' => 51, // New York
+            'os_id' => $os(42), // Ubuntu 24.04
+            'provider_id' => $provider(17), // Digital Ocean
+            'location_id' => $location(51), // New York
             'bandwidth' => 4000,
             'cpu' => 2,
             'ram' => 4096,
@@ -133,9 +141,9 @@ class ServersSeeder extends Seeder
             'id' => $id4,
             'hostname' => 'mail.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 8, // Debian 10
-            'provider_id' => 96, // Vultr
-            'location_id' => 3, // Amsterdam
+            'os_id' => $os(8), // Debian 10
+            'provider_id' => $provider(96), // Vultr
+            'location_id' => $location(3), // Amsterdam
             'bandwidth' => 2000,
             'cpu' => 1,
             'ram' => 2048,
@@ -170,9 +178,9 @@ class ServersSeeder extends Seeder
             'id' => $id5,
             'hostname' => 'api-gateway.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 42, // Ubuntu 24.04
-            'provider_id' => 58, // Linode
-            'location_id' => 36, // Los Angeles
+            'os_id' => $os(42), // Ubuntu 24.04
+            'provider_id' => $provider(58), // Linode
+            'location_id' => $location(36), // Los Angeles
             'bandwidth' => 5000,
             'cpu' => 2,
             'ram' => 4096,
@@ -207,9 +215,9 @@ class ServersSeeder extends Seeder
             'id' => $id6,
             'hostname' => 'backup-01.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 27, // Ubuntu 20.04
-            'provider_id' => 8, // BuyVM
-            'location_id' => 34, // Las Vegas
+            'os_id' => $os(27), // Ubuntu 20.04
+            'provider_id' => $provider(8), // BuyVM
+            'location_id' => $location(34), // Las Vegas
             'bandwidth' => 10000,
             'cpu' => 1,
             'ram' => 1024,
@@ -244,9 +252,9 @@ class ServersSeeder extends Seeder
             'id' => $id7,
             'hostname' => 'dev.example.com',
             'server_type' => 4, // LXC
-            'os_id' => 42, // Ubuntu 24.04
-            'provider_id' => 76, // RackNerd
-            'location_id' => 36, // Los Angeles
+            'os_id' => $os(42), // Ubuntu 24.04
+            'provider_id' => $provider(76), // RackNerd
+            'location_id' => $location(36), // Los Angeles
             'bandwidth' => 3000,
             'cpu' => 2,
             'ram' => 2048,
@@ -281,9 +289,9 @@ class ServersSeeder extends Seeder
             'id' => $id8,
             'hostname' => 'monitor.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 45, // Debian 11
-            'provider_id' => 32, // Hetzner
-            'location_id' => 25, // Helsinki
+            'os_id' => $os(45), // Debian 11
+            'provider_id' => $provider(32), // Hetzner
+            'location_id' => $location(25), // Helsinki
             'bandwidth' => 20000,
             'cpu' => 2,
             'ram' => 4096,
@@ -318,9 +326,9 @@ class ServersSeeder extends Seeder
             'id' => $id9,
             'hostname' => 'game-server.example.com',
             'server_type' => 3, // Dedicated
-            'os_id' => 36, // Windows 10
-            'provider_id' => 69, // OVH
-            'location_id' => 45, // Montreal
+            'os_id' => $os(36), // Windows 10
+            'provider_id' => $provider(69), // OVH
+            'location_id' => $location(45), // Montreal
             'bandwidth' => 0, // Unlimited
             'cpu' => 6,
             'ram' => 65536,
@@ -355,9 +363,9 @@ class ServersSeeder extends Seeder
             'id' => $id10,
             'hostname' => 'cdn-edge-sg.example.com',
             'server_type' => 1, // KVM
-            'os_id' => 27, // Ubuntu 20.04
-            'provider_id' => 96, // Vultr
-            'location_id' => 72, // Singapore
+            'os_id' => $os(27), // Ubuntu 20.04
+            'provider_id' => $provider(96), // Vultr
+            'location_id' => $location(72), // Singapore
             'bandwidth' => 6000,
             'cpu' => 1,
             'ram' => 1024,

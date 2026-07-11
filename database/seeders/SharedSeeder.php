@@ -11,6 +11,13 @@ class SharedSeeder extends Seeder
 {
     public function run()
     {
+        // Demo catalog references are positional — the Nth row of the
+        // seeded catalog lists. Hardcoded ids only matched on virgin
+        // auto-increment counters; under shifted counters (e.g. the MySQL
+        // test database) they dangled, which the catalog FKs now reject.
+        $provider = fn (int $n) => DB::table('providers')->orderBy('id')->skip($n - 1)->value('id');
+        $location = fn (int $n) => DB::table('locations')->orderBy('id')->skip($n - 1)->value('id');
+
         $shared = [];
         $pricing = [];
 
@@ -30,8 +37,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => 2,
             'email_limit' => 5,
             'db_limit' => 2,
-            'provider_id' => 6,
-            'location_id' => 17,
+            'provider_id' => $provider(6),
+            'location_id' => $location(17),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(18)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -65,8 +72,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => 10,
             'email_limit' => 100,
             'db_limit' => 10,
-            'provider_id' => 35,
-            'location_id' => 27,
+            'provider_id' => $provider(35),
+            'location_id' => $location(27),
             'was_promo' => 1,
             'owned_since' => Carbon::now()->subMonths(24)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -100,8 +107,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => 5,
             'email_limit' => 10,
             'db_limit' => 5,
-            'provider_id' => 39,
-            'location_id' => 35,
+            'provider_id' => $provider(39),
+            'location_id' => $location(35),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(6)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -135,8 +142,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => null,
             'email_limit' => null,
             'db_limit' => null,
-            'provider_id' => 20,
-            'location_id' => 36,
+            'provider_id' => $provider(20),
+            'location_id' => $location(36),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(12)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -170,8 +177,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => 5,
             'email_limit' => 25,
             'db_limit' => 5,
-            'provider_id' => 29,
-            'location_id' => 58,
+            'provider_id' => $provider(29),
+            'location_id' => $location(58),
             'was_promo' => 1,
             'owned_since' => Carbon::now()->subMonths(36)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -205,8 +212,8 @@ class SharedSeeder extends Seeder
             'ftp_limit' => null,
             'email_limit' => null,
             'db_limit' => null,
-            'provider_id' => 12,
-            'location_id' => 51,
+            'provider_id' => $provider(12),
+            'location_id' => $location(51),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(8)->format('Y-m-d'),
             'created_at' => Carbon::now(),
