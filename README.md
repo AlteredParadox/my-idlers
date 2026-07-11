@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.4-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.5-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -71,6 +71,43 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.5` — July 2026
+
+_The referential-integrity release: the database is now authoritative for every relation the
+application previously guarded only with raceable check-then-write code. Fifteen foreign keys,
+each proven live on legacy-shaped databases with dangling data, on both drivers._
+
+**Catalog foreign keys**
+
+* **Ten restrictive FKs from the service tables to the catalogs** — servers (os/provider/
+  location), shared and reseller hosting, seedboxes (provider/location), and domains (provider).
+  A service created between a catalog delete's in-use check and the delete itself can no longer
+  leave a dangling reference: the delete is refused at the database layer and surfaced as the
+  existing friendly "assigned to services" error
+* **`settings.default_server_os` is constrained too** — an OS used solely as the configured
+  default can no longer be deleted out from under the server-create form (and a null default now
+  preselects nothing, instead of whichever OS happens to carry id 1)
+* **DNS service links carry `ON DELETE SET NULL`** — deleting a linked server, shared/reseller
+  account or domain now detaches its DNS records in the same statement, instead of leaving a
+  dangling id rendered as a dead link on the DNS detail page
+
+**Migration notes — please read before upgrading**
+
+* The catalog reference columns become **nullable** and lose their legacy magic defaults
+  (`9999`, and `0`/`20` for the OS columns) — those sentinels were dangling references by
+  construction. Any existing dangling reference (including the sentinels) is reconciled to
+  `NULL` with a warning in the log; the UI renders these as `-`, exactly as it already did
+* Notable under the hood: Laravel 13 adds **enforced** foreign keys on SQLite via a full table
+  rebuild, so both drivers get identical integrity — there is no SQLite second-class mode
+* These migrations cannot be rolled back on SQLite (the driver cannot drop foreign keys);
+  they reverse cleanly on MySQL. **Back up before upgrading**, as with any schema change
+* The demo seeders no longer assume fixed auto-increment ids — demo catalog references now
+  resolve positionally, producing identical data on fresh installs and valid references anywhere
+
+Test suite: **616 tests / 2,009 assertions**, green on both SQLite and MySQL.
+Every constraint is pinned by schema and behavioral regression tests, including the
+delete-race path and the legacy-reconciliation shape.
 
 ## Fork revision `ap.4` — July 2026
 
@@ -297,7 +334,7 @@ _The history below is the `4.1.0` baseline the fork's `+ap` revisions build on._
 
 ### Test Suite
 
-The application includes a comprehensive test suite — 607 tests / 1,974 assertions as of ap.4 —
+The application includes a comprehensive test suite — 616 tests / 2,009 assertions as of ap.5 —
 run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
 under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
@@ -472,7 +509,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.4` — note the Docker tag uses `-ap.4` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.5` — note the Docker tag uses `-ap.5` since `+` is not
 a valid Docker tag character).
 
 Notes:
