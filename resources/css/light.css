@@ -214,25 +214,6 @@
     background-color: #eff6ff;
 }
 
-.main-navbar .dropdown-menu {
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 0.25rem;
-}
-
-.main-navbar .dropdown-item {
-    border-radius: 4px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.8125rem;
-    color: #374151;
-}
-
-.main-navbar .dropdown-item:hover {
-    background-color: #f3f4f6;
-    color: #111827;
-}
-
 .main-navbar .logout-link {
     color: #6b7280;
     text-decoration: none;
