@@ -241,30 +241,6 @@ body {
     background-color: rgba(59, 130, 246, 0.15);
 }
 
-.main-navbar .dropdown-menu {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    padding: 0.125rem;
-}
-
-.main-navbar .dropdown-item {
-    border-radius: 4px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.8125rem;
-    color: #cbd5e1;
-}
-
-.main-navbar .dropdown-item:hover {
-    background-color: #334155;
-    color: #f1f5f9;
-}
-
-.main-navbar .dropdown-divider {
-    border-color: #334155;
-}
-
 .main-navbar .logout-link {
     color: #94a3b8;
     text-decoration: none;
