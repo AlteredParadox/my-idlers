@@ -271,7 +271,7 @@ class ServersTest extends TestCase
     {
         Settings::where('id', 1)->update(['show_servers_public' => 0]);
 
-        $response = $this->get(route('servers/public'));
+        $response = $this->get(route('servers.public'));
         $response->assertStatus(404);
     }
 }
