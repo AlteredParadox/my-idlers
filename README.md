@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.5-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.6-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 <img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
 
@@ -71,6 +71,24 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.6` — July 2026
+
+_A small quality-of-life release for the navigation bar._
+
+* **The "More" dropdown is gone** — all sixteen sections are now top-level links, grouped by
+  kind (services, then DNS/IPs, catalogs, YABS, labels/notes/misc), with Settings and Account
+  moved to the right beside Log Out. Below 1200px the bar collapses to the standard hamburger,
+  which stacks every link — nothing is hidden behind a second-level menu at any width
+* **The navbar spans the full viewport** (`container-fluid`) so the flattened row fits at common
+  laptop widths — verified against rendered screenshots at 1200/1280/1366px, including with a
+  long custom `APP_NAME` (which now wraps gracefully instead of clipping off-screen)
+* **Active-state highlighting follows you into subpages** — section links match their whole
+  route namespace, so "Servers" stays lit on server show/edit/create/compare pages instead of
+  only the index. Two internal route names (`servers.public`, `servers.compare-choose`) were
+  renamed into the `servers.*` namespace; URLs are unchanged
+
+Test suite: **620 tests / 2,017 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.5` — July 2026
 
@@ -334,7 +352,7 @@ _The history below is the `4.1.0` baseline the fork's `+ap` revisions build on._
 
 ### Test Suite
 
-The application includes a comprehensive test suite — 616 tests / 2,009 assertions as of ap.5 —
+The application includes a comprehensive test suite — 620 tests / 2,017 assertions as of ap.6 —
 run against **both SQLite and MySQL** (production is MySQL, and several bug classes are invisible
 under SQLite). Every hardening fix is pinned by a dedicated regression test.
 
@@ -509,7 +527,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.5` — note the Docker tag uses `-ap.5` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.6` — note the Docker tag uses `-ap.6` since `+` is not
 a valid Docker tag character).
 
 Notes:
