@@ -52,16 +52,16 @@ class Round33RegressionTest extends TestCase
         // No FK guards these columns; DBs predating the destroy guards (or
         // migrated from upstream) can hold rows pointing at deleted rows.
         $this->makePricing('orphshr1', 2);
-        Shared::create(['id' => 'orphshr1', 'main_domain' => 'orphan-shared.example.com', 'shared_type' => 'cPanel', 'provider_id' => 999, 'location_id' => 999]);
+        Shared::create(['id' => 'orphshr1', 'main_domain' => 'orphan-shared.example.com', 'shared_type' => 'cPanel', 'provider_id' => null, 'location_id' => null]);
 
         $this->makePricing('orphres1', 3);
-        Reseller::create(['id' => 'orphres1', 'main_domain' => 'orphan-reseller.example.com', 'reseller_type' => 'cPanel', 'provider_id' => 999, 'location_id' => 999]);
+        Reseller::create(['id' => 'orphres1', 'main_domain' => 'orphan-reseller.example.com', 'reseller_type' => 'cPanel', 'provider_id' => null, 'location_id' => null]);
 
         $this->makePricing('orphsbx1', 6);
-        SeedBoxes::create(['id' => 'orphsbx1', 'title' => 'Orphan SB', 'provider_id' => 999, 'location_id' => 999]);
+        SeedBoxes::create(['id' => 'orphsbx1', 'title' => 'Orphan SB', 'provider_id' => null, 'location_id' => null]);
 
         $this->makePricing('orphdom1', 4);
-        Domains::create(['id' => 'orphdom1', 'domain' => 'orphandom', 'extension' => 'com', 'provider_id' => 999]);
+        Domains::create(['id' => 'orphdom1', 'domain' => 'orphandom', 'extension' => 'com', 'provider_id' => null]);
 
         $routes = [
             route('shared.index'), route('shared.show', 'orphshr1'), route('shared.edit', 'orphshr1'),
@@ -80,7 +80,7 @@ class Round33RegressionTest extends TestCase
         $this->makePricing('orphyab1', 1);
         Server::create([
             'id' => 'orphyab1', 'hostname' => 'orphan-yabs.example.com', 'server_type' => 1,
-            'os_id' => 999, 'provider_id' => 999, 'location_id' => 999,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
             'ram' => 2048, 'disk' => 50, 'cpu' => 2,
         ]);
         \DB::table('yabs')->insert([

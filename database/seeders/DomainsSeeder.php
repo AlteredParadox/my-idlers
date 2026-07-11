@@ -11,6 +11,12 @@ class DomainsSeeder extends Seeder
 {
     public function run()
     {
+        // Demo catalog references are positional — the Nth row of the
+        // seeded catalog lists. Hardcoded ids only matched on virgin
+        // auto-increment counters; under shifted counters (e.g. the MySQL
+        // test database) they dangled, which the catalog FKs now reject.
+        $provider = fn (int $n) => DB::table('providers')->orderBy('id')->skip($n - 1)->value('id');
+
         $domains = [];
         $pricing = [];
 
@@ -22,7 +28,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'com',
             'ns1' => 'ns1.cloudflare.com',
             'ns2' => 'ns2.cloudflare.com',
-            'provider_id' => 63, // Namecheap
+            'provider_id' => $provider(63), // Namecheap
             'owned_since' => '2018-03-15',
             'created_at' => Carbon::now()->subYears(6),
             'updated_at' => Carbon::now(),
@@ -47,7 +53,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'io',
             'ns1' => 'dns1.registrar-servers.com',
             'ns2' => 'dns2.registrar-servers.com',
-            'provider_id' => 63, // Namecheap
+            'provider_id' => $provider(63), // Namecheap
             'owned_since' => '2020-06-20',
             'created_at' => Carbon::now()->subYears(4),
             'updated_at' => Carbon::now(),
@@ -72,7 +78,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'dev',
             'ns1' => 'ns1.google.com',
             'ns2' => 'ns2.google.com',
-            'provider_id' => 71, // Porkbun
+            'provider_id' => $provider(71), // Porkbun
             'owned_since' => '2022-01-10',
             'created_at' => Carbon::now()->subYears(3),
             'updated_at' => Carbon::now(),
@@ -97,7 +103,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'store',
             'ns1' => 'ns1.cloudflare.com',
             'ns2' => 'ns2.cloudflare.com',
-            'provider_id' => 29, // Godaddy
+            'provider_id' => $provider(29), // Godaddy
             'owned_since' => '2021-11-05',
             'created_at' => Carbon::now()->subYears(3),
             'updated_at' => Carbon::now(),
@@ -122,7 +128,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'app',
             'ns1' => 'ns-cloud-a1.googledomains.com',
             'ns2' => 'ns-cloud-a2.googledomains.com',
-            'provider_id' => 29, // Godaddy
+            'provider_id' => $provider(29), // Godaddy
             'owned_since' => '2023-02-28',
             'created_at' => Carbon::now()->subYears(2),
             'updated_at' => Carbon::now(),
@@ -147,7 +153,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'co.uk',
             'ns1' => 'ns1.hover.com',
             'ns2' => 'ns2.hover.com',
-            'provider_id' => 44, // Hover
+            'provider_id' => $provider(44), // Hover
             'owned_since' => '2019-08-12',
             'created_at' => Carbon::now()->subYears(5),
             'updated_at' => Carbon::now(),
@@ -172,7 +178,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'org',
             'ns1' => 'ns1.cloudflare.com',
             'ns2' => 'ns2.cloudflare.com',
-            'provider_id' => 64, // NameSilo
+            'provider_id' => $provider(64), // NameSilo
             'owned_since' => '2017-04-01',
             'created_at' => Carbon::now()->subYears(7),
             'updated_at' => Carbon::now(),
@@ -197,7 +203,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'net',
             'ns1' => 'dns1.registrar-servers.com',
             'ns2' => 'dns2.registrar-servers.com',
-            'provider_id' => 63, // Namecheap
+            'provider_id' => $provider(63), // Namecheap
             'owned_since' => '2020-12-25',
             'created_at' => Carbon::now()->subYears(4),
             'updated_at' => Carbon::now(),
@@ -222,7 +228,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'ai',
             'ns1' => 'ns1.cloudflare.com',
             'ns2' => 'ns2.cloudflare.com',
-            'provider_id' => 21, // Dynadot
+            'provider_id' => $provider(21), // Dynadot
             'owned_since' => '2024-01-15',
             'created_at' => Carbon::now()->subYears(1),
             'updated_at' => Carbon::now(),
@@ -247,7 +253,7 @@ class DomainsSeeder extends Seeder
             'extension' => 'info',
             'ns1' => 'ns1.hover.com',
             'ns2' => 'ns2.hover.com',
-            'provider_id' => 44, // Hover
+            'provider_id' => $provider(44), // Hover
             'owned_since' => '2022-07-20',
             'created_at' => Carbon::now()->subYears(2),
             'updated_at' => Carbon::now(),

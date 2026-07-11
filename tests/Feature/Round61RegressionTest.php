@@ -86,7 +86,7 @@ class Round61RegressionTest extends TestCase
         (new Pricing())->insertPricing(1, 'r64probe', 'USD', 5.00, 1, now()->addMonth()->format('Y-m-d'));
         DB::table('servers')->insert([
             'id' => 'r64probe', 'hostname' => 'real.example.com', 'server_type' => 1,
-            'os_id' => 1, 'provider_id' => 1, 'location_id' => 1,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
             'ram' => 1024, 'ram_type' => 'MB', 'ram_as_mb' => 1024,
             'disk' => 10, 'disk_type' => 'GB', 'disk_as_gb' => 10,
             'cpu' => 1, 'active' => 1, 'was_promo' => 0, 'owned_since' => '2024-01-01',

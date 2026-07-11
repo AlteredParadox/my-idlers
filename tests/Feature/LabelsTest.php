@@ -91,14 +91,14 @@ class LabelsTest extends TestCase
     public function test_deleting_a_label_clears_the_assigned_server_cache()
     {
         $label = Labels::create(['id' => 'lbldel01', 'label' => 'To Delete']);
-        \App\Models\Providers::create(['name' => 'P']);
-        \App\Models\Locations::create(['name' => 'L']);
-        \App\Models\OS::create(['name' => 'Ubuntu']);
+        $provider = \App\Models\Providers::create(['name' => 'P']);
+        $location = \App\Models\Locations::create(['name' => 'L']);
+        $os = \App\Models\OS::create(['name' => 'Ubuntu']);
         \App\Models\Settings::create(['id' => 1]);
         (new \App\Models\Pricing)->insertPricing(1, 'srv00001', 'USD', 5, 1, '2027-01-01');
         \App\Models\Server::create([
-            'id' => 'srv00001', 'hostname' => 'h', 'server_type' => 1, 'os_id' => 1, 'provider_id' => 1,
-            'location_id' => 1, 'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024, 'disk' => 10,
+            'id' => 'srv00001', 'hostname' => 'h', 'server_type' => 1, 'os_id' => $os->id, 'provider_id' => $provider->id,
+            'location_id' => $location->id, 'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024, 'disk' => 10,
             'disk_type' => 'GB', 'disk_as_gb' => 10, 'cpu' => 1, 'has_yabs' => 0, 'was_promo' => 0,
             'active' => 1, 'show_public' => 0, 'bandwidth' => 1, 'owned_since' => '2024-01-01',
         ]);

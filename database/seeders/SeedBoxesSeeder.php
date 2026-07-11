@@ -11,6 +11,13 @@ class SeedBoxesSeeder extends Seeder
 {
     public function run()
     {
+        // Demo catalog references are positional — the Nth row of the
+        // seeded catalog lists. Hardcoded ids only matched on virgin
+        // auto-increment counters; under shifted counters (e.g. the MySQL
+        // test database) they dangled, which the catalog FKs now reject.
+        $provider = fn (int $n) => DB::table('providers')->orderBy('id')->skip($n - 1)->value('id');
+        $location = fn (int $n) => DB::table('locations')->orderBy('id')->skip($n - 1)->value('id');
+
         $seedboxes = [];
         $pricing = [];
 
@@ -22,8 +29,8 @@ class SeedBoxesSeeder extends Seeder
             'title' => 'Plex Media Server',
             'hostname' => 'plex.seedbox.example.com',
             'seed_box_type' => 'Dedicated',
-            'provider_id' => 69,
-            'location_id' => 3,
+            'provider_id' => $provider(69),
+            'location_id' => $location(3),
             'bandwidth' => 0,
             'port_speed' => 1000,
             'disk' => 4000,
@@ -54,8 +61,8 @@ class SeedBoxesSeeder extends Seeder
             'title' => 'Torrent Box Pro',
             'hostname' => 'torrent.seedbox.example.com',
             'seed_box_type' => 'Shared',
-            'provider_id' => 32,
-            'location_id' => 23,
+            'provider_id' => $provider(32),
+            'location_id' => $location(23),
             'bandwidth' => 10000,
             'port_speed' => 10000,
             'disk' => 2000,
@@ -86,8 +93,8 @@ class SeedBoxesSeeder extends Seeder
             'title' => 'Racing Seedbox',
             'hostname' => 'race.seedbox.example.com',
             'seed_box_type' => 'Dedicated',
-            'provider_id' => 69,
-            'location_id' => 56,
+            'provider_id' => $provider(69),
+            'location_id' => $location(56),
             'bandwidth' => 0,
             'port_speed' => 10000,
             'disk' => 8000,

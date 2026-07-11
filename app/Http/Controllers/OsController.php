@@ -38,12 +38,18 @@ class OsController extends Controller
 
     public function destroy(OS $o)
     {
-        if (Server::where('os_id', $o->id)->exists()) {
+        // Friendly fast path; the restrictive FK is the authority — a
+        // server created between this check and the delete blocks it.
+        $inUse = Server::where('os_id', $o->id)->exists();
+
+        $deleted = $inUse ? null : $this->deleteUnlessReferenced($o);
+
+        if (is_null($deleted)) {
             return redirect()->route('os.index')
                 ->with('error', 'Cannot delete an OS that is assigned to servers.');
         }
 
-        if ($o->delete()) {
+        if ($deleted) {
             Cache::forget('operating_systems');
 
             return redirect()->route('os.index')
@@ -52,6 +58,5 @@ class OsController extends Controller
 
         return redirect()->route('os.index')
             ->with('error', 'OS was not deleted.');
-
     }
 }

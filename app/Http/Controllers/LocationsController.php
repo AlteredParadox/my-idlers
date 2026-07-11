@@ -71,17 +71,21 @@ class LocationsController extends Controller
 
     public function destroy(Locations $location)
     {
+        // Friendly fast path; the restrictive FK is the authority — a
+        // service created between this check and the delete blocks it.
         $inUse = Server::where('location_id', $location->id)->exists()
             || Shared::where('location_id', $location->id)->exists()
             || Reseller::where('location_id', $location->id)->exists()
             || SeedBoxes::where('location_id', $location->id)->exists();
 
-        if ($inUse) {
+        $deleted = $inUse ? null : $this->deleteUnlessReferenced($location);
+
+        if (is_null($deleted)) {
             return redirect()->route('locations.index')
                 ->with('error', 'Cannot delete a location that is assigned to services.');
         }
 
-        if ($location->delete()){
+        if ($deleted) {
             Cache::forget('locations');
 
             return redirect()->route('locations.index')
@@ -90,6 +94,5 @@ class LocationsController extends Controller
 
         return redirect()->route('locations.index')
             ->with('error', 'Location was not deleted.');
-
     }
 }

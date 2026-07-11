@@ -97,7 +97,7 @@ class Round25RegressionTest extends TestCase
         // API must reject ids that no FK guards.
         $this->postJson('/api/servers', [
             'hostname' => 'dangling.example.com', 'server_type' => 1,
-            'os_id' => 999, 'provider_id' => 999, 'location_id' => 999,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
             'ssh_port' => 22, 'ram' => 2048, 'ram_type' => 'MB', 'ram_as_mb' => 2048,
             'disk' => 50, 'disk_type' => 'GB', 'disk_as_gb' => 50,
             'cpu' => 2, 'bandwidth' => 1000, 'was_promo' => 0,
@@ -112,7 +112,7 @@ class Round25RegressionTest extends TestCase
         $this->makePricing('orphrel1', 1);
         Server::create([
             'id' => 'orphrel1', 'hostname' => 'orphan-rel.example.com', 'server_type' => 1,
-            'os_id' => 999, 'provider_id' => 999, 'location_id' => 999,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
             'ram' => 2048, 'disk' => 50, 'cpu' => 2,
         ]);
         Cache::flush();

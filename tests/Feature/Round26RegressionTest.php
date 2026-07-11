@@ -139,7 +139,7 @@ class Round26RegressionTest extends TestCase
         $this->makePricing('orphinac', 1);
         Server::create([
             'id' => 'orphinac', 'hostname' => 'orphan-inactive.example.com', 'server_type' => 1,
-            'os_id' => 999, 'provider_id' => 999, 'location_id' => 999,
+            'os_id' => null, 'provider_id' => null, 'location_id' => null,
             'ram' => 2048, 'disk' => 50, 'cpu' => 2, 'active' => 0,
         ]);
         Cache::flush();

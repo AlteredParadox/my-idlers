@@ -49,18 +49,22 @@ class ProvidersController extends Controller
 
     public function destroy(Providers $provider)
     {
+        // Friendly fast path; the restrictive FK is the authority — a
+        // service created between this check and the delete blocks it.
         $inUse = Server::where('provider_id', $provider->id)->exists()
             || Shared::where('provider_id', $provider->id)->exists()
             || Reseller::where('provider_id', $provider->id)->exists()
             || SeedBoxes::where('provider_id', $provider->id)->exists()
             || Domains::where('provider_id', $provider->id)->exists();
 
-        if ($inUse) {
+        $deleted = $inUse ? null : $this->deleteUnlessReferenced($provider);
+
+        if (is_null($deleted)) {
             return redirect()->route('providers.index')
                 ->with('error', 'Cannot delete a provider that is assigned to services.');
         }
 
-        if ($provider->delete()) {
+        if ($deleted) {
             Cache::forget('providers');
 
             return redirect()->route('providers.index')
@@ -69,7 +73,6 @@ class ProvidersController extends Controller
 
         return redirect()->route('providers.index')
             ->with('error', 'Provider was not deleted.');
-
     }
 
 }

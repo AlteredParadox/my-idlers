@@ -11,6 +11,13 @@ class ResellerSeeder extends Seeder
 {
     public function run()
     {
+        // Demo catalog references are positional — the Nth row of the
+        // seeded catalog lists. Hardcoded ids only matched on virgin
+        // auto-increment counters; under shifted counters (e.g. the MySQL
+        // test database) they dangled, which the catalog FKs now reject.
+        $provider = fn (int $n) => DB::table('providers')->orderBy('id')->skip($n - 1)->value('id');
+        $location = fn (int $n) => DB::table('locations')->orderBy('id')->skip($n - 1)->value('id');
+
         $whmCpanel = 'WHM/cPanel';
         $reseller = [];
         $pricing = [];
@@ -32,8 +39,8 @@ class ResellerSeeder extends Seeder
             'ftp_limit' => null,
             'email_limit' => null,
             'db_limit' => null,
-            'provider_id' => 35,
-            'location_id' => 19,
+            'provider_id' => $provider(35),
+            'location_id' => $location(19),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(24)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -68,8 +75,8 @@ class ResellerSeeder extends Seeder
             'ftp_limit' => null,
             'email_limit' => null,
             'db_limit' => null,
-            'provider_id' => 80,
-            'location_id' => 17,
+            'provider_id' => $provider(80),
+            'location_id' => $location(17),
             'was_promo' => 1,
             'owned_since' => Carbon::now()->subMonths(36)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -104,8 +111,8 @@ class ResellerSeeder extends Seeder
             'ftp_limit' => 25,
             'email_limit' => 100,
             'db_limit' => 25,
-            'provider_id' => 39,
-            'location_id' => 3,
+            'provider_id' => $provider(39),
+            'location_id' => $location(3),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(6)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -140,8 +147,8 @@ class ResellerSeeder extends Seeder
             'ftp_limit' => null,
             'email_limit' => null,
             'db_limit' => null,
-            'provider_id' => 58,
-            'location_id' => 51,
+            'provider_id' => $provider(58),
+            'location_id' => $location(51),
             'was_promo' => 0,
             'owned_since' => Carbon::now()->subMonths(48)->format('Y-m-d'),
             'created_at' => Carbon::now(),
@@ -176,8 +183,8 @@ class ResellerSeeder extends Seeder
             'ftp_limit' => 30,
             'email_limit' => 150,
             'db_limit' => 30,
-            'provider_id' => 29,
-            'location_id' => 58,
+            'provider_id' => $provider(29),
+            'location_id' => $location(58),
             'was_promo' => 1,
             'owned_since' => Carbon::now()->subMonths(60)->format('Y-m-d'),
             'created_at' => Carbon::now(),

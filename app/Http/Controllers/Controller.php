@@ -25,6 +25,26 @@ class Controller extends BaseController
     }
 
     /**
+     * Delete a catalog row, absorbing ONLY the restrictive-FK refusal —
+     * a service claimed the row between the caller's in-use check and
+     * this delete, and the database is authoritative. Returns null when
+     * the FK blocked it, else delete()'s own result. Any other database
+     * error propagates (never blanket-classify a QueryException).
+     */
+    protected function deleteUnlessReferenced(\Illuminate\Database\Eloquent\Model $model): ?bool
+    {
+        try {
+            return (bool) $model->delete();
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
+
+            return null;
+        }
+    }
+
+    /**
      * Run an insert whose unique rule was already validated, surfacing a
      * lost duplicate race as the standard validation error instead of a
      * raw QueryException 500: the unique:... rule runs before the insert,
