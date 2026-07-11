@@ -55,6 +55,31 @@ class NavigationActiveStateTest extends TestCase
         $this->assertSame(['Domains'], $this->activeNavLabels($response->getContent()));
     }
 
+    public function test_renamed_compare_chooser_marks_servers_active()
+    {
+        // The chooser was named servers-compare-choose — outside the
+        // servers.* namespace — so it escaped the section matcher. It is
+        // now servers.compare-choose (URL unchanged). It redirects unless
+        // two servers with a YABS exist.
+        Settings::firstOrCreate(['id' => 1]);
+        foreach (['nav00002', 'nav00003'] as $id) {
+            (new Pricing)->insertPricing(1, $id, 'USD', 5, 1, '2027-01-01');
+            Server::create([
+                'id' => $id, 'hostname' => "$id.example.com", 'server_type' => 1,
+                'os_id' => null, 'provider_id' => null, 'location_id' => null,
+                'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024, 'disk' => 10,
+                'disk_type' => 'GB', 'disk_as_gb' => 10, 'cpu' => 1, 'active' => 1,
+                'was_promo' => 0, 'owned_since' => '2024-01-01', 'has_yabs' => 1,
+            ]);
+        }
+
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('servers.compare-choose'))
+            ->assertStatus(200);
+
+        $this->assertSame(['Servers'], $this->activeNavLabels($response->getContent()));
+    }
+
     public function test_index_pages_still_mark_exactly_one_section_active()
     {
         $response = $this->actingAs(User::factory()->create())

@@ -21,7 +21,7 @@
         <div class="page-header">
             <h2 class="page-title">Server Comparison</h2>
             <div class="page-actions">
-                <a href="{{ route('servers-compare-choose') }}" class="btn btn-outline-secondary">Choose Others</a>
+                <a href="{{ route('servers.compare-choose') }}" class="btn btn-outline-secondary">Choose Others</a>
             </div>
         </div>
 
