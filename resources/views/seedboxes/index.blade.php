@@ -65,7 +65,7 @@
                                 {{ $row->price->price }} {{ $row->price->currency }}
                                 <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
                             </td>
-                            <td class="text-center text-nowrap" data-order="{{ $row->price->usd_per_month * 12 }}">@if($row->price->usd_per_month > 0)${{ number_format($row->price->usd_per_month * 12, 2) }}@else - @endif</td>
+                            <td class="text-center text-nowrap" data-order="{{ $row->price->usdPerYear() }}">@if($row->price->usdPerYear() > 0)${{ number_format($row->price->usdPerYear(), 2) }}@else - @endif</td>
                             <td class="text-center text-nowrap" data-order="{{ $row->price->next_due_date ? now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false) : -99999 }}">
                                 @if($row->price->next_due_date) {{ number_format(now()->diffInDays(Carbon\Carbon::parse($row->price->next_due_date), false), 0) }}d @else - @endif
                             </td>

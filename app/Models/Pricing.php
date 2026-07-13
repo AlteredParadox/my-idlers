@@ -175,6 +175,28 @@ class Pricing extends Model
         }, 2);
     }
 
+    /**
+     * Yearly cost derived from as_usd and the term directly. Views used to
+     * show usd_per_month * 12, but usd_per_month is already rounded to cents
+     * (decimal(10,2)), so scaling it back up multiplied the rounding error:
+     * a 44.46/yr service displayed as 44.52 (round(44.46/12) = 3.71 * 12).
+     * One rounding at the end instead of round-then-scale.
+     */
+    public function usdPerYear(): float
+    {
+        return round(match ((int) $this->term) {
+            2 => $this->as_usd * 4,
+            3 => $this->as_usd * 2,
+            4 => $this->as_usd,
+            5 => $this->as_usd / 2,
+            6 => $this->as_usd / 3,
+            7 => 0.0,
+            // Term 1 and legacy out-of-range terms: treat as monthly, the
+            // same fallback costAsPerMonth applies.
+            default => $this->as_usd * 12,
+        }, 2);
+    }
+
     public function termAsMonths(int $term): int
     {
         return match ($term) {
