@@ -244,23 +244,24 @@ class Home extends Model
     {
         return Cache::remember('pricing_breakdown', now()->addWeek(1), function () use ($all_pricing) {
             $total_cost_pm = 0;
+            // Summed from usdPerYear(), not $total_cost_pm * 12: usd_per_month
+            // is rounded to cents, so scaling it up multiplied each row's
+            // rounding error by 12 (a 44.46/yr service contributed 44.52).
+            $total_cost_py = 0;
             $currency = Settings::getSettings()->dashboard_currency ?? 'USD';
             // Look the rate up once, not once per row (each lookup is a cache
             // read). Same per-row multiply, so the float math is unchanged.
             $rate = $currency !== 'USD' ? Pricing::convertFromUSD('1', $currency) : 1.0;
 
             foreach ($all_pricing as $price) {
-                if ($currency !== 'USD') {
-                    $total_cost_pm += $price->usd_per_month * $rate;
-                } else {
-                    $total_cost_pm += $price->usd_per_month;
-                }
+                $total_cost_pm += $price->usd_per_month * $rate;
+                $total_cost_py += $price->usdPerYear() * $rate;
             }
 
             return [
                 'total_cost_weekly' => $total_cost_pm / 4,
                 'total_cost_monthly' => $total_cost_pm,
-                'total_cost_yearly' => $total_cost_pm * 12,
+                'total_cost_yearly' => $total_cost_py,
                 'inactive_count' => 0,
             ];
         });
