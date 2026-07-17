@@ -11,18 +11,6 @@ and supported too with My idlers.
 
 [![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.6-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
-<img src="https://raw.githubusercontent.com/cp6/my-idlers/main/public/My%20Idlers%20logo.jpg" width="128" height="128" />
-
-[View demo site](https://demo.myidlers.com/)
-
-**Note:** Create, Update and Delete are disabled on the demo site.
-
-## Project sponsor
-
-Proudly sponsored by [PikaPods](https://www.pikapods.com/) - Deploy your own My Idlers instance with one click, no server setup required. PikaPods handles all the infrastructure so you can focus on managing your services.
-
-[![PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=my-idlers)
-
 ## Changes from upstream (this fork)
 
 This is a modified fork of [cp6/my-idlers](https://github.com/cp6/my-idlers) with the following additions:
