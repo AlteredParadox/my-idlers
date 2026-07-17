@@ -541,12 +541,6 @@ Notes:
   re-upload the favicon after pulling a new image (everything else lives in the database
   and carries over).
 
-## Managed Hosting
-
-Run with a single click on [PikaPods.com](https://www.pikapods.com/)
-
-[![PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=my-idlers)
-
 ## Adding a YABS benchmark
 
 yabs.sh now has JSON formatted response and can POST the output directly from calling the script.
