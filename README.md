@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.6-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.18-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.4-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.7-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,91 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.7` — July 2026
+
+_The toolchain release. The front end moves off an end-of-life build system, five major
+front-end dependencies are upgraded, the three theme stylesheets collapse into one, and the
+project's canonical home moves to GitHub. **If you have forked this repo, read the breaking
+changes below before merging** — the build commands and the built asset paths have changed._
+
+**Build system: laravel-mix → Vite**
+
+* laravel-mix 6 was its final release and pinned `webpack-dev-server ^4`, which was the sole
+  cause of eight unfixable dependency advisories. Removing it removed all of them; the project
+  now reports zero known vulnerabilities from both `npm audit` and `composer audit`
+* Builds drop from roughly 28s to 4s. `npm run build` replaces `npm run production`, which is
+  kept as an alias; `npm run dev` replaces `watch`/`hot`
+* Assets are emitted to `public/build/` with content-hashed filenames and resolved through a
+  committed manifest by Laravel's `@vite` directive, so a deploy can no longer serve a stale
+  stylesheet from a browser cache. Built assets remain committed and the Docker image still runs
+  no npm step
+* A latent collision is resolved: `resources/css/app.css` and `resources/sass/app.scss` were both
+  written to `public/css/app.css` and silently merged by mix
+
+**One stylesheet for all three themes**
+
+* `light.css`, `dark.css` and `neutral-dark.css` were near-duplicates — dark and neutral-dark had
+  an identical selector sequence and 126 selectors were common to all three. They are now a single
+  `resources/css/theme.css` where every value that differed between themes is a custom property,
+  selected by `data-theme` on `<html>`. About 1,500 lines of duplicated CSS are gone
+* The `bootstrap-dark-5` package is dropped. It bundled an **older Bootstrap**, so the dark themes
+  were rendering on a different Bootstrap version than the light one; all three now share 5.3.8
+* Verified against a pre-change baseline in a real browser: 228 computed-colour samples across
+  three themes and five pages, all identical. Theme appearance is unchanged
+
+**Front-end major upgrades** — each landed as its own reviewable change, gated by a new CI job
+
+* FontAwesome 6 → 7, Vue 2 → 3, jQuery 3 → 4, DataTables 1 → 3, sass-loader 12 → 17
+* The legacy `datatables` 1.10 package (unmaintained since 2018, loaded redundantly alongside
+  `datatables.net-bs5`) is removed
+
+**Fixes found along the way**
+
+* **`PDO::MYSQL_ATTR_SSL_CA` is deprecated in PHP 8.5** — `config/database.php` now uses
+  `Pdo\Mysql::ATTR_SSL_CA`. Same constant, and the class exists from 8.4, so nothing changes for
+  8.4 installs
+* **FontAwesome's font path was configured three ways wrong** — set after the imports, using the
+  v6 variable name, and v7 had moved to the Sass module system. It only ever worked because the
+  stylesheet happened to be emitted next to the fonts
+* **Sort arrows were invisible in both dark themes** — DataTables 3 draws them with CSS borders
+  coloured by custom properties and picks its dark palette from `:root.dark`, which this app never
+  sets. Each theme now supplies the arrow colours
+* **An 8px gap sat above every table** — DataTables 3 applies Bootstrap's `.mt-2` utility to its
+  layout rows, and that utility is `!important`, so the stylesheet's existing `margin: 0` never
+  applied. This is what made header text look bottom-heavy
+* **Table header text is vertically centred** — header cells never set `vertical-align`, so they
+  inherited Bootstrap's `bottom`
+* **Price/yr derives from `as_usd`** rather than the rounded monthly figure, fixing a rounding
+  drift on annual terms
+
+**Project infrastructure** (no effect on running the app)
+
+* GitHub is now the canonical repository; CI, SonarQube Cloud analysis and Dependabot run on
+  GitHub Actions
+* CI gained an `assets` job that runs a real production build, and a staleness gate that rebuilds
+  and diffs against the committed output — because a green PHP test run says nothing about whether
+  the front end still compiles, which is exactly how five breaking major bumps landed at once
+* Dependabot is configured so major bumps arrive one PR at a time rather than grouped
+
+### Breaking changes for forks
+
+Nothing here changes the app's behaviour or its database. These matter only if you have modified
+the front end or build tooling.
+
+| If you changed… | What to do |
+|---|---|
+| `webpack.mix.js` | Deleted. Port your build steps to `vite.config.js` |
+| `resources/css/light.css` / `dark.css` / `neutral-dark.css` | Deleted. Port customisations to `resources/css/theme.css`, whose per-theme values are custom properties under `:root`, `[data-theme="dark"]` and `[data-theme="neutral-dark"]` |
+| Anything linking `public/css/app.css`, `public/css/theme.css` or `public/js/app.js` | Those paths no longer exist. Assets are hashed under `public/build/` and emitted by `@vite(['resources/js/app.js'])` in the layouts |
+| Custom CSS targeting DataTables | DataTables 2 renamed every wrapper class: `.dataTables_wrapper` → `.dt-container`, `_filter` → `.dt-search`, `_length` → `.dt-length`, `_info` → `.dt-info`, `_paginate` → `.dt-paging`, `.paginate_button` → `.dt-paging-button`, and the pagination control is now a `<button>`, not an `<a>` |
+| Blade templates using Vue | Vue 3: `new Vue({el, data: {...}})` becomes `Vue.createApp({data() { return {...} }}).mount('#app')`, and `data` must be a function |
+| `resources/js/app.js` | Now an ES module. Note that `import` statements are hoisted, so anything relying on a global (jQuery) must import `./jquery-global.js` first rather than assigning inline |
+| `resources/sass/_variables.scss` | Deleted. FontAwesome is configured with `@use "..." with ($font-path: "/webfonts")` |
+| `bootstrap-dark-5` | Removed as a dependency |
+| A custom Dockerfile | The base image is now `php:8.5-fpm-alpine`. `composer.json` still allows `^8.4`, so 8.4 remains supported for non-Docker installs |
+
+Test suite: **630 tests / 2,031 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.6` — July 2026
 
@@ -515,7 +600,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.6` — note the Docker tag uses `-ap.6` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.7` — note the Docker tag uses `-ap.7` since `+` is not
 a valid Docker tag character).
 
 Notes:
