@@ -29,11 +29,14 @@ mix.js('resources/js/app.js', 'public/js')
     .options({
         processCssUrls: false
     })
-    .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.ttf', 'public/webfonts/fa-regular-400.ttf')
+    // woff2 only: FontAwesome 7 stopped shipping .ttf, and woff2 has been
+    // supported by every browser we target for years. app.scss imports the
+    // regular, solid and brands faces, so all three fonts must be copied --
+    // brands was previously copied as .ttf only, leaving its woff2 to be
+    // committed by hand.
     .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2', 'public/webfonts/fa-regular-400.woff2')
-    .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.ttf', 'public/webfonts/fa-solid-900.ttf')
     .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2', 'public/webfonts/fa-solid-900.woff2')
-    .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf', 'public/webfonts/fa-brands-400.ttf');
+    .copy('node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2', 'public/webfonts/fa-brands-400.woff2');
 
 mix.webpackConfig({
     stats: {
