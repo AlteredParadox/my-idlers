@@ -7,7 +7,6 @@
 # VCS and CI internals
 .git
 .gitattributes
-.gitea
 .github
 .styleci.yml
 sonar-project.properties

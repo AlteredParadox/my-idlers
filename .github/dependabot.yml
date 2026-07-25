@@ -1,0 +1,41 @@
+version: 2
+
+# Every Dependabot PR is gated by the `check` job in ci.yml. The `sonar` job is
+# skipped for these PRs -- Dependabot events run with a restricted token that
+# cannot read SONAR_TOKEN, so the scan could only fail.
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      composer:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      npm:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']
+
+  # Base images in the Dockerfile. CI never builds the container, so validate
+  # these with a real `docker build` (or a release.yml dry run) before merging.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ['*']

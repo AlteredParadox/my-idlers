@@ -4,10 +4,25 @@ name: Release
 # a GitHub Release whenever a version tag is pushed. Tag pushes only — routine
 # branch syncs never trigger a build. No secrets needed: the built-in
 # GITHUB_TOKEN authenticates to ghcr and creates the release.
+#
+# workflow_dispatch runs the same build with publishing switched off. Without
+# it, every Dependabot bump to the docker/* actions or the Dockerfile base
+# image would merge on a green `check` that never executed one line of them,
+# and the breakage would surface mid-release. After merging such a bump:
+#
+#   gh workflow run release.yml --ref main
+#   gh run watch <id> --exit-status
+#   gh run view <id> --json jobs --jq '.jobs[] | .steps[] | .conclusion + "  " + .name'
+#
+# The last command matters: it proves the build steps ran rather than that the
+# run was merely green. Residual gap, accepted knowingly: the ghcr login and
+# the release-creation steps are reachable only by a real tag push, so the next
+# release remains their first exercise.
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write   # create the GitHub Release
@@ -18,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Compute image name and version tags
         id: meta
@@ -33,20 +48,21 @@ jobs:
           echo "docker_tag=$DOCKER_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        if: github.event_name == 'push'   # dry runs never touch the registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
-          push: true
+          push: ${{ github.event_name == 'push' }}
           platforms: linux/amd64
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.docker_tag }}
@@ -55,7 +71,8 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'   # dry runs never cut a release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.meta.outputs.version }}
