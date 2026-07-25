@@ -43,13 +43,20 @@
 (function() {
     if (!document.fonts) return;
     document.fonts.ready.then(function() {
+        // Read the family from FontAwesome's own CSS variable rather than
+        // hardcoding it. The name carries the major version ("Font Awesome 7
+        // Free"), so a hardcoded one silently stops matching on upgrade: the
+        // check always fails and we register a face nothing references.
+        var family = (getComputedStyle(document.documentElement)
+                .getPropertyValue('--fa-family-classic') || 'Font Awesome 7 Free')
+            .trim().replace(/^["']|["']$/g, '');
         var needed = [
             {weight: '900', url: '{{ asset("webfonts/fa-solid-900.woff2") }}'},
             {weight: '400', url: '{{ asset("webfonts/fa-regular-400.woff2") }}'}
         ];
         needed.forEach(function(f) {
-            if (!document.fonts.check(f.weight + ' 1em "Font Awesome 6 Free"', '\uf007')) {
-                var face = new FontFace('Font Awesome 6 Free',
+            if (!document.fonts.check(f.weight + ' 1em "' + family + '"', '\uf007')) {
+                var face = new FontFace(family,
                     'url(' + f.url + ') format("woff2")',
                     {weight: f.weight, style: 'normal', display: 'swap'});
                 face.load().then(function(loaded) { document.fonts.add(loaded); });
