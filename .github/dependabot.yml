@@ -4,6 +4,9 @@ version: 2
 # skipped for these PRs -- Dependabot events run with a restricted token that
 # cannot read SONAR_TOKEN, so the scan could only fail.
 updates:
+  # Grouping needs an explicit applies-to per kind: a group with no applies-to
+  # covers version updates ONLY, so security updates arrive one PR per advisory.
+  # Enabling Dependabot alerts opened seven separate npm PRs before this existed.
   - package-ecosystem: composer
     directory: /
     schedule:
@@ -11,6 +14,10 @@ updates:
     open-pull-requests-limit: 5
     groups:
       composer:
+        applies-to: version-updates
+        patterns: ['*']
+      composer-security:
+        applies-to: security-updates
         patterns: ['*']
 
   - package-ecosystem: npm
@@ -20,7 +27,21 @@ updates:
     open-pull-requests-limit: 5
     groups:
       npm:
+        applies-to: version-updates
         patterns: ['*']
+      npm-security:
+        applies-to: security-updates
+        patterns: ['*']
+    ignore:
+      # Unsatisfiable and unreachable. The advisory wants >= 2.0.10, but the
+      # chain is laravel-mix 6.0.49 -> webpack-dev-server 4.15.2 ->
+      # http-proxy-middleware ^2.0.x, which caps at 2.0.9; Dependabot fails the
+      # update job every cycle rather than opening a PR. Nothing is exposed:
+      # npm packages are local build tooling only (the Dockerfile runs no npm
+      # step and .dockerignore keeps package.json out of the image), and
+      # webpack.mix.js configures no devServer proxy. Revisit if this project
+      # ever migrates from laravel-mix to Vite.
+      - dependency-name: http-proxy-middleware
 
   - package-ecosystem: github-actions
     directory: /
