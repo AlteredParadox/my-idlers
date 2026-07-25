@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.7-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.8-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,28 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.8` — July 2026
+
+_A dark-theme polish release. No behaviour, database or configuration changes, and nothing
+here affects forks._
+
+* **Dropdown menus and the delete-confirmation dialog were white on both dark themes.** Both
+  computed `#ffffff` against a `#141414` page. The `bootstrap-dark-5` package retired in `ap.7`
+  had left Bootstrap's own values at their light defaults and relied on this app's stylesheet
+  to do the theming, so any component the stylesheet did not cover stayed light. Bootstrap is
+  now switched into its native dark mode (`data-bs-theme`) for the two dark themes, which also
+  makes select chevrons legible and the file input's button dark instead of light. The light
+  theme is untouched
+* **DataTables' sort arrows keep their per-theme colours.** Enabling Bootstrap's dark mode let
+  DataTables apply its own palette, which uses one colour for both states and lost the
+  distinction between the sorted column and the rest
+* **Table pagination is sized like the rest of the table chrome.** Bootstrap renders page links
+  at its default size while every other control around the table is small — 38px tall against
+  28-31px for the buttons, search box and length selector — which made the row beneath the table
+  half again as tall as the one above it. Page links now match the control buttons exactly
+
+Test suite: **630 tests / 2,031 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.7` — July 2026
 
@@ -600,7 +622,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.7` — note the Docker tag uses `-ap.7` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.8` — note the Docker tag uses `-ap.8` since `+` is not
 a valid Docker tag character).
 
 Notes:
