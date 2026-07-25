@@ -14,11 +14,10 @@ const webpack = require('webpack');
 
 mix.js('resources/js/app.js', 'public/js')
     .postCss('resources/css/app.css', 'public/css')
-    .postCss('resources/css/light.css', 'public/css')
-    .postCss('resources/css/neutral-dark.css', 'public/css', [
-        require('autoprefixer')({ overrideBrowserslist: ['last 2 versions'], grid: true })
-    ])
-    .postCss('resources/css/dark.css', 'public/css', [
+    // One stylesheet for all three themes: light.css, dark.css and
+    // neutral-dark.css collapsed into custom properties selected by data-theme
+    // on <html>. See the header of theme.css.
+    .postCss('resources/css/theme.css', 'public/css', [
         require('autoprefixer')({ overrideBrowserslist: ['last 2 versions'], grid: true })
     ])
     .sass('resources/sass/app.scss', 'public/css', {

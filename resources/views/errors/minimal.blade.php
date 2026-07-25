@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" @include('partials.theme-attrs')>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') - {{ config('app.name', 'My Idlers') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    @if(Session::get('dark_mode'))
-        <link rel="stylesheet" href="{{ asset('css/dark.css') }}">
-    @else
-        <link rel="stylesheet" href="{{ asset('css/light.css') }}">
-    @endif
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
     <style>
         html, body {
             height: 100%;

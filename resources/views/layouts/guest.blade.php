@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @include('partials.theme-attrs')>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,13 +8,7 @@
     <title>@yield('title') - @if (config()->has('app.name')) {{ config('app.name') }} @else My idlers @endif</title>
     <link rel="icon" type="image" href="{{asset(\App\Models\Settings::getSettings()->favicon ?? 'favicon.ico')}}"/>
 
-    @if(Session::get('dark_mode') == 2)
-        <link rel="stylesheet" href="{{ asset('css/neutral-dark.css') }}">
-    @elseif(Session::get('dark_mode') == 1)
-        <link rel="stylesheet" href="{{ asset('css/dark.css') }}">
-    @else
-        <link rel="stylesheet" href="{{ asset('css/light.css') }}">
-    @endif
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
 
     <link rel="preload" href="{{ asset('webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('webfonts/fa-regular-400.woff2') }}" as="font" type="font/woff2" crossorigin>
