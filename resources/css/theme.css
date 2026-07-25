@@ -260,6 +260,18 @@
     --bs-dropdown-border-color: rgba(0, 0, 0, 0.15);
 }
 
+/* Header cells centre their text vertically.
+
+   Bootstrap sets `.table > thead { vertical-align: bottom }`, so as soon as a
+   header row is taller than its text -- a taller cell elsewhere in the row, an
+   icon, a wrapped title -- every other header sinks to the bottom of that
+   space. Scoped broadly on purpose: the index tables live in .table-responsive
+   inside a tab pane, not in .content-card, so a card-scoped rule misses them. */
+.table thead th,
+.table thead td {
+    vertical-align: middle;
+}
+
 /* ---- shared rules (122) ---- */
 
 :root:root {
