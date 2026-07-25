@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 # Build deps for PHP extensions + the production web stack:
 # nginx fronts php-fpm (the base image's actual runtime), supervisor runs both
