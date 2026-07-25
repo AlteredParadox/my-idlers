@@ -71,6 +71,30 @@ jobs:
           path: coverage.xml
           retention-days: 1
 
+  # The PHP suite never touches npm, so a front-end dependency can break the
+  # asset build while `check` stays green -- which is exactly how five major
+  # bumps (jQuery 4, Vue 3, FontAwesome 7, DataTables 3, sass-loader 17) landed
+  # on main with a passing CI run and an unbuildable front end. This job is the
+  # gate for that class of change.
+  assets:
+    name: assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+          cache: npm
+
+      # ci, not install: build from the lockfile exactly, and fail if
+      # package.json and package-lock.json have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production assets
+        run: npm run production
+
   sonar:
     name: sonar
     needs: check
