@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.8-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.9-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,35 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.9` — July 2026
+
+_Adds a fourth theme and fixes three long-standing CSS/JS defects found while building it. No
+database or configuration changes, and nothing here affects forks._
+
+* **New theme: Modern (Dark).** Select it under Settings → Appearance. Near-black panels on a
+  `#0d0e12` page, 1px borders in place of shadows, a `#5b9cf8` accent, and IBM Plex Sans paired
+  with IBM Plex Mono for anything read as data — hostnames, prices, sizes, ids and badges. The
+  fonts are self-hosted from the npm packages and copied to `/webfonts` at build time, so there
+  are no external requests; the other three themes never fetch them, since a webfont is only
+  downloaded once a rule asks for it. Adding the theme changes nothing for the existing three,
+  verified by diffing the built stylesheet rule by rule
+* **Prometheus charts rendered in light colours on every dark theme.** The chart code detected
+  dark mode by looking for a stylesheet whose URL contained "dark" — a test that stopped
+  matching anything in `ap.7`, when the three per-theme stylesheets were consolidated into one
+  hashed asset. It now reads the theme from the `<html>` element
+* **Table headers had no background on the index tables.** DataTables ships a rule at the same
+  CSS specificity as the app's own header rule and loads after it, so it won the tie and painted
+  header cells transparent. The app's rule is now specific enough to survive it
+* **Every theme was rendering another theme's `<select>` colours.** Five per-theme rules were
+  written `[data-theme="X"] .form-control, .form-select` — a comma starts a new selector, so the
+  `.form-select` half carried no theme scope at all and applied everywhere, with the last one in
+  the file winning globally. Most visibly, focusing a dropdown on the **light** theme painted
+  its text near-white on white. Each theme now keeps its own values. The neutral dark theme is
+  byte-for-byte unaffected; the default dark theme picks up the one colour it always declared
+  for itself
+
+Test suite: **630 tests / 2,031 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.8` — July 2026
 
@@ -622,7 +651,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.8` — note the Docker tag uses `-ap.8` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.9` — note the Docker tag uses `-ap.9` since `+` is not
 a valid Docker tag character).
 
 Notes:
