@@ -692,6 +692,19 @@ html:root[data-theme="dark"], html:root[data-theme="neutral-dark"] {
     margin-top: 0 !important;
 }
 
+/* Pagination at the size of everything else in the table chrome.
+
+   Bootstrap renders .page-link at its default size, which is much larger than
+   the rest of the controls around the table -- 38px tall against 28-31px for
+   the buttons, search box and length select, which made the bottom row half
+   again as tall as the top one. These values match the small controls
+   (0.8125rem / 13px text, the same 0.2rem vertical padding). */
+.dt-container .dt-paging .page-link {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
 .dt-container .row:first-child {
     padding: 0.25rem 0.5rem;
     margin: 0;
