@@ -315,11 +315,12 @@
                 'Accept': 'application/json',
             };
 
-            let app = new Vue({
-                el: "#app",
-                data: {
-                    ipv4_in: '{{ old("ip1") }}',
-                    ipv6_in: '{{ old("ip2") }}'
+            let app = Vue.createApp({
+                data() {
+                    return {
+                        ipv4_in: '{{ old("ip1") }}',
+                        ipv6_in: '{{ old("ip2") }}'
+                    };
                 },
                 methods: {
                     fetchDnsRecords(event) {
@@ -336,7 +337,7 @@
                         }
                     }
                 }
-            });
+            }).mount("#app");
         });
     </script>
     @endsection
