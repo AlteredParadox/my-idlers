@@ -1,5 +1,4 @@
 require('bootstrap')
-require('datatables')
 // esm-bundler, not the default entry: templates live in the Blade markup and
 // are compiled in the browser, so we need the build that bundles the compiler.
 // Vue 3 has no 'vue/dist/vue' entry at all.

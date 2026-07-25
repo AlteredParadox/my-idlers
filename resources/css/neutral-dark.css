@@ -1,3 +1,10 @@
+/* DataTables 3 sort arrows: see note in dark.css */
+:root:root {
+    --dt-order-arrow_color: #999999;
+    --dt-order-arrow_color-current: #dddddd;
+    --dt-order-arrow_opacity: 0.45;
+}
+
 @import 'bootstrap-dark-5';
 
 /* Dark Mode Auth Styles */
@@ -434,31 +441,31 @@ body {
 }
 
 /* DataTables Controls */
-.dataTables_wrapper {
+.dt-container {
     padding: 0;
 }
 
-.dataTables_wrapper .row:first-child {
+.dt-container .row:first-child {
     padding: 0.25rem 0.5rem;
     margin: 0;
     border-bottom: 1px solid #333333;
     background-color: #141414;
 }
 
-.dataTables_wrapper .row:last-child {
+.dt-container .row:has(.dt-paging) {
     padding: 0.25rem 0.5rem;
     margin: 0;
     border-top: 1px solid #333333;
     align-items: center;
 }
 
-.dataTables_wrapper .dataTables_length {
+.dt-container .dt-length {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.dataTables_wrapper .dataTables_length label {
+.dt-container .dt-length label {
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -468,7 +475,7 @@ body {
     white-space: nowrap;
 }
 
-.dataTables_wrapper .dataTables_length select {
+.dt-container .dt-length select {
     padding: 0.2rem 0.375rem;
     font-size: 0.875rem;
     border: 1px solid #333333;
@@ -479,17 +486,17 @@ body {
     min-width: 60px;
 }
 
-.dataTables_wrapper .dataTables_length select:focus {
+.dt-container .dt-length select:focus {
     border-color: #666666;
     outline: none;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
-.dataTables_wrapper .dataTables_filter {
+.dt-container .dt-search {
     text-align: right;
 }
 
-.dataTables_wrapper .dataTables_filter label {
+.dt-container .dt-search label {
     display: inline-flex;
     align-items: center;
     gap: 0;
@@ -497,7 +504,7 @@ body {
     font-size: 0;
 }
 
-.dataTables_wrapper .dataTables_filter input {
+.dt-container .dt-search input {
     padding: 0.2rem 0.375rem;
     font-size: 0.875rem;
     border: 1px solid #333333;
@@ -507,27 +514,27 @@ body {
     width: 220px;
 }
 
-.dataTables_wrapper .dataTables_filter input::placeholder {
+.dt-container .dt-search input::placeholder {
     color: #666666;
 }
 
-.dataTables_wrapper .dataTables_filter input:focus {
+.dt-container .dt-search input:focus {
     border-color: #666666;
     outline: none;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
-.dataTables_wrapper .dataTables_info {
+.dt-container .dt-info {
     font-size: 0.8125rem;
     color: #999999;
     padding: 0;
 }
 
-.dataTables_wrapper .dataTables_paginate {
+.dt-container .dt-paging {
     text-align: right;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
+.dt-container .dt-paging .dt-paging-button {
     padding: 0 !important;
     font-size: 0.875rem !important;
     border-radius: 0 !important;
@@ -543,7 +550,7 @@ body {
     text-decoration: none !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled):not(.current) {
+.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.active) {
     background: transparent !important;
     background-image: none !important;
     border-color: transparent !important;
@@ -553,15 +560,15 @@ body {
     text-decoration: underline !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button:active,
-.dataTables_wrapper .dataTables_paginate .paginate_button:focus {
+.dt-container .dt-paging .dt-paging-button:active,
+.dt-container .dt-paging .dt-paging-button:focus {
     box-shadow: none !important;
     outline: none !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button.current,
-.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
-.dataTables_wrapper .dataTables_paginate .paginate_button.current:focus {
+.dt-container .dt-paging .dt-paging-button.active,
+.dt-container .dt-paging .dt-paging-button.active:hover,
+.dt-container .dt-paging .dt-paging-button.active:focus {
     background: transparent !important;
     background-image: none !important;
     border-color: transparent !important;
@@ -572,9 +579,9 @@ body {
     text-decoration: underline !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+.dt-container .dt-paging .dt-paging-button.disabled,
+.dt-container .dt-paging .dt-paging-button.disabled:hover,
+.dt-container .dt-paging .dt-paging-button.disabled:active {
     color: #666666 !important;
     background: #141414 !important;
     background-image: none !important;
@@ -584,29 +591,22 @@ body {
     outline: none !important;
 }
 
-/* Override any DataTables default button styles */
-.dataTables_wrapper .dataTables_paginate span .paginate_button {
-    box-shadow: none !important;
-    background-image: none !important;
-}
-
 /* Remove default DataTables table spacing */
-.dataTables_wrapper .dataTable {
+.dt-container .dataTable {
     margin: 0 !important;
     width: 100% !important;
 }
 
 
 /* Force override DataTables Bootstrap pagination styling */
-.dataTables_wrapper .dataTables_paginate .paginate_button,
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
-.dataTables_wrapper .dataTables_paginate .paginate_button.current,
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover,
-.dataTables_wrapper .dataTables_paginate .paginate_button:active,
-.dataTables_wrapper .dataTables_paginate .paginate_button:focus,
-table.dataTable + .dataTables_wrapper .dataTables_paginate .paginate_button,
-div.dataTables_wrapper div.dataTables_paginate ul.pagination li.paginate_button a,
-div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
+.dt-container .dt-paging .dt-paging-button,
+.dt-container .dt-paging .dt-paging-button.disabled,
+.dt-container .dt-paging .dt-paging-button.active,
+.dt-container .dt-paging .dt-paging-button:hover,
+.dt-container .dt-paging .dt-paging-button:active,
+.dt-container .dt-paging .dt-paging-button:focus,
+div.dt-container div.dt-paging ul.pagination li.dt-paging-button .page-link,
+div.dt-container div.dt-paging ul.pagination li .page-link {
     -webkit-box-shadow: none !important;
     -moz-box-shadow: none !important;
     box-shadow: none !important;
