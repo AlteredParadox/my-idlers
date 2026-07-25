@@ -58,8 +58,11 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Pdo\Mysql::ATTR_SSL_CA, not PDO::MYSQL_ATTR_SSL_CA: the latter is
+            // deprecated as of PHP 8.5. The Pdo\Mysql class arrived in 8.4 and
+            // composer.json requires ^8.4, so this is always available.
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                Pdo\Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
