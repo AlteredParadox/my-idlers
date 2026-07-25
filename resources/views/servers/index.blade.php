@@ -366,7 +366,7 @@
             if (statsHidden) applyStatsToggle();
 
             // Add toggle buttons next to each table's "Show" dropdown
-            document.querySelectorAll('.dataTables_length').forEach(function(el) {
+            document.querySelectorAll('.dt-length').forEach(function(el) {
                 var domainBtn = document.createElement('button');
                 domainBtn.type = 'button';
                 domainBtn.className = 'btn btn-sm btn-outline-secondary ms-2 toggle-domains-btn';

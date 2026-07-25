@@ -4,7 +4,7 @@
 @php($userPrefs = auth()->check() ? \App\Models\UserPreference::valuesFor(auth()->id()) : [])
 @php($colvisDark = in_array((int) session('dark_mode'), [1, 2], true))
 {{-- Explicit styling per theme. Two traps: the themes hide the filter
-     label's "Search:" text with `.dataTables_filter label { font-size: 0 }`
+     label's "Search:" text with `.dt-search label { font-size: 0 }`
      — and this menu's labels live inside that filter div, so they MUST
      restore their own font-size — and the dark themes' .dropdown-item
      color is near-invisible on the .dropdown-menu background. --}}
@@ -142,7 +142,7 @@
             }
         });
         menu.on('click', function (e) { e.stopPropagation(); });
-        $(selector).closest('.dataTables_wrapper').find('.dataTables_filter').append(btn).append(menu);
+        $(selector).closest('.dt-container').find('.dt-search').append(btn).append(menu);
     }
 
     // Vanilla JS: this runs at parse time, before app.js has defined $.
