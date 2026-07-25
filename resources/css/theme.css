@@ -226,6 +226,125 @@
     --background-59: #333333 !important;
 }
 
+/* "Modern (Dark)" -- unlike the other three this one was not carried over from
+   a pre-existing stylesheet, so it is free to depart from their conventions
+   where the design called for it. Where it deliberately does:
+
+     --box-shadow-27 is `none`. The design separates surfaces with 1px borders
+     rather than shadows, so the card shadow the other themes carry would read
+     as a smudge here.
+
+     It stays out of the --bs-secondary-color pin and the tbody currentColor
+     rule below, and sets the Bootstrap surface variables itself. Those two
+     exist to preserve how bootstrap-dark-5 used to look; this theme never
+     looked like that, and Bootstrap's own dark greys (#212529 and friends) are
+     too warm to sit next to these panels. Row separators here come from
+     --border-bottom-color-16 and --bs-border-color instead. */
+[data-theme="modern-dark"] {
+    --dt-order-arrowcolor-1: #8b90a0;
+    --dt-order-arrowcolor-current-2: #e7e9ee;
+    --background-3: linear-gradient(135deg, #0d0e12 0%, #171a21 100%);
+    --surface: #12141a;
+    --border: #23262d;
+    --background-4: linear-gradient(135deg, #4a8bf0 0%, #2f6fd8 100%);
+    --text-strong: #e7e9ee;
+    --text-muted: #8b90a0;
+    --text: #b6bac6;
+    --text-subtle: #6c7280;
+    --surface-sunken: #171a21;
+    --surface-page: #12141a;
+    --border-accent: #5b9cf8;
+    --color-5: #8b90a0;
+    --border-color-6: #2f333c;
+    --background-color-7: #5b9cf8;
+    --color-8: #5b9cf8;
+    --box-shadow-9: 0 4px 14px 0 rgba(91, 156, 248, 0.3);
+    --background-color-10: #74acf9;
+    --box-shadow-11: 0 6px 20px 0 rgba(91, 156, 248, 0.4);
+    --border-top-color-12: #23262d;
+    --border-color-13: #5b9cf8;
+    --box-shadow-14: 0 4px 12px rgba(91, 156, 248, 0.18);
+    --border-bottom-color-15: #23262d;
+    --border-bottom-color-16: #1c1f27;
+    --background-color-17: #0d0e12;
+    --border-color-18: #2f333c;
+    --background-color-19: #1b1e26;
+    --color-20: #5b9cf8;
+    --background-color-21: rgba(91, 156, 248, 0.14);
+    --color-22: #f87171;
+    --background-color-23: rgba(248, 113, 113, 0.14);
+    --color-24: #b6bac6;
+    --background-color-25: #2a2e37;
+    --color-26: #e7e9ee;
+    --box-shadow-27: none;
+    --border-bottom-color-28: #5b9cf8;
+    --background-color-29: #2a2e37;
+    --box-shadow-30: 0 0 0 3px rgba(91, 156, 248, 0.22);
+    --color-31: #e7e9ee;
+    --color-32: #8b90a0 !important;
+    --color-33: #e7e9ee !important;
+    --color-34: #5b9cf8 !important;
+    --color-35: #5a5f6b !important;
+    --background-36: #0d0e12 !important;
+    --border-color-37: #23262d !important;
+    --background-color-38: #12141a !important;
+    --border-color-39: #2f333c !important;
+    --color-40: #b6bac6 !important;
+    --background-color-41: #5b9cf8 !important;
+    --border-color-42: #5b9cf8 !important;
+    --background-color-43: #0d0e12 !important;
+    --background-color-44: #12141a;
+    --color-45: #8b90a0;
+    --border-color-46: #23262d;
+    --background-color-47: #171a21;
+    --color-48: #f87171;
+    --background-color-49: #2b2410;
+    --border-color-50: #7a5c12;
+    --color-51: #fbbf24;
+    --padding-52: 0.375rem;
+    --background-color-53: #0d0e12;
+    --background-54: #12141a !important;
+    --border-55: 1px solid #23262d !important;
+    --color-56: #e7e9ee !important;
+    --color-57: #8b90a0 !important;
+    --color-58: #d3d7e0 !important;
+    --background-59: #2a2e37 !important;
+
+    /* Not part of the 59: this theme's own additions. */
+    --modern-font-sans: 'IBM Plex Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --modern-font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'DejaVu Sans Mono', monospace;
+    --modern-hover: #1b1e26;
+    --modern-track: #2a2e37;
+    --modern-accent: #5b9cf8;
+    --modern-accent-hover: #74acf9;
+    --modern-on-accent: #08101c;
+    --modern-warn: #fbbf24;
+    --modern-err: #f87171;
+    --modern-radius-panel: 12px;
+    --modern-radius-control: 8px;
+
+    /* Bootstrap's dark defaults reach anything this stylesheet does not name --
+       dropdowns, modals, offcanvas, popovers -- so they are pointed at this
+       palette rather than left on #212529. */
+    --bs-body-bg: #0d0e12;
+    --bs-body-color: #b6bac6;
+    --bs-emphasis-color: #e7e9ee;
+    --bs-secondary-color: #8b90a0;
+    --bs-tertiary-color: #6c7280;
+    --bs-secondary-bg: #1b1e26;
+    --bs-tertiary-bg: #171a21;
+    --bs-border-color: #23262d;
+    --bs-link-color: #5b9cf8;
+    --bs-link-hover-color: #8fbcfb;
+    --bs-heading-color: #e7e9ee;
+    --bs-code-color: #8fbcfb;
+    --bs-dropdown-bg: #12141a;
+    --bs-dropdown-border-color: #23262d;
+    --bs-dropdown-link-hover-bg: #1b1e26;
+    --bs-modal-bg: #12141a;
+    --bs-modal-border-color: #23262d;
+}
+
 /* Bootstrap base values pinned for the dark themes.
 
    The dark themes used to load the bootstrap-dark-5 package, which bundled an
@@ -244,7 +363,7 @@
 
 /* Bootstrap 5.3 declares these ON the component rather than on :root, so an
    override inherited from <html> never reaches them. */
-[data-theme="dark"] .table, [data-theme="neutral-dark"] .table {
+[data-theme="dark"] .table, [data-theme="neutral-dark"] .table, [data-theme="modern-dark"] .table {
     --bs-table-bg: transparent;
 }
 
@@ -262,7 +381,7 @@
    DataTables' own selector is `:root.dark, :root[data-bs-theme=dark],
    :root[data-theme=dark]` at (0,2,0) and it loads after this file, so the
    override needs both :root and the element to outrank it at (0,2,1). */
-html:root[data-theme="dark"], html:root[data-theme="neutral-dark"] {
+html:root[data-theme="dark"], html:root[data-theme="neutral-dark"], html:root[data-theme="modern-dark"] {
     --dt-order-arrow_color: var(--dt-order-arrowcolor-1);
     --dt-order-arrow_color-current: var(--dt-order-arrowcolor-current-2);
     --dt-order-arrow_opacity: 0.45;
@@ -1069,7 +1188,22 @@ tr.expired-row td .action-buttons {
 
 /* ---- declarations present in only some themes (19) ---- */
 
-[data-theme="light"] .form-control, .form-select {
+/* The five .form-control/.form-select rules in this block used to be written
+   `[data-theme="X"] .form-control, .form-select` -- a comma starts a new
+   complex selector, so the `.form-select` half carried no theme scope at all
+   and applied in every theme. All three themes declared one, so the last in
+   the file won globally: every theme got neutral-dark's values on any
+   .form-select the more specific rules did not reach.
+
+   Two of those were visible. A .form-select in the LIGHT theme drew a #333333
+   border, and focusing one painted its text #f0f0f0 on a white background --
+   near-invisible. Repeating the attribute selector on both halves keeps each
+   theme's values inside that theme. Measured across all four themes: neutral
+   -dark and modern-dark are unchanged, dark moves only to the values it always
+   declared for itself (#334155 border, #f1f5f9 focus text), and light gets its
+   own #d1d5db border and readable focus text back. */
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select {
     border: 1px solid #d1d5db;
 }
 
@@ -1093,11 +1227,20 @@ tr.expired-row td .action-buttons {
     outline: none !important;
 }
 
-[data-theme="dark"] .form-control, .form-select {
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
     border-color: #334155;
 }
 
-[data-theme="dark"] .form-control:focus, .form-select:focus {
+/* :where() on the .form-select half, not a repeated [data-theme]. The original
+   leaky `.form-select:focus` sat at (0,2,0), which LOSES to
+   `.dt-container .dt-length select` at (0,2,1) -- so the table length dropdown
+   keeps var(--text) when focused. Repeating the attribute selector would take
+   this to (0,3,0) and quietly start winning that one, changing a control this
+   rule never used to touch. :where() adds no specificity, so the rule confines
+   itself to one theme and otherwise cascades exactly as it did. */
+[data-theme="dark"] .form-control:focus,
+:where([data-theme="dark"]) .form-select:focus {
     color: #f1f5f9;
 }
 
@@ -1129,11 +1272,13 @@ tr.expired-row td .action-buttons {
     outline: none !important;
 }
 
-[data-theme="neutral-dark"] .form-control, .form-select {
+[data-theme="neutral-dark"] .form-control,
+[data-theme="neutral-dark"] .form-select {
     border-color: #333333;
 }
 
-[data-theme="neutral-dark"] .form-control:focus, .form-select:focus {
+[data-theme="neutral-dark"] .form-control:focus,
+:where([data-theme="neutral-dark"]) .form-select:focus {
     color: #f0f0f0;
 }
 
@@ -1145,40 +1290,81 @@ tr.expired-row td .action-buttons {
     border: 1px solid #333333;
 }
 
+/* The modern-dark counterparts of the block above. */
+[data-theme="modern-dark"] .auth-form .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(91, 156, 248, 0.25);
+}
+
+[data-theme="modern-dark"] .form-check-input {
+    background-color: #0d0e12;
+}
+
+[data-theme="modern-dark"] .card-tabs .nav-link .badge {
+    background-color: #2a2e37 !important;
+}
+
+[data-theme="modern-dark"] .dt-container .dt-paging .dt-paging-button {
+    outline: none !important;
+}
+
+[data-theme="modern-dark"] .dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.active) {
+    outline: none !important;
+}
+
+[data-theme="modern-dark"] .form-control,
+[data-theme="modern-dark"] .form-select {
+    border-color: #23262d;
+}
+
+/* :where() for the same reason as the dark rule above, so all four themes
+   treat the table length dropdown alike. */
+[data-theme="modern-dark"] .form-control:focus,
+:where([data-theme="modern-dark"]) .form-select:focus {
+    color: #e7e9ee;
+}
+
+[data-theme="modern-dark"] .detail-value .text-muted {
+    color: #8b90a0;
+}
+
+[data-theme="modern-dark"] .yabs-command {
+    border: 1px solid #23262d;
+}
+
 /* ---- dark-theme-only rules (30) ---- */
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .dashboard-card .table tbody tr:hover {
       background-color: var(--background-color-17);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   body {
       background-color: var(--background-color-17);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .main-navbar .navbar-toggler {
       border-color: var(--border-color-18);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .main-navbar .navbar-toggler-icon {
       filter: invert(1);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .btn-outline-secondary {
       border-color: var(--border-color-18);
       color: var(--color-24);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .btn-outline-secondary:hover {
       background-color: var(--background-color-25);
       border-color: var(--border-color-18);
@@ -1186,14 +1372,14 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .dt-container .dt-paging .dt-paging-button:active, .dt-container .dt-paging .dt-paging-button:focus {
       box-shadow: none !important;
       outline: none !important;
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .dt-container .dt-paging .dt-paging-button.active, .dt-container .dt-paging .dt-paging-button.active:hover, .dt-container .dt-paging .dt-paging-button.active:focus {
       background: transparent !important;
       background-image: none !important;
@@ -1206,7 +1392,7 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .dt-container .dt-paging .dt-paging-button.disabled, .dt-container .dt-paging .dt-paging-button.disabled:hover, .dt-container .dt-paging .dt-paging-button.disabled:active {
       color: var(--color-35);
       background: var(--background-36);
@@ -1218,7 +1404,7 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .dt-container .dt-paging .dt-paging-button, .dt-container .dt-paging .dt-paging-button.disabled, .dt-container .dt-paging .dt-paging-button.active, .dt-container .dt-paging .dt-paging-button:hover, .dt-container .dt-paging .dt-paging-button:active, .dt-container .dt-paging .dt-paging-button:focus, div.dt-container div.dt-paging ul.pagination li.dt-paging-button .page-link, div.dt-container div.dt-paging ul.pagination li .page-link {
       -webkit-box-shadow: none !important;
       -moz-box-shadow: none !important;
@@ -1229,7 +1415,7 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .page-item .page-link, .pagination .page-link {
       background-color: var(--background-color-38);
       border-color: var(--border-color-39);
@@ -1238,7 +1424,7 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .page-item.active .page-link, .pagination .active .page-link {
       background-color: var(--background-color-41);
       border-color: var(--border-color-42);
@@ -1247,7 +1433,7 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .page-item.disabled .page-link, .pagination .disabled .page-link {
       background-color: var(--background-color-43);
       border-color: var(--border-color-37);
@@ -1256,113 +1442,113 @@ tr.expired-row td .action-buttons {
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .form-select option {
       background-color: var(--background-color-44);
       color: var(--color-26);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .input-group .btn-outline-secondary {
       color: var(--color-45);
       border-color: var(--border-color-46);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .input-group .btn-outline-secondary:hover {
       background-color: var(--background-color-25);
       color: var(--color-26);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-card {
       background: var(--background-54);
       border: var(--border-55);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-card:hover {
       border-color: var(--border-color-39);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-card-header {
       background: var(--background-36);
       border-color: var(--border-color-37);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-card-body {
       background: var(--background-54);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-card-footer {
       background: var(--background-36);
       border-color: var(--border-color-37);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-hostname {
       color: var(--color-56);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-location, .meta-label, .spec-label, .price-term {
       color: var(--color-57);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .spec-value, .meta-value {
       color: var(--color-58);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-os-icon {
       background: var(--background-59);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .server-specs {
       border-color: var(--border-color-37);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .due-badge {
       background: var(--background-59);
       color: var(--color-57);
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .due-badge.due-warning {
       background: #854d0e !important;
       color: #fef08a !important;
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .due-badge.due-soon {
       background: #991b1b !important;
       color: #fecaca !important;
   }
 }
 
-[data-theme="dark"], [data-theme="neutral-dark"] {
+[data-theme="dark"], [data-theme="neutral-dark"], [data-theme="modern-dark"] {
   .price-amount {
       color: #4ade80 !important;
   }
@@ -1391,4 +1577,244 @@ tr.expired-row td .action-buttons {
       cursor: not-allowed;
       box-shadow: none !important;
   }
+}
+
+/* ---- modern-dark: shape and type ----
+
+   The blocks above give this theme its colours through the shared custom
+   properties. What is left is the part of the design that is not colour: the
+   typeface pairing, the softer panel corners, borders doing the work shadows
+   do elsewhere, and mono digits so figures line up column to column.
+
+   Everything here is scoped to [data-theme="modern-dark"], so the other three
+   themes compute exactly as they did before. */
+
+[data-theme="modern-dark"] body {
+    font-family: var(--modern-font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Figures, identifiers and anything read as data rather than prose. Tabular
+   numerals keep columns of prices and sizes aligned as rows scroll past. */
+[data-theme="modern-dark"] .stat-value,
+[data-theme="modern-dark"] .cost-value,
+[data-theme="modern-dark"] .resource-value,
+[data-theme="modern-dark"] .price-amount,
+[data-theme="modern-dark"] .due-badge,
+[data-theme="modern-dark"] .badge-type,
+[data-theme="modern-dark"] .server-hostname,
+[data-theme="modern-dark"] .detail-value code,
+[data-theme="modern-dark"] .detail-footer code,
+[data-theme="modern-dark"] .yabs-command code,
+[data-theme="modern-dark"] .dt-container .dt-info,
+[data-theme="modern-dark"] .table tbody td:first-child {
+    font-family: var(--modern-font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+[data-theme="modern-dark"] .stat-value,
+[data-theme="modern-dark"] .cost-value,
+[data-theme="modern-dark"] .resource-value {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* Panels: 12px corners, a 1px border and no shadow. --box-shadow-27 is already
+   `none` for this theme, so .content-card and .detail-card only need the radius. */
+[data-theme="modern-dark"] .content-card,
+[data-theme="modern-dark"] .detail-card,
+[data-theme="modern-dark"] .dashboard-card,
+[data-theme="modern-dark"] .server-card {
+    border-radius: var(--modern-radius-panel);
+}
+
+[data-theme="modern-dark"] .stat-card {
+    border-radius: 10px;
+}
+
+/* Hovering a card outlines it in the accent instead of lifting it. */
+[data-theme="modern-dark"] .server-card:hover {
+    border-color: var(--modern-accent) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="modern-dark"] .stat-card:hover {
+    border-color: var(--modern-accent);
+    box-shadow: none;
+}
+
+/* Controls share one corner radius; Bootstrap's default 0.375rem is squarer
+   than the rest of this theme. */
+[data-theme="modern-dark"] .btn,
+[data-theme="modern-dark"] .form-control,
+[data-theme="modern-dark"] .form-select,
+[data-theme="modern-dark"] .input-group-text,
+[data-theme="modern-dark"] .dt-container .dt-search input,
+[data-theme="modern-dark"] .dt-container .dt-length select {
+    border-radius: var(--modern-radius-control);
+}
+
+/* The rule above outranks Bootstrap's input-group corner handling -- Bootstrap
+   is @imported at the top of this file, so its `.input-group > :not(:first-child)`
+   rules carry the same specificity but lose on order. These restate them, so a
+   group's inner corners still square up against each other whichever side the
+   addon sits on. The :not() lists are Bootstrap 5.3's, verbatim. */
+[data-theme="modern-dark"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[data-theme="modern-dark"] .input-group > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* The primary action is flat accent with a dark label, not a gradient. */
+[data-theme="modern-dark"] .btn-primary {
+    background-color: var(--modern-accent);
+    border-color: var(--modern-accent);
+    color: var(--modern-on-accent);
+    font-weight: 500;
+}
+
+[data-theme="modern-dark"] .btn-primary:hover,
+[data-theme="modern-dark"] .btn-primary:focus,
+[data-theme="modern-dark"] .btn-primary:active {
+    background-color: var(--modern-accent-hover);
+    border-color: var(--modern-accent-hover);
+    color: var(--modern-on-accent);
+}
+
+[data-theme="modern-dark"] .auth-btn {
+    border-radius: var(--modern-radius-control);
+    color: var(--modern-on-accent);
+    font-weight: 500;
+}
+
+[data-theme="modern-dark"] .auth-btn:hover {
+    color: var(--modern-on-accent);
+}
+
+[data-theme="modern-dark"] .auth-card {
+    border-radius: var(--modern-radius-panel);
+}
+
+/* Table headers: small, uppercase, widely tracked, sitting on the sunken panel
+   tone. The shared rules already do this at 0.7rem/0.025em -- these are the
+   design's own proportions.
+
+   The selector is `table.table thead th` rather than `.content-card .table
+   thead th` for two reasons. The index tables live in a .table-responsive
+   inside a tab pane, not in a content card, so the card-scoped rule misses
+   them entirely. And DataTables 3 ships `table.table.dataTable > :not(caption)
+   > * > * { background-color: var(--bs-table-bg) }` at (0,2,2) and loads after
+   this file, so it wins the tie against any (0,2,2) selector and repaints the
+   header with the transparent --bs-table-bg set above. Naming the element as
+   well takes this to (0,2,3), which clears it. */
+[data-theme="modern-dark"] table.table thead th,
+[data-theme="modern-dark"] .network-table th {
+    background-color: var(--surface-sunken);
+    font-size: 0.65625rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+/* Rows lift toward the hover tone rather than the header tone, so a hovered row
+   never reads as another header. Scoped to .table for the same reason as the
+   header rule above. */
+[data-theme="modern-dark"] .table tbody tr:hover {
+    background-color: var(--modern-hover);
+}
+
+[data-theme="modern-dark"] .table tbody td {
+    border-bottom-color: var(--border-bottom-color-16);
+}
+
+/* Nav: quiet by default, an accent-tinted pill when active. */
+[data-theme="modern-dark"] .main-navbar {
+    background-color: var(--surface);
+}
+
+[data-theme="modern-dark"] .main-navbar .nav-link {
+    border-radius: var(--modern-radius-control);
+}
+
+[data-theme="modern-dark"] .main-navbar .navbar-brand {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+[data-theme="modern-dark"] .card-tabs .nav-link {
+    letter-spacing: -0.01em;
+}
+
+[data-theme="modern-dark"] .badge-type {
+    border-radius: 6px;
+    font-size: 0.6875rem;
+}
+
+[data-theme="modern-dark"] .detail-item,
+[data-theme="modern-dark"] .detail-note,
+[data-theme="modern-dark"] .yabs-command {
+    border-radius: var(--modern-radius-control);
+}
+
+[data-theme="modern-dark"] .btn-action {
+    border-radius: 7px;
+}
+
+[data-theme="modern-dark"] .btn-action:hover {
+    background-color: var(--modern-track);
+}
+
+/* Pagination: the current page is a filled accent chip, so its label needs the
+   dark on-accent colour rather than the white the other dark themes use. */
+[data-theme="modern-dark"] .page-item.active .page-link,
+[data-theme="modern-dark"] .pagination .active .page-link {
+    color: var(--modern-on-accent) !important;
+}
+
+/* Due badges in this theme's own amber and red, tinted rather than filled. */
+[data-theme="modern-dark"] .due-badge {
+    border-radius: 6px;
+}
+
+[data-theme="modern-dark"] .due-badge.due-warning {
+    background: rgba(251, 191, 36, 0.16) !important;
+    color: var(--modern-warn) !important;
+}
+
+[data-theme="modern-dark"] .due-badge.due-soon {
+    background: rgba(248, 113, 113, 0.16) !important;
+    color: var(--modern-err) !important;
+}
+
+[data-theme="modern-dark"] .yabs-command code {
+    color: #7dd3fc;
+}
+
+/* Scrollbars, so the panels do not end in a strip of system grey. */
+[data-theme="modern-dark"] {
+    scrollbar-color: var(--modern-track) transparent;
+    scrollbar-width: thin;
+}
+
+[data-theme="modern-dark"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+[data-theme="modern-dark"] ::-webkit-scrollbar-thumb {
+    background: var(--modern-track);
+    border-radius: 6px;
+}
+
+[data-theme="modern-dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #363b46;
+}
+
+[data-theme="modern-dark"] ::-webkit-scrollbar-track {
+    background: transparent;
 }

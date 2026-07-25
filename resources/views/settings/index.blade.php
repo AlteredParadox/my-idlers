@@ -27,6 +27,7 @@
                                 <option value="0" {{ (int)$setting->dark_mode === 0 ? 'selected' : '' }}>Default Theme (Light)</option>
                                 <option value="1" {{ (int)$setting->dark_mode === 1 ? 'selected' : '' }}>Default Theme (Dark)</option>
                                 <option value="2" {{ (int)$setting->dark_mode === 2 ? 'selected' : '' }}>Neutral Theme (Dark)</option>
+                                <option value="3" {{ (int)$setting->dark_mode === 3 ? 'selected' : '' }}>Modern (Dark)</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-6 col-lg-4">
