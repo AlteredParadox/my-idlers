@@ -93,7 +93,17 @@ jobs:
         run: npm ci
 
       - name: Build production assets
-        run: npm run production
+        run: npm run build
+
+      # Built assets are COMMITTED and served directly -- the Dockerfile runs no
+      # npm step -- so forgetting to rebuild after a CSS or JS change silently
+      # ships the old bundle. The Vite build is byte-reproducible, so comparing
+      # it against what is committed catches exactly that.
+      #
+      # If this fails: run `npm run build` and commit public/build (and
+      # public/webfonts, if the FontAwesome package changed).
+      - name: Fail if the committed build is stale
+        run: git diff --exit-code -- public/build public/webfonts
 
   sonar:
     name: sonar

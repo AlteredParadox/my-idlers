@@ -21,7 +21,7 @@ phpunit.xml
 phpunit.mysql.xml
 coverage.xml
 .phpunit.result.cache
-webpack.mix.js
+vite.config.js
 package.json
 package-lock.json
 

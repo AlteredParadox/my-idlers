@@ -1,8 +1,19 @@
-// FontAwesome
-@import "~@fortawesome/fontawesome-free/scss/fontawesome";
-@import "~@fortawesome/fontawesome-free/scss/regular";
-@import "~@fortawesome/fontawesome-free/scss/solid";
-@import "~@fortawesome/fontawesome-free/scss/brands";
+// FontAwesome.
+//
+// FontAwesome 7 uses the Sass module system, so its font path cannot be set by
+// declaring a variable before an @import -- the module has to be configured
+// with `@use ... with`. It also renamed the variable from $fa-font-path to
+// $font-path. The old _variables.scss set the v6 name AND was imported after
+// the FontAwesome imports, so it was dead twice over and FontAwesome fell back
+// to its own "../webfonts" default -- correct only by accident, because the
+// stylesheet used to be emitted to public/css.
+//
+// Absolute, so the URL survives Vite's asset rebasing: the fonts are served
+// from public/webfonts (see the copy plugin in vite.config.js), not from the
+// hashed build directory.
+@use "@fortawesome/fontawesome-free/scss/variables" with ($font-path: "/webfonts");
 
-// Variables
-@import 'variables';
+@use "@fortawesome/fontawesome-free/scss/fontawesome";
+@use "@fortawesome/fontawesome-free/scss/regular";
+@use "@fortawesome/fontawesome-free/scss/solid";
+@use "@fortawesome/fontawesome-free/scss/brands";
