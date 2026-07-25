@@ -7,6 +7,13 @@ updates:
   # Grouping needs an explicit applies-to per kind: a group with no applies-to
   # covers version updates ONLY, so security updates arrive one PR per advisory.
   # Enabling Dependabot alerts opened seven separate npm PRs before this existed.
+  #
+  # The version-update groups deliberately cover minor and patch ONLY. Majors
+  # fall outside every group and so arrive as one PR each -- a grouped PR
+  # labelled "7 updates" once hid five breaking major jumps (jQuery 4, Vue 3,
+  # FontAwesome 7, DataTables 3, sass-loader 17) that were merged together and
+  # broke the asset build. One major per PR keeps them individually reviewable
+  # and individually revertable.
   - package-ecosystem: composer
     directory: /
     schedule:
@@ -15,6 +22,7 @@ updates:
     groups:
       composer:
         applies-to: version-updates
+        update-types: ['minor', 'patch']
         patterns: ['*']
       composer-security:
         applies-to: security-updates
@@ -28,6 +36,7 @@ updates:
     groups:
       npm:
         applies-to: version-updates
+        update-types: ['minor', 'patch']
         patterns: ['*']
       npm-security:
         applies-to: security-updates
