@@ -8,11 +8,10 @@
     <title>@yield('title') - @if (config()->has('app.name')) {{ config('app.name') }} @else My idlers @endif</title>
     <link rel="icon" type="image" href="{{asset(\App\Models\Settings::getSettings()->favicon ?? 'favicon.ico')}}"/>
 
-    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+    @vite(['resources/js/app.js'])
 
     <link rel="preload" href="{{ asset('webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('webfonts/fa-regular-400.woff2') }}" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     @yield('css_links')
     @yield('style')
@@ -22,7 +21,6 @@
     <div class="auth-wrapper">
         {{ $slot }}
     </div>
-    <script src="{{ asset('js/app.js') }}" defer></script>
     <script>
     (function() {
         if (!document.fonts) return;
