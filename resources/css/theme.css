@@ -256,8 +256,16 @@
     border-color: currentColor;
 }
 
-[data-theme="dark"] .dropdown-menu, [data-theme="neutral-dark"] .dropdown-menu {
-    --bs-dropdown-border-color: rgba(0, 0, 0, 0.15);
+/* DataTables supplies its own sort-arrow palette once Bootstrap is in dark
+   mode, and it uses one colour for both states -- losing the distinction
+   between the sorted column and the rest. These per-theme values restore it.
+   DataTables' own selector is `:root.dark, :root[data-bs-theme=dark],
+   :root[data-theme=dark]` at (0,2,0) and it loads after this file, so the
+   override needs both :root and the element to outrank it at (0,2,1). */
+html:root[data-theme="dark"], html:root[data-theme="neutral-dark"] {
+    --dt-order-arrow_color: var(--dt-order-arrowcolor-1);
+    --dt-order-arrow_color-current: var(--dt-order-arrowcolor-current-2);
+    --dt-order-arrow_opacity: 0.45;
 }
 
 /* Header cells centre their text vertically.
