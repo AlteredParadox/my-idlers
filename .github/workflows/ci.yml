@@ -52,7 +52,7 @@ jobs:
           php artisan key:generate --force
 
       - name: Run tests with coverage (SQLite)
-        run: vendor/bin/phpunit --coverage-clover coverage.xml
+        run: vendor/bin/phpunit --coverage-clover coverage.xml --display-deprecations
 
       # Production is MySQL; several bug classes (int columns as strings,
       # changed-vs-matched row counts) are invisible under SQLite.
