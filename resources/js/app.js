@@ -2,6 +2,7 @@
 // emits them as one hashed CSS asset alongside this bundle, and @vite renders
 // the <link> for it. Order matches the old link order -- Bootstrap and the
 // themes first, then DataTables and local styles, then FontAwesome.
+import '../css/fonts-ibm-plex.css';
 import '../css/theme.css';
 import '../css/app.css';
 import '../sass/app.scss';

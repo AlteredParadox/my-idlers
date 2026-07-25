@@ -2,7 +2,7 @@
      visibility, page length) and misc view toggles persist via the
      preferences endpoint. Guests get plain, non-persistent tables. --}}
 @php($userPrefs = auth()->check() ? \App\Models\UserPreference::valuesFor(auth()->id()) : [])
-@php($colvisDark = in_array((int) session('dark_mode'), [1, 2], true))
+@php($colvisDark = in_array((int) session('dark_mode'), [1, 2, 3], true))
 {{-- Explicit styling per theme. Two traps: the themes hide the filter
      label's "Search:" text with `.dt-search label { font-size: 0 }`
      — and this menu's labels live inside that filter div, so they MUST
