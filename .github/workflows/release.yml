@@ -40,9 +40,20 @@ jobs:
         run: |
           # ghcr requires a lowercase image path
           IMAGE="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
-          # v4.1.0+ap.1 -> 4.1.0+ap.1 (release/display) -> 4.1.0-ap.1 (Docker tag: '+' is illegal)
-          VERSION="${GITHUB_REF_NAME#v}"
-          DOCKER_TAG="${VERSION//+/-}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            # A dry run is dispatched on a BRANCH, so GITHUB_REF_NAME is a branch
+            # name -- and a Dependabot branch such as
+            # dependabot/docker/docker-723a34ecce contains slashes, which are
+            # illegal in a Docker tag and abort the build before it starts.
+            # Nothing is pushed on a dry run, so the tag is cosmetic: use a fixed
+            # one and keep the branch in the display version.
+            VERSION="$GITHUB_REF_NAME"
+            DOCKER_TAG="dryrun"
+          else
+            # v4.1.0+ap.1 -> 4.1.0+ap.1 (release/display) -> 4.1.0-ap.1 ('+' is illegal)
+            VERSION="${GITHUB_REF_NAME#v}"
+            DOCKER_TAG="${VERSION//+/-}"
+          fi
           echo "image=$IMAGE"           >> "$GITHUB_OUTPUT"
           echo "version=$VERSION"       >> "$GITHUB_OUTPUT"
           echo "docker_tag=$DOCKER_TAG" >> "$GITHUB_OUTPUT"
