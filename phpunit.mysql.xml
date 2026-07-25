@@ -28,9 +28,11 @@
         <server name="BCRYPT_ROUNDS" value="4"/>
         <server name="CACHE_DRIVER" value="array"/>
         <server name="DB_CONNECTION" value="mysql"/>
-        <!-- env (not server) so a real DB_HOST environment variable wins:
-             Gitea CI runs the job in a container where the MariaDB service
-             is reachable at hostname "mariadb", not 127.0.0.1. -->
+        <!-- env (not server) so a real DB_HOST environment variable wins, for
+             runners where the database is not on localhost. GitHub Actions
+             does not need that: jobs run on the VM rather than in a container,
+             so the service is reachable here on 127.0.0.1 and ci.yml
+             deliberately sets no DB_HOST. -->
         <env name="DB_HOST" value="127.0.0.1"/>
         <server name="DB_PORT" value="3306"/>
         <server name="DB_DATABASE" value="my_idlers_test"/>
