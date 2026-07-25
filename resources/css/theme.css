@@ -674,6 +674,16 @@
     padding: 0;
 }
 
+/* DataTables 3 puts Bootstrap's .mt-2 utility on every layout row, and that
+   utility carries !important -- so the plain `margin: 0` in the rules below
+   never took effect on margin-top. The result was an 8px gap above the table,
+   which reads as odd padding above the header row and made the header text
+   look bottom-heavy even though it is centred in its cell. DataTables 1 did
+   not add mt-2, so this arrived with the DataTables 3 upgrade. */
+.dt-container > .row {
+    margin-top: 0 !important;
+}
+
 .dt-container .row:first-child {
     padding: 0.25rem 0.5rem;
     margin: 0;
