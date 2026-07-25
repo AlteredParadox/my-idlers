@@ -51,14 +51,15 @@
 
     <script type="application/javascript">
         window.addEventListener('load', function() {
-            let app = new Vue({
-                el: "#app",
-                data: {
-                    "base_url": "{{ url('servers-compare') }}/",
-                    "full_url": "{{ route('servers.compare', ['server1' => $all_servers[0]->id, 'server2' => $all_servers[1]->id]) }}",
-                    "url_input": "",
-                    "server1": "{{ $all_servers[0]->id ?? '' }}",
-                    "server2": "{{ $all_servers[1]->id ?? '' }}",
+            let app = Vue.createApp({
+                data() {
+                    return {
+                        "base_url": "{{ url('servers-compare') }}/",
+                        "full_url": "{{ route('servers.compare', ['server1' => $all_servers[0]->id, 'server2' => $all_servers[1]->id]) }}",
+                        "url_input": "",
+                        "server1": "{{ $all_servers[0]->id ?? '' }}",
+                        "server2": "{{ $all_servers[1]->id ?? '' }}",
+                    };
                 },
                 methods: {
                     changeServer1: function changeServer1(event) {
@@ -72,7 +73,7 @@
                         this.url_input = this.full_url;
                     }
                 }
-            });
+            }).mount("#app");
         });
     </script>
 </x-app-layout>
