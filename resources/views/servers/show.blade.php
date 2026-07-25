@@ -242,7 +242,12 @@
         }
 
         function isDark() {
-            return document.querySelector('link[href*="dark"]') !== null;
+            // The themes used to ship as separate stylesheets, so a link whose
+            // href contained "dark" was a reliable signal. They were since
+            // consolidated into one hashed app-*.css and this stopped matching
+            // anything, leaving the charts light on every dark theme. The theme
+            // now lives on <html> -- see partials/theme-attrs.
+            return document.documentElement.dataset.theme !== 'light';
         }
 
         function chartBaseOpts() {

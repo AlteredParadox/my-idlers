@@ -1,0 +1,62 @@
+/* IBM Plex, used by the "Modern (Dark)" theme (data-theme="modern-dark").
+
+   Hand-written rather than imported from Fontsource so only what this app
+   renders ships: Fontsource's own entrypoints also carry Cyrillic, Greek and
+   Vietnamese, and its per-weight mono stylesheets reference a .woff fallback
+   that no browser able to run this app needs. The woff2 files are copied out of
+   the npm packages into /webfonts on build -- see copyIbmPlexFonts in
+   vite.config.js -- so the packages stay the source of truth.
+
+   Nothing here costs the other themes anything: an @font-face is only fetched
+   once a rule actually asks for the family, and only "modern-dark" ever does.
+
+   Sans is the variable release (one file spans weights 100-700); Mono has no
+   variable cut upstream, so the three weights the theme uses are listed out.
+   The unicode-ranges are copied from the Fontsource stylesheets verbatim. */
+
+/* ibm-plex-sans-latin-wght-normal */
+@font-face {
+    font-family: 'IBM Plex Sans Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 700;
+    src: url(/webfonts/ibm-plex-sans-latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ibm-plex-sans-latin-ext-wght-normal */
+@font-face {
+    font-family: 'IBM Plex Sans Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 700;
+    src: url(/webfonts/ibm-plex-sans-latin-ext-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ibm-plex-mono-latin-400-normal */
+@font-face {
+    font-family: 'IBM Plex Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(/webfonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2');
+}
+
+/* ibm-plex-mono-latin-500-normal */
+@font-face {
+    font-family: 'IBM Plex Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 500;
+    src: url(/webfonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');
+}
+
+/* ibm-plex-mono-latin-600-normal */
+@font-face {
+    font-family: 'IBM Plex Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 600;
+    src: url(/webfonts/ibm-plex-mono-latin-600-normal.woff2) format('woff2');
+}

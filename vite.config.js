@@ -23,6 +23,35 @@ function copyFontAwesomeFonts() {
     };
 }
 
+// IBM Plex backs the "Modern (Dark)" theme (see resources/css/fonts-ibm-plex.css).
+// The @font-face rules are hand-written rather than imported from Fontsource so
+// that only the subsets this app actually renders get shipped: Fontsource's own
+// entrypoints pull in Cyrillic, Greek and Vietnamese as well, and its per-weight
+// stylesheets also reference a .woff fallback no supported browser needs.
+// Copied to /webfonts alongside FontAwesome for the same reason -- a stable path
+// the hand-written stylesheet can name without going through the hashed build.
+const PLEX_WEBFONTS = [
+    ['@fontsource-variable/ibm-plex-sans/files', 'ibm-plex-sans-latin-wght-normal.woff2'],
+    ['@fontsource-variable/ibm-plex-sans/files', 'ibm-plex-sans-latin-ext-wght-normal.woff2'],
+    ['@fontsource/ibm-plex-mono/files', 'ibm-plex-mono-latin-400-normal.woff2'],
+    ['@fontsource/ibm-plex-mono/files', 'ibm-plex-mono-latin-500-normal.woff2'],
+    ['@fontsource/ibm-plex-mono/files', 'ibm-plex-mono-latin-600-normal.woff2'],
+];
+
+function copyIbmPlexFonts() {
+    return {
+        name: 'copy-ibm-plex-webfonts',
+        apply: 'build',
+        closeBundle() {
+            const to = resolve('public/webfonts');
+            mkdirSync(to, { recursive: true });
+            for (const [dir, f] of PLEX_WEBFONTS) {
+                copyFileSync(resolve('node_modules', dir, f), resolve(to, f));
+            }
+        },
+    };
+}
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -30,6 +59,7 @@ export default defineConfig({
             refresh: true,
         }),
         copyFontAwesomeFonts(),
+        copyIbmPlexFonts(),
     ],
     css: {
         preprocessorOptions: {
