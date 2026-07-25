@@ -229,14 +229,15 @@ if (prometheusEnabled && prometheusUrl) {
     setInterval(fetchPrometheusStatus, prometheusInterval * 1000);
 }
 
-let app = new Vue({
-    el: "#app",
-    data: {
-        status: false,
-        modal_hostname: '',
-        modal_id: '',
-        delete_form_action: '',
-        showModal: false
+let app = Vue.createApp({
+    data() {
+        return {
+            status: false,
+            modal_hostname: '',
+            modal_id: '',
+            delete_form_action: '',
+            showModal: false
+        };
     },
     methods: {
         checkIfUp(event) {
@@ -266,4 +267,4 @@ let app = new Vue({
             this.delete_form_action = '/servers/' + this.modal_id;
         }
     }
-});
+}).mount("#app");

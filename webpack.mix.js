@@ -1,4 +1,5 @@
 const mix = require('laravel-mix');
+const webpack = require('webpack');
 
 /*
  |--------------------------------------------------------------------------
@@ -42,5 +43,15 @@ mix.webpackConfig({
     stats: {
         children: false,
         warnings: false
-    }
+    },
+    plugins: [
+        // Vue 3's esm-bundler build expects the bundler to define these. Without
+        // them it still works, but logs a "feature flags not defined" warning on
+        // every page load and cannot tree-shake the unused branches.
+        new webpack.DefinePlugin({
+            __VUE_OPTIONS_API__: 'true',          // the Blade instances are options API
+            __VUE_PROD_DEVTOOLS__: 'false',
+            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false'
+        })
+    ]
 });
