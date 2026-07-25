@@ -28,7 +28,8 @@ class ExportServiceTest extends TestCase
     {
         $reflection = new ReflectionClass($object);
         $method = $reflection->getMethod($method);
-        $method->setAccessible(true);
+        // No setAccessible() call: it has been a no-op since PHP 8.1 and is
+        // deprecated as of 8.5.
         return $method->invokeArgs($object, $args);
     }
 
