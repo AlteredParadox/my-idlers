@@ -56,7 +56,7 @@
                                     </td>
                                     <td class="text-nowrap">{{ $domain->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $domain->price->usd_per_month }}">
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>
@@ -112,7 +112,7 @@
                                     </td>
                                     <td class="text-nowrap">{{ $domain->provider->name ?? '-' }}</td>
                                     <td class="text-center">{{ is_null($domain->transferrable) ? '-' : (($domain->transferrable === 1) ? 'Yes' : 'No') }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $domain->price->usd_per_month }}">
                                         {{ $domain->price->price }}
                                         <small class="text-muted">{{ $domain->price->currency }}</small>
                                     </td>

@@ -28,7 +28,7 @@
                         <tr>
                             <td><span class="badge badge-type">{{ $dns->dns_type }}</span></td>
                             <td class="fw-medium">{{ $dns->hostname }}</td>
-                            <td class="text-nowrap">{{ $dns->address }}</td>
+                            <td class="text-nowrap" data-order="{{ \App\Process::addressSortKey($dns->address) }}">{{ $dns->address }}</td>
                             <td class="text-center text-nowrap">
                                 <div class="action-buttons">
                                     <a href="{{ route('dns.show', $dns->id) }}" class="btn btn-sm btn-action" title="View">

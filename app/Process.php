@@ -44,6 +44,33 @@ class Process
         };
     }
 
+    /**
+     * A sort key that puts addresses in address order rather than text order.
+     *
+     * Sorting an address column as text reads wrong to anyone who knows what
+     * the values mean: 45.77.120.80 lands after 205.185.120.45 because '4' >
+     * '2'. inet_pton gives the packed bytes, and hex of a fixed-width packed
+     * address sorts lexicographically in exactly numeric order -- 4 bytes for
+     * IPv4, 16 for IPv6 -- so no 128-bit arithmetic (which a JS float cannot
+     * hold anyway) is needed on either side.
+     *
+     * The leading family digit groups v4 before v6 before anything unparseable,
+     * which is what the DNS address column needs: it also holds hostnames and
+     * "10 mail.example.com" MX values, and those fall back to text order among
+     * themselves instead of interleaving with the addresses.
+     */
+    public static function addressSortKey(?string $address): string
+    {
+        $address = trim((string) $address);
+        $packed = $address === '' ? false : @inet_pton($address);
+
+        if ($packed === false) {
+            return '9' . $address;
+        }
+
+        return (strlen($packed) === 4 ? '4' : '6') . bin2hex($packed);
+    }
+
     public static function tableRowCompare(string $val1, string $val2, string $value_type = '', bool $is_int = true): string
     {
         //<td class="td-nowrap plus-td">+303<span class="data-type">MBps</span></td>

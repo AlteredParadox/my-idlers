@@ -48,7 +48,7 @@
                                 @foreach($misc as $m)
                                 <tr>
                                     <td class="fw-medium">{{ $m->name }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $m->price->usd_per_month }}">
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>
@@ -102,7 +102,7 @@
                                 @php $expired = $m->price->next_due_date && Carbon\Carbon::parse($m->price->next_due_date)->isPast(); @endphp
                                 <tr class="{{ $expired ? 'expired-row' : '' }}">
                                     <td class="fw-medium">{{ $m->name }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-order="{{ $m->price->usd_per_month }}">
                                         {{ $m->price->price }} {{ $m->price->currency }}
                                         <small class="text-muted">{{ \App\Process::paymentTermIntToString($m->price->term) }}</small>
                                     </td>

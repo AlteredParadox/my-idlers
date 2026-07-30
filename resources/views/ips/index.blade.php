@@ -34,7 +34,7 @@
                                     @if($ip->is_ipv4 === 1) IPv4 @else IPv6 @endif
                                 </span>
                             </td>
-                            <td class="fw-medium text-nowrap">{{ $ip->address }}</td>
+                            <td class="fw-medium text-nowrap" data-order="{{ \App\Process::addressSortKey($ip->address) }}">{{ $ip->address }}</td>
                             <td class="text-nowrap">{{ $ip->country }}</td>
                             <td class="text-nowrap">{{ $ip->city }}</td>
                             <td class="text-nowrap">{{ $ip->org }}</td>

@@ -40,28 +40,28 @@
                             <td class="text-nowrap">{{ $row->location->name ?? '-' }}</td>
                             <td class="text-nowrap">{{ $row->provider->name ?? '-' }}</td>
                             <td class="text-center">{{ is_null($row->transferrable) ? '-' : (($row->transferrable === 1) ? 'Yes' : 'No') }}</td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $row->disk_as_gb ?? 0 }}">
                                 @if($row->disk_as_gb >= 1000)
                                     {{ number_format($row->disk_as_gb / 1000, 1) }}<small class="text-muted">TB</small>
                                 @else
                                     {{ $row->disk_as_gb }}<small class="text-muted">GB</small>
                                 @endif
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $row->bandwidth ?? 0 }}">
                                 @if($row->bandwidth >= 1000)
                                     {{ number_format($row->bandwidth / 1000, 1) }}<small class="text-muted">TB</small>
                                 @else
                                     {{ $row->bandwidth }}<small class="text-muted">GB</small>
                                 @endif
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $row->port_speed ?? 0 }}">
                                 @if($row->port_speed >= 1000)
                                     {{ number_format($row->port_speed / 1000, 1) }}<small class="text-muted">Gbps</small>
                                 @else
                                     {{ $row->port_speed }}<small class="text-muted">Mbps</small>
                                 @endif
                             </td>
-                            <td class="text-nowrap">
+                            <td class="text-nowrap" data-order="{{ $row->price->usd_per_month }}">
                                 {{ $row->price->price }} {{ $row->price->currency }}
                                 <small class="text-muted">{{ \App\Process::paymentTermIntToString($row->price->term) }}</small>
                             </td>
