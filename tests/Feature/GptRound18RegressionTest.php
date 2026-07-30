@@ -112,12 +112,19 @@ class GptRound18RegressionTest extends TestCase
         $this->assertStringContainsString('add_header Referrer-Policy "strict-origin-when-cross-origin" always;', $conf);
         foreach (["default-src 'self'", "object-src 'none'", "base-uri 'self'",
                      "form-action 'self'", "frame-ancestors 'self'", "img-src 'self' data:",
-                     // Vue 2's standalone build compiles in-DOM templates with
-                     // new Function(): without unsafe-eval every Vue-managed
-                     // index (delete modal) blanks after first paint.
-                     "script-src 'self' 'unsafe-inline' 'unsafe-eval'"] as $directive) {
+                     "script-src 'self' 'unsafe-inline'"] as $directive) {
             $this->assertStringContainsString($directive, $conf, "CSP lost its $directive directive");
         }
+
+        // 'unsafe-eval' existed only for Vue's in-DOM template compiler. Vue is
+        // gone and nothing in the bundle constructs code from strings, so the
+        // directive must not come back: it is what turned a stored value that
+        // reaches a template compiler into executable script. Assert on the
+        // emitted header line, not the file, so the prose above it can explain
+        // why the directive is absent.
+        preg_match('/add_header Content-Security-Policy "([^"]+)"/', $conf, $csp);
+        $this->assertNotEmpty($csp, 'no Content-Security-Policy header found');
+        $this->assertStringNotContainsString('unsafe-eval', $csp[1]);
 
         // nginx add_header inheritance: a location block declaring its own
         // add_header silently drops every server-level header above — all

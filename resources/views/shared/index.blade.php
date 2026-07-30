@@ -1,6 +1,6 @@
 @section('title', 'Shared hosting')
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Shared Hosting</h2>
             <div class="page-actions">
@@ -88,7 +88,7 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                                    @click="confirmDeleteModal" id="{{ $row->id }}" data-title="{{ $row->main_domain }}">
+                                                    data-id="{{ $row->id }}" data-title="{{ $row->main_domain }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -160,7 +160,7 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                                    @click="confirmDeleteModal" id="{{ $row->id }}" data-title="{{ $row->main_domain }}">
+                                                    data-id="{{ $row->id }}" data-title="{{ $row->main_domain }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -176,12 +176,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="shared" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">shared</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#shared-table', '#inactive-shared-table'], 'noSort' => [12], 'empty' => 'No shared hosting found'])

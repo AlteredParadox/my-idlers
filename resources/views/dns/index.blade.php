@@ -1,6 +1,6 @@
 @section("title", "DNS")
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">DNS</h2>
             <div class="page-actions">
@@ -38,7 +38,7 @@
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $dns->id }}" data-title="{{ $dns->hostname }}">
+                                            data-id="{{ $dns->id }}" data-title="{{ $dns->hostname }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -52,12 +52,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="dns" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">dns</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#dns-table'], 'noSort' => [3], 'empty' => 'No DNS records found'])

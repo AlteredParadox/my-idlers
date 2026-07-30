@@ -1,6 +1,6 @@
 @section('title', 'Servers')
 <x-app-layout>
-    <div class="servers-index" id="app">
+    <div class="servers-index">
         <div class="page-header">
             <h2 class="page-title">Servers</h2>
             <div class="page-actions">
@@ -68,12 +68,12 @@
                                             </span>
                                             @else
                                             <button type="button" class="btn btn-sm btn-action status-check-btn" title="Check status"
-                                                    data-hostname="{{ $server->hostname }}" @click="checkIfUp">
+                                                    data-hostname="{{ $server->hostname }}">
                                                 <i class="fas fa-plug"></i>
                                             </button>
                                             @endif
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                                    @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
+                                                    data-id="{{ $server->id }}" data-title="{{ $server->hostname }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -195,7 +195,7 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                                    @click="confirmDeleteModal" id="{{ $server->id }}" data-title="{{ $server->hostname }}">
+                                                    data-id="{{ $server->id }}" data-title="{{ $server->hostname }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -258,7 +258,7 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="servers" />
     </div>
 
     @section('scripts')

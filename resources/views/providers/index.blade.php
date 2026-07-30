@@ -1,6 +1,6 @@
 @section("title", "Providers")
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Providers</h2>
             <div class="page-actions">
@@ -30,7 +30,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $provider['id'] }}" data-title="{{ $provider['name'] }}">
+                                            data-id="{{ $provider['id'] }}" data-title="{{ $provider['name'] }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -44,12 +44,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="providers" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">providers</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#providers-table'], 'noSort' => [1], 'empty' => 'No providers found'])
