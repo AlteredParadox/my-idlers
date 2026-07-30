@@ -17,7 +17,7 @@
     </style>
 @endsection
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Server Comparison</h2>
             <div class="page-actions">

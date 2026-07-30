@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Concerns\RespondsWithJsonString;
 use App\Http\Controllers\Controller;
 use App\Models\Domains;
 use App\Models\Misc;
@@ -14,12 +15,14 @@ use App\Models\Yabs;
 
 class ServiceQueryController extends Controller
 {
+    use RespondsWithJsonString;
+
     private const ERROR_NOT_FOUND = 'Not found';
 
     protected function getAllServers()
     {
         $servers = Server::allServers()->toJson(JSON_PRETTY_PRINT);
-        return response($servers, 200);
+        return $this->jsonString($servers);
     }
 
 
@@ -29,14 +32,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     protected function getAllShared()
     {
         $shared = Shared::allSharedHosting()->toJson(JSON_PRETTY_PRINT);
-        return response($shared, 200);
+        return $this->jsonString($shared);
     }
 
 
@@ -46,14 +49,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     protected function getAllReseller()
     {
         $reseller = Reseller::allResellerHosting()->toJson(JSON_PRETTY_PRINT);
-        return response($reseller, 200);
+        return $this->jsonString($reseller);
     }
 
 
@@ -63,14 +66,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     protected function getAllSeedbox()
     {
         $reseller = SeedBoxes::allSeedboxes()->toJson(JSON_PRETTY_PRINT);
-        return response($reseller, 200);
+        return $this->jsonString($reseller);
     }
 
 
@@ -80,14 +83,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     protected function getAllDomains()
     {
         $domains = Domains::allDomains()->toJson(JSON_PRETTY_PRINT);
-        return response($domains, 200);
+        return $this->jsonString($domains);
     }
 
 
@@ -97,14 +100,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     protected function getAllMisc()
     {
         $misc = Misc::allMisc()->toJson(JSON_PRETTY_PRINT);
-        return response($misc, 200);
+        return $this->jsonString($misc);
     }
 
 
@@ -114,14 +117,14 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 
     public function getAllYabs()
     {
         $yabs = Yabs::allYabs()->toJson(JSON_PRETTY_PRINT);
-        return response($yabs, 200);
+        return $this->jsonString($yabs);
     }
 
 
@@ -131,7 +134,7 @@ class ServiceQueryController extends Controller
         if (is_null($record)) {
             return response()->json(['error' => self::ERROR_NOT_FOUND], 404);
         }
-        return response($record->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($record->toJson(JSON_PRETTY_PRINT));
     }
 
 

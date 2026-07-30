@@ -4,9 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\PrometheusService;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\Process;
 
 class ToolsController extends Controller
 {
+    /**
+     * Wall-clock ceiling for one ping child, resolution included. Comfortably
+     * above ping's own two-second reply wait so a normal probe is unaffected.
+     */
+    private const PING_TIMEOUT_SECONDS = 5;
+
     public function checkHostIsUp(string $hostname)
     {//Check if host/ip is "up" via ping
         // escapeshellarg stops metacharacter injection, but a leading-dash
@@ -21,12 +29,24 @@ class ToolsController extends Controller
             return response(array('is_online' => false, 'error' => 'Invalid hostname'), 422);
         }
 
-        $exitCode = 1;
-        $pingCmd = stripos(PHP_OS, 'WIN') === 0
-            ? "ping -n 1 -w 2000 " . escapeshellarg($hostname)
-            : "ping -c 1 -W 2 " . escapeshellarg($hostname);
-        exec($pingCmd . " > /dev/null 2>&1", $output, $exitCode);
-        return response(array('is_online' => $exitCode === 0), 200);
+        // Process with an argument array, not exec() with a command string: no
+        // shell is spawned at all, and setTimeout bounds the WALL CLOCK. ping's
+        // own -W/-w only bounds the wait for a reply -- name resolution before
+        // the probe, and a child that never exits, are outside it, so a request
+        // could hold a PHP-FPM worker far longer than two seconds.
+        $process = new Process(stripos(PHP_OS, 'WIN') === 0
+            ? ['ping', '-n', '1', '-w', '2000', $hostname]
+            : ['ping', '-c', '1', '-W', '2', $hostname]);
+        $process->setTimeout(self::PING_TIMEOUT_SECONDS);
+
+        try {
+            $process->run();
+            $isOnline = $process->isSuccessful();
+        } catch (ProcessTimedOutException $e) {
+            $isOnline = false;
+        }
+
+        return response(array('is_online' => $isOnline), 200);
     }
 
 

@@ -41,10 +41,13 @@ return [
             'provider' => 'users',
         ],
 
+        // 'api-token' is this app's own driver, registered in
+        // AuthServiceProvider::boot(). It reads the bearer header and nothing
+        // else; the framework's 'token' driver additionally honours
+        // ?api_token= and a request-body field, which cannot be turned off.
+        // It resolves the user itself, so no 'provider' key applies here.
         'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
-            'hash' => true
+            'driver' => 'api-token',
         ],
     ],
 

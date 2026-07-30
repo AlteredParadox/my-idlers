@@ -3,7 +3,6 @@
      same closure (toggles, DataTables config) can call these functions.
      Params: $withLinkUsage (table page tracks .link-cell usage),
      $roundedUptime (cards round the uptime pill corners). --}}
-document.getElementById("confirmDeleteModal").classList.remove("d-none");
 axios.defaults.headers.common = {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -229,42 +228,27 @@ if (prometheusEnabled && prometheusUrl) {
     setInterval(fetchPrometheusStatus, prometheusInterval * 1000);
 }
 
-let app = Vue.createApp({
-    data() {
-        return {
-            status: false,
-            modal_hostname: '',
-            modal_id: '',
-            delete_form_action: '',
-            showModal: false
-        };
-    },
-    methods: {
-        checkIfUp(event) {
-            if (prometheusEnabled && prometheusUrl) return; // Prometheus handles status automatically
-            var el = event.target.closest('button') || event.target;
-            var hostname = el.getAttribute('data-hostname') || el.id;
-            var icon = el.querySelector('i') || event.target;
+// Delegated rather than bound per button: DataTables redraws these rows on
+// paginate/sort, and the delete dialog is handled by the shared listener in
+// resources/js/delete-modal.js.
+document.addEventListener('click', function (event) {
+    var el = event.target.closest('.status-check-btn');
+    if (!el) return;
+    if (prometheusEnabled && prometheusUrl) return; // Prometheus handles status automatically
 
-            if (hostname) {
-                axios
-                    .get('/tools/online/' + encodeURIComponent(hostname))
-                    .then(response => (this.status = response.data.is_online))
-                    .finally(() => {
-                        icon.classList.remove('text-success', 'text-danger');
-                        icon.classList.add(this.status ? 'text-success' : 'text-danger');
-                    });
-            }
-        },
-        confirmDeleteModal(event) {
-            var el = event.target.closest('button') || event.target;
-            this.showModal = true;
-            this.modal_hostname = el.dataset.title || el.title;
-            this.modal_id = el.id;
-            // Absolute like the shared modal component: a relative action on
-            // a page loaded as /servers/ (trailing slash matches without a
-            // redirect) would POST the DELETE to /servers/servers/{id} → 404
-            this.delete_form_action = '/servers/' + this.modal_id;
-        }
-    }
-}).mount("#app");
+    var hostname = el.getAttribute('data-hostname');
+    var icon = el.querySelector('i') || el;
+
+    if (!hostname) return;
+
+    axios
+        .get('/tools/online/' + encodeURIComponent(hostname))
+        .then(function (response) {
+            icon.classList.remove('text-success', 'text-danger');
+            icon.classList.add(response.data.is_online ? 'text-success' : 'text-danger');
+        })
+        .catch(function () {
+            icon.classList.remove('text-success');
+            icon.classList.add('text-danger');
+        });
+});

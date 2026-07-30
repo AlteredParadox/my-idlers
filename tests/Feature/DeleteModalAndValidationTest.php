@@ -25,18 +25,21 @@ class DeleteModalAndValidationTest extends TestCase
     public function test_delete_modal_cancel_button_does_not_submit_and_title_is_escaped()
     {
         $modal = file_get_contents(resource_path('views/components/delete-confirm-modal.blade.php'));
+        $script = file_get_contents(resource_path('js/delete-modal.js'));
 
         // The "No" button must not submit the DELETE form.
         $this->assertMatchesRegularExpression(
-            '/type="button"[^>]*@click\.prevent="showModal=false"|@click\.prevent="showModal=false"[^>]*type="button"/s',
+            '/type="button"[^>]*data-modal-dismiss|data-modal-dismiss[^>]*type="button"/s',
             $modal,
-            'cancel button must be type=button with @click.prevent'
+            'cancel button must be type=button with data-modal-dismiss'
         );
-        $this->assertStringNotContainsString('@click="showModal=false"', $modal);
+        $this->assertStringContainsString("event.preventDefault();", $script);
 
-        // The title must render as text, never v-html (stored XSS via data-title).
-        $this->assertStringContainsString('v-text="modal_hostname"', $modal);
-        $this->assertStringNotContainsString('v-html="modal_hostname"', $modal);
+        // The title must be written as text, never as markup (stored XSS via
+        // data-title). The dialog itself carries no interpolation at all now.
+        $this->assertStringContainsString('heading.textContent =', $script);
+        $this->assertStringNotContainsString('innerHTML =', $script);
+        $this->assertStringNotContainsString('insertAdjacentHTML', $script);
     }
 
     public function test_disk_cards_js_does_not_use_innerhtml_for_prometheus_labels()

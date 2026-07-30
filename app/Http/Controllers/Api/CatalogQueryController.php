@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Concerns\RespondsWithJsonString;
 use App\Http\Controllers\Controller;
 use App\Models\IPs;
 use App\Models\Labels;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class CatalogQueryController extends Controller
 {
+    use RespondsWithJsonString;
 
     /**
      * Singleton catalog lookups: keep the historical array response shape on
@@ -24,13 +26,13 @@ class CatalogQueryController extends Controller
             return response()->json(['result' => 'fail', 'error' => 'Not found'], 404);
         }
 
-        return response($rows->toJson(JSON_PRETTY_PRINT), 200);
+        return $this->jsonString($rows->toJson(JSON_PRETTY_PRINT));
     }
 
     protected function getAllPricing()
     {
         $pricing = Pricing::all()->toJson(JSON_PRETTY_PRINT);
-        return response($pricing, 200);
+        return $this->jsonString($pricing);
     }
 
 
@@ -43,7 +45,7 @@ class CatalogQueryController extends Controller
     protected function getAllNetworkSpeeds()
     {
         $ns = NetworkSpeed::all()->toJson(JSON_PRETTY_PRINT);
-        return response($ns, 200);
+        return $this->jsonString($ns);
     }
 
 
@@ -51,14 +53,14 @@ class CatalogQueryController extends Controller
     {
         $ns = NetworkSpeed::where('server_id', $id)
             ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($ns, 200);
+        return $this->jsonString($ns);
     }
 
 
     protected function getAllLabels()
     {
         $labels = Labels::all()->toJson(JSON_PRETTY_PRINT);
-        return response($labels, 200);
+        return $this->jsonString($labels);
     }
 
 
@@ -72,7 +74,7 @@ class CatalogQueryController extends Controller
     {
         $dns = DB::table('d_n_s')
             ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($dns, 200);
+        return $this->jsonString($dns);
     }
 
 
@@ -86,7 +88,7 @@ class CatalogQueryController extends Controller
     {
         $locations = DB::table('locations')
             ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($locations, 200);
+        return $this->jsonString($locations);
     }
 
 
@@ -100,7 +102,7 @@ class CatalogQueryController extends Controller
     {
         $providers = DB::table('providers')
             ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($providers, 200);
+        return $this->jsonString($providers);
     }
 
 
@@ -114,7 +116,7 @@ class CatalogQueryController extends Controller
     {
         $settings = DB::table('settings')
             ->get()->toJson(JSON_PRETTY_PRINT);
-        return response($settings, 200);
+        return $this->jsonString($settings);
     }
 
 
@@ -122,7 +124,7 @@ class CatalogQueryController extends Controller
     {
         $os = OS::allOS();
         $os = json_encode($os, JSON_PRETTY_PRINT);
-        return response($os, 200);
+        return $this->jsonString($os);
     }
 
 
@@ -135,7 +137,7 @@ class CatalogQueryController extends Controller
     protected function getAllIPs()
     {
         $ip = IPs::all()->toJson(JSON_PRETTY_PRINT);
-        return response($ip, 200);
+        return $this->jsonString($ip);
     }
 
 

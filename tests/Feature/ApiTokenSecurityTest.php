@@ -68,6 +68,45 @@ class ApiTokenSecurityTest extends TestCase
             ->assertStatus(401);
     }
 
+    /**
+     * The API credential lives in the Authorization header and nowhere else.
+     * Laravel's stock 'token' driver would authenticate all three of these,
+     * which puts a reusable plaintext token into URLs (logs, Referer, history)
+     * and lets a top-level browser navigation authenticate an API route.
+     */
+    public function test_query_string_token_does_not_authenticate()
+    {
+        $plain = Str::random(60);
+        User::factory()->create(['api_token' => User::hashApiToken($plain)]);
+
+        $this->getJson('/api/servers/?api_token=' . $plain)->assertStatus(401);
+    }
+
+    public function test_request_body_token_does_not_authenticate()
+    {
+        $plain = Str::random(60);
+        User::factory()->create(['api_token' => User::hashApiToken($plain)]);
+
+        $this->postJson('/api/servers', ['api_token' => $plain])->assertStatus(401);
+    }
+
+    public function test_basic_auth_password_does_not_authenticate()
+    {
+        $plain = Str::random(60);
+        User::factory()->create(['api_token' => User::hashApiToken($plain)]);
+
+        $this->getJson('/api/servers/', [
+            'Authorization' => 'Basic ' . base64_encode('anything:' . $plain),
+        ])->assertStatus(401);
+    }
+
+    public function test_empty_bearer_token_does_not_authenticate()
+    {
+        User::factory()->create(['api_token' => User::hashApiToken(Str::random(60))]);
+
+        $this->getJson('/api/servers/', ['Authorization' => 'Bearer '])->assertStatus(401);
+    }
+
     public function test_yabs_endpoint_rejects_unsigned_request()
     {
         $server = $this->makeServer();

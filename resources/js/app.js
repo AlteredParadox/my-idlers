@@ -14,11 +14,19 @@ import './jquery-global.js';
 import 'bootstrap';
 import 'datatables.net-bs5';
 
-// esm-bundler, not the default entry: templates live in the Blade markup and
-// are compiled in the browser, so we need the build that bundles the compiler.
-// Vue 3 has no 'vue/dist/vue' entry at all.
-import * as Vue from 'vue/dist/vue.esm-bundler.js';
 import axios from 'axios';
 
-globalThis.Vue = Vue;
+// No Vue, deliberately. This app's only client state was a delete-confirm
+// dialog, two <select>s that recompute a link, and a DNS autofill button -- but
+// serving them meant shipping vue.esm-bundler.js (the build WITH the browser
+// template compiler) and mounting it on each page's whole container. Vue then
+// treated the server-rendered markup as a template, and since Blade's escaping
+// leaves `{{ }}` untouched, any stored value -- a hostname, a provider name, an
+// ipwhois.app field, a YABS-reported CPU model -- became an expression the
+// runtime compiled and executed. Plain listeners have no such sink, and the CSP
+// no longer needs 'unsafe-eval'.
+import { initDeleteModal } from './delete-modal.js';
+
 globalThis.axios = axios;
+
+initDeleteModal();

@@ -1,6 +1,6 @@
 @section('title', 'IP addresses')
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">IP Addresses</h2>
             <div class="page-actions">
@@ -46,7 +46,7 @@
                                         <i class="fa-solid fa-arrows-rotate"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $ip->id }}" data-title="{{ $ip->address }}">
+                                            data-id="{{ $ip->id }}" data-title="{{ $ip->address }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -60,12 +60,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="IPs" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">IPs</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#ips-table'], 'noSort' => [7], 'empty' => 'No IP addresses found'])
