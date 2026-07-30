@@ -77,7 +77,13 @@ Route::middleware('auth:api')->group(function () {
     Route::get('shared/', [ServiceQueryController::class, 'getAllShared']);
     Route::get('shared/{id}', [ServiceQueryController::class, 'getShared']);
 
-    Route::get('online/{hostname}', [ToolsController::class, 'checkHostIsUp']);
+    // Same dedicated limiter as the web sibling (routes/web.php). Without it
+    // this route inherited only the generic 60/min api bucket, so it could
+    // start six times as many ping children -- each holding a PHP-FPM worker
+    // for as long as the destination stays slow or unresponsive.
+    Route::get('online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
+        ->where('hostname', '[^/]+')
+        ->middleware(['throttle:10,1']);
 
     Route::get('prometheus/status', [ToolsController::class, 'prometheusStatus']);
     Route::get('prometheus/detail/{hostname}/{period}/{back}', [ToolsController::class, 'prometheusDetail'])

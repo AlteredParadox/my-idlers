@@ -1,6 +1,6 @@
 @section('title', 'Operating systems')
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Operating Systems</h2>
             <div class="page-actions">
@@ -27,7 +27,7 @@
                             <td class="text-center text-nowrap">
                                 <div class="action-buttons">
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $o['id'] }}" data-title="{{ $o['name'] }}">
+                                            data-id="{{ $o['id'] }}" data-title="{{ $o['name'] }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -41,12 +41,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="os" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">os</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#os-table'], 'noSort' => [1], 'empty' => 'No operating systems found'])

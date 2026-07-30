@@ -79,10 +79,4 @@ export default defineConfig({
     // Assets are committed and served directly (the Dockerfile runs no npm
     // step). Hashed filenames give cache-busting, and Blade resolves them
     // through the committed manifest.
-    define: {
-        // Vue 3's esm-bundler build expects the bundler to define these.
-        __VUE_OPTIONS_API__: 'true',
-        __VUE_PROD_DEVTOOLS__: 'false',
-        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
-    },
 });

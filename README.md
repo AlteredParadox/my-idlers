@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.9-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.10-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,59 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.10` — July 2026
+
+_A security release, from a full-repository audit. Two findings accounted for 65 of the 70
+reported issues, and both had a single root cause each. One breaking change: API tokens are
+now read from the `Authorization` header only._
+
+* **Vue is gone, and with it a client-side template injection on every index page.** The app
+  shipped `vue.esm-bundler.js` — the Vue build that includes the browser template compiler —
+  and mounted it on each page's whole `#app` container. Vue therefore treated the
+  server-rendered markup as a template, and Blade's escaping does nothing to `{{ }}`: any
+  stored value containing a mustache became an expression the runtime compiled and executed.
+  A provider name of `{{ $options.constructor.constructor('…')() }}` ran arbitrary JavaScript
+  in the app's origin. Reachable without a second account through two paths — the `org`,
+  `isp`, `city` and `asn` fields returned by ipwhois.app, and the `cpu_model` a YABS run
+  reports from the monitored box. Vue's entire job here was a delete-confirmation dialog, two
+  `<select>`s that recompute a link, and a DNS autofill button; all four are now plain
+  listeners with event delegation, so no template compiler is shipped at all. The bundle drops
+  from 506 KB to 330 KB, and the CSP no longer needs `'unsafe-eval'`
+* **The query API declared its JSON responses as `text/html`.** Twenty-six endpoints
+  serialized to a JSON string and handed it to the generic `response()` helper, which sets no
+  content type — so Symfony labelled them `text/html; charset=UTF-8` and a browser parsed
+  stored `<img onerror=…>` as an active element. `nosniff` does not help when the server is
+  actively declaring HTML. All of them now send `application/json; charset=UTF-8`
+* **API tokens are accepted only in the `Authorization` header.** Laravel's built-in `token`
+  driver also honours `?api_token=`, a request-body field and the basic-auth password, and
+  none of that is configurable — so the app now registers its own guard. A credential in a URL
+  leaks into access logs, `Referer` headers and browser history, and it was what let a plain
+  browser navigation authenticate an API route in the first place. The documented interface
+  has always been `Authorization: Bearer`, so scripts that follow the README are unaffected
+* **`/api/online/{hostname}` had no process bound and no dedicated rate limit.** It inherited
+  only the generic 60/min API bucket, six times its web sibling's allowance, and `ping`'s
+  `-W` option bounds the wait for a reply — not name resolution, and not a child that never
+  exits. It now runs through `Symfony\Component\Process` with a 5-second wall-clock timeout
+  (an argument array, so no shell is spawned) and carries the same `throttle:10,1` as the web
+  route
+* **`TRUSTED_PROXIES='*'` is no longer the documented default.** `*` tells Laravel to believe
+  the `X-Forwarded-*` headers on every request, so anything able to reach the container
+  directly picks the client IP it logs and throttles by. The README and `.env.example` now
+  ask for the proxy's actual IP or CIDR and explain the consequence
+
+### Breaking changes for forks
+
+* `config/auth.php` now points the `api` guard at the app's own `api-token` driver, registered
+  in `AuthServiceProvider::boot()`. A fork that relied on `?api_token=` must move the token
+  into the `Authorization` header
+* `resources/views/components/modal-delete-script.blade.php` is deleted. The delete dialog now
+  takes its resource segment as a prop — `<x-delete-confirm-modal uri="servers" />` — and its
+  triggers are `.btn-delete[data-id][data-title]` rather than `@click="confirmDeleteModal"`
+* `vue` is no longer a dependency, and `globalThis.Vue` is not defined
+
+Test suite: **648 tests / 2,192 assertions**, green on both SQLite and MySQL, plus a
+20-check headless-Chromium pass over the rewritten interactions under the tightened CSP.
 
 ## Fork revision `ap.9` — July 2026
 
@@ -617,7 +670,7 @@ docker run \
   --restart unless-stopped \
   -e APP_KEY=base64:... \
   -e APP_URL=https://... \
-  -e TRUSTED_PROXIES='*' \
+  -e TRUSTED_PROXIES=172.16.0.0/12 \
   -e DB_HOST=... \
   -e DB_DATABASE=... \
   -e DB_USERNAME=... \
@@ -651,7 +704,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.9` — note the Docker tag uses `-ap.9` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.10` — note the Docker tag uses `-ap.10` since `+` is not
 a valid Docker tag character).
 
 Notes:
@@ -661,8 +714,13 @@ Notes:
   also switches all generated URLs to https; plain-HTTP LAN installs keep `http://` and work
   without TLS.
 * `TRUSTED_PROXIES` is required when TLS terminates at a reverse proxy in front of the
-  container (`*` to trust any upstream, or a comma-separated list of proxy IPs/CIDRs).
-  Without it, signed YABS URLs fail validation because the app sees requests as plain http.
+  container. Without it, signed YABS URLs fail validation because the app sees requests as
+  plain http. **Set it to your proxy's IP or CIDR**, not `*` — the example above uses
+  Docker's default bridge range. `*` tells Laravel to believe the `X-Forwarded-*` headers
+  on *every* request, so anyone who can reach the container port directly (a published
+  port, another container on the same network, the LAN) can choose the client IP the app
+  records and rate-limits by, and the scheme and host it builds URLs from. Only use `*`
+  when nothing but the proxy can reach the container.
 * `SESSION_SECURE_COOKIE=true` keeps the session cookie HTTPS-only — set it whenever the
   app is reached over HTTPS (drop it only for plain-HTTP LAN setups, where the cookie
   would otherwise never be sent).
@@ -702,6 +760,11 @@ IP who is data provided by [ipwhois.io](https://ipwhois.io/documentation)
 For GET requests the header must have `Accept: application/json` and your API token. Tokens are generated from `/account` and are shown once after rotation.
 
 `Authorization : Bearer API_TOKEN_HERE`
+
+The token is read from that header **only**. It is not accepted as an `?api_token=` query
+parameter, a request-body field or a basic-auth password: a credential in a URL ends up in
+access logs, `Referer` headers and browser history, and it would let a plain browser
+navigation authenticate an API route.
 
 All API requests must be appended with `api/` e.g `mydomain.com/api/servers/gYk8J0a7`
 

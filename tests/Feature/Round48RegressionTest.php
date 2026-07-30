@@ -98,9 +98,24 @@ class Round48RegressionTest extends TestCase
         @unlink($csv);
     }
 
+    /**
+     * A relative action on a page loaded as /servers/ (the trailing slash
+     * matches without a redirect) would POST the DELETE to /servers/servers/{id}
+     * and 404. The action is now built in the shared delete-modal script from
+     * the dialog's data-delete-uri, so assert the leading slash lives there.
+     */
     public function test_servers_delete_form_action_is_absolute()
     {
-        $partial = file_get_contents(resource_path('views/servers/partials/status-js.blade.php'));
-        $this->assertStringContainsString("'/servers/' + this.modal_id", $partial);
+        $script = file_get_contents(resource_path('js/delete-modal.js'));
+        $this->assertStringContainsString("'/' + (modal.dataset.deleteUri || '') + '/' + id", $script);
+
+        $this->assertStringContainsString(
+            '<x-delete-confirm-modal uri="servers" />',
+            file_get_contents(resource_path('views/servers/index.blade.php'))
+        );
+        $this->assertStringContainsString(
+            '<x-delete-confirm-modal uri="servers" />',
+            file_get_contents(resource_path('views/servers/index-cards.blade.php'))
+        );
     }
 }

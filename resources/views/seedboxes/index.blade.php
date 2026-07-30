@@ -1,6 +1,6 @@
 @section('title', 'Seed boxes')
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Seedboxes</h2>
             <div class="page-actions">
@@ -79,7 +79,7 @@
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $row->id }}" data-title="{{ $row->title }}">
+                                            data-id="{{ $row->id }}" data-title="{{ $row->title }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -93,12 +93,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="seedboxes" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">seedboxes</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#seedbox-table'], 'noSort' => [12], 'empty' => 'No seedboxes found'])

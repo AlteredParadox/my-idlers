@@ -1,6 +1,6 @@
 @section("title", "Add a server")
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">Add Server</h2>
             <div class="page-actions">
@@ -25,7 +25,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control" name="hostname" id="hostname"
                                        value="{{ old('hostname') }}" placeholder="server.example.com">
-                                <button type="button" class="btn btn-outline-secondary" @click="fetchDnsRecords" title="Auto fill IPs from DNS">
+                                <button type="button" class="btn btn-outline-secondary" id="dns-autofill" title="Auto fill IPs from DNS">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
@@ -67,13 +67,13 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">IP Address 1</label>
-                            <input type="text" class="form-control" name="ip1" minlength="4" maxlength="255"
-                                   v-model="ipv4_in" placeholder="IPv4 or IPv6">
+                            <input type="text" class="form-control" name="ip1" id="ip1" minlength="4" maxlength="255"
+                                   value="{{ old('ip1') }}" placeholder="IPv4 or IPv6">
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">IP Address 2</label>
-                            <input type="text" class="form-control" name="ip2" minlength="4" maxlength="255"
-                                   v-model="ipv6_in" placeholder="IPv4 or IPv6">
+                            <input type="text" class="form-control" name="ip2" id="ip2" minlength="4" maxlength="255"
+                                   value="{{ old('ip2') }}" placeholder="IPv4 or IPv6">
                         </div>
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">NS1</label>
@@ -315,29 +315,26 @@
                 'Accept': 'application/json',
             };
 
-            let app = Vue.createApp({
-                data() {
-                    return {
-                        ipv4_in: '{{ old("ip1") }}',
-                        ipv6_in: '{{ old("ip2") }}'
-                    };
-                },
-                methods: {
-                    fetchDnsRecords(event) {
-                        var hostname = document.getElementById('hostname').value;
-                        if (hostname) {
-                            axios
-                                .get('/tools/dns/' + encodeURIComponent(hostname) + '/A')
-                                .then(response => (this.ipv4_in = response.data.ip))
-                                .catch(error => {});
-                            axios
-                                .get('/tools/dns/' + encodeURIComponent(hostname) + '/AAAA')
-                                .then(response => (this.ipv6_in = response.data.ip))
-                                .catch(error => {});
-                        }
-                    }
-                }
-            }).mount("#app");
+            // Fills the two IP inputs from the hostname's DNS records. This was
+            // a Vue app mounted on #app, which handed the browser template
+            // compiler the whole page -- including the provider/location/OS
+            // option labels rendered from stored text.
+            document.getElementById('dns-autofill').addEventListener('click', function () {
+                var hostname = document.getElementById('hostname').value;
+                if (!hostname) return;
+
+                [['A', 'ip1'], ['AAAA', 'ip2']].forEach(function (lookup) {
+                    axios
+                        .get('/tools/dns/' + encodeURIComponent(hostname) + '/' + lookup[0])
+                        // Assign unconditionally, as the old two-way binding did: a
+                        // lookup that resolves nothing must clear the field
+                        // rather than leave a stale value that reads as a hit.
+                        .then(function (response) {
+                            document.getElementById(lookup[1]).value = response.data.ip || '';
+                        })
+                        .catch(function () {});
+                });
+            });
         });
     </script>
     @endsection

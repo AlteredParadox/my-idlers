@@ -1,6 +1,6 @@
 @section('title', 'YABS results')
 <x-app-layout>
-    <div class="container" id="app">
+    <div class="container">
         <div class="page-header">
             <h2 class="page-title">YABS Results</h2>
             <div class="page-actions">
@@ -95,7 +95,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-action btn-delete" title="Delete"
-                                            @click="confirmDeleteModal" id="{{ $yab->id }}" data-title="{{ $yab->server->hostname }}">
+                                            data-id="{{ $yab->id }}" data-title="{{ $yab->server->hostname }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -109,12 +109,9 @@
         </div>
 
         <x-details-footer></x-details-footer>
-        <x-delete-confirm-modal></x-delete-confirm-modal>
+        <x-delete-confirm-modal uri="yabs" />
     </div>
 
-    <x-modal-delete-script>
-        <x-slot name="uri">yabs</x-slot>
-    </x-modal-delete-script>
 
     @section('scripts')
     @include('partials.datatable-init', ['tables' => ['#yabs-table'], 'noSort' => [13], 'empty' => 'No YABS results found'])
