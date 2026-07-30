@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.10-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.11-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,32 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.11` — July 2026
+
+_A fast follow to `ap.10`, fixing one visual regression it introduced. No database or
+configuration changes._
+
+> **If you are upgrading from `ap.9` or earlier, read the `ap.10` notes below first.** That
+> release contains the one breaking change in this series: **API tokens are now read from the
+> `Authorization: Bearer` header only** — `?api_token=`, a request-body field and the basic-auth
+> password are no longer accepted. Existing tokens keep working; only the transport moves.
+
+* **Sort arrows sat on the left of some column headers and the right of others.** DataTables
+  styles a column by the type it *detects*: a column it reads as numeric or date gets
+  `flex-direction: row-reverse` on its header, which moves the sort arrow to the left of the
+  title. Nothing declares that per column — it follows from the cell contents, so giving the
+  numeric columns proper sort keys in `ap.10` is what made the detection start firing. Exactly
+  the columns fixed there moved their arrows, and the rest did not. The same detection also
+  right-aligned the Price column, header and body cells, on servers, shared, reseller,
+  seedboxes, domains and misc — the other numeric columns were shielded by Bootstrap's
+  `.text-center`, whose `!important` blocked it, while Price carries only `.text-nowrap`. Both
+  pieces of type-based styling are now switched off: only the *ordering* behaviour is wanted
+  from type detection, not its opinion about layout, and alignment stays with the per-column
+  classes the views already set. 148 sortable headers now carry the arrow on the right, none on
+  the left
+
+Test suite: **658 tests / 2,246 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.10` — July 2026
 
@@ -721,7 +747,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.10` — note the Docker tag uses `-ap.10` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.11` — note the Docker tag uses `-ap.11` since `+` is not
 a valid Docker tag character).
 
 Notes:
