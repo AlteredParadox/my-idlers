@@ -128,9 +128,22 @@ jobs:
         with:
           name: coverage
 
-      # SonarQube Cloud: SONAR_TOKEN only. SONAR_HOST_URL is for self-hosted
-      # servers and setting it here would point the scan at the wrong place.
+      # SonarQube Cloud: SONAR_TOKEN only. SONAR_HOST_URL is the self-hosted
+      # knob and setting it in env would point the scan at the wrong place.
+      #
+      # The destination is pinned as a scanner argument instead, because a -D
+      # argument beats sonar-project.properties. This job runs on same-repo
+      # pull requests with SONAR_TOKEN in scope and checks out the PR's own
+      # content, so without this a pull request could add
+      # `sonar.host.url=https://…` to the properties file and redirect the
+      # scan -- taking the token with it. Note this closes the properties-file
+      # route only: anyone able to push a branch here can also edit this
+      # workflow, so the real boundary is still who has write access. If a
+      # collaborator is ever added, move SONAR_TOKEN into an Environment with
+      # required reviewers, which binds workflow edits too.
       - name: SonarQube scan
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
