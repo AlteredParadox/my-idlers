@@ -200,6 +200,55 @@ class TableSortKeyTest extends TestCase
         }
     }
 
+    /**
+     * DataTables styles a column by the type it detects: a numeric or date
+     * column gets `text-align: right` and a header `flex-direction:
+     * row-reverse`, which puts the sort arrow on the LEFT of the title. Giving
+     * columns proper sort keys is what makes that detection fire, so the arrows
+     * moved side on exactly the columns that were fixed -- and stayed put on
+     * the rest, leaving the header row inconsistent.
+     *
+     * The stylesheet switches both off. This asserts the override is still
+     * there and still specific enough to win: DataTables' own rules are
+     * (0,3,3) and (0,2,2), and naming thead/tbody/tr clears them on element
+     * count regardless of import order.
+     */
+    public function test_datatables_type_styling_is_neutralised()
+    {
+        $css = file_get_contents(resource_path('css/style.css'));
+
+        $this->assertStringContainsString(
+            'table.dataTable > thead > tr > th.dt-type-numeric > div.dt-column-header',
+            $css,
+            'the sort-arrow side override is gone -- numeric columns will flip their arrow to the left'
+        );
+        $this->assertStringContainsString('flex-direction: row;', $css);
+
+        $this->assertStringContainsString(
+            'table.dataTable > tbody > tr > td.dt-type-numeric',
+            $css,
+            'the alignment override is gone -- typed columns will right-align themselves'
+        );
+        $this->assertStringContainsString('text-align: inherit;', $css);
+    }
+
+    /**
+     * The built stylesheet is committed and served directly, so an override
+     * that only exists in source would never reach a browser.
+     */
+    public function test_the_type_styling_override_is_in_the_built_stylesheet()
+    {
+        $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+        $cssFiles = $manifest['resources/js/app.js']['css'] ?? [];
+
+        $this->assertNotEmpty($cssFiles, 'no CSS asset in the Vite manifest');
+
+        $built = file_get_contents(public_path('build/' . $cssFiles[0]));
+
+        $this->assertStringContainsString('th.dt-type-numeric>div.dt-column-header', str_replace(' ', '', $built));
+        $this->assertStringContainsString('flex-direction:row}', str_replace(' ', '', $built));
+    }
+
     public function test_address_sort_key_orders_by_address_not_text()
     {
         // The bug this key exists for: '45...' sorts after '205...' as text.
