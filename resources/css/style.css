@@ -178,3 +178,49 @@ Custom styles
 .auth-footer a:hover {
     text-decoration: underline;
 }
+
+/* ==========================================
+   DataTables column-type styling
+   ========================================== */
+
+/* DataTables 3 styles a column by the data type it DETECTS: a column it reads
+   as numeric or date gets `text-align: right`, and its header gets
+   `flex-direction: row-reverse`, which moves the sort arrow to the LEFT of the
+   title.
+
+   That detection is content-driven, so it changed under us when the numeric
+   columns were given proper `data-order` sort keys: columns that had been
+   detected as strings (because "512MB" and "1000" are not numbers) became
+   numeric, and silently moved their sort arrows to the other side. The result
+   was arrows on the left for some headers and the right for others.
+
+   Column alignment is the markup's business here -- the views set .text-center
+   / .text-nowrap deliberately, per column -- and the sort arrow belongs on the
+   right of every header, so both pieces of type-based styling are switched
+   off. Only the ordering behaviour is wanted from the type detection, not its
+   opinion about presentation.
+
+   Naming thead/tbody/tr takes these past DataTables' own (0,2,2) and (0,3,3)
+   selectors on element count alone, so the override holds regardless of
+   stylesheet import order (datatables.net-bs5 is imported ahead of this file
+   in app.css, but that is not something to depend on). */
+table.dataTable > thead > tr > th.dt-type-numeric > div.dt-column-header,
+table.dataTable > thead > tr > th.dt-type-date > div.dt-column-header,
+table.dataTable > thead > tr > td.dt-type-numeric > div.dt-column-header,
+table.dataTable > thead > tr > td.dt-type-date > div.dt-column-header,
+table.dataTable > tfoot > tr > th.dt-type-numeric > div.dt-column-footer,
+table.dataTable > tfoot > tr > th.dt-type-date > div.dt-column-footer {
+    flex-direction: row;
+}
+
+/* `inherit` rather than a fixed value: it hands alignment back to the cell's
+   own classes, so .text-center still centres and an unclassed cell (the Price
+   column) goes back to reading from the table. */
+table.dataTable > thead > tr > th.dt-type-numeric,
+table.dataTable > thead > tr > th.dt-type-date,
+table.dataTable > tbody > tr > td.dt-type-numeric,
+table.dataTable > tbody > tr > td.dt-type-date,
+table.dataTable > tfoot > tr > th.dt-type-numeric,
+table.dataTable > tfoot > tr > th.dt-type-date {
+    text-align: inherit;
+}
