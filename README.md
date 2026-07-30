@@ -62,9 +62,9 @@ settings page — with it disabled the app behaves like upstream.
 
 ## Fork revision `ap.10` — July 2026
 
-_A security release, from a full-repository audit. Two findings accounted for 65 of the 70
-reported issues, and both had a single root cause each. One breaking change: API tokens are
-now read from the `Authorization` header only._
+_A security release, from a full-repository audit, plus a table-sorting fix. Two audit
+findings accounted for 65 of the 70 reported issues, and both had a single root cause each.
+One breaking change: API tokens are now read from the `Authorization` header only._
 
 * **Vue is gone, and with it a client-side template injection on every index page.** The app
   shipped `vue.esm-bundler.js` — the Vue build that includes the browser template compiler —
@@ -95,6 +95,21 @@ now read from the `Authorization` header only._
   exits. It now runs through `Symfony\Component\Process` with a 5-second wall-clock timeout
   (an argument array, so no shell is spawned) and carries the same `throttle:10,1` as the web
   route
+* **Index tables sorted formatted numbers as text.** DataTables orders on a cell's text
+  unless the cell supplies a sort key, so YABS Geekbench scores ordered `1000, 300, 90`;
+  `512MB` sorted above `32GB` and `2TB` between `22GB` and `500GB`; and a price column
+  compared `107.88 USD p/y` against `50 USD p/m` digit by digit. Nine columns were affected
+  across YABS, shared, reseller, seedboxes, domains and misc — `/servers` already had sort
+  keys, and extending that same mechanism is the fix. Every key comes from a normalised
+  column the schema already carries (`ram_mb`, `disk_gb`, `disk_as_gb`, `*_as_mbps`,
+  `usd_per_month`), so display and ordering cannot drift apart. Note that Price therefore
+  sorts by monthly USD, comparable across currencies and billing terms, rather than by the
+  raw amount shown. The Geekbench key follows whichever score is displayed, since the cell
+  shows the v5 run when there is one and the v6 run otherwise
+* **IP addresses sorted as text**, putting `45.77.120.80` after `205.185.120.45`. The IP and
+  DNS address columns now order by address: `Process::addressSortKey()` packs the address
+  with `inet_pton`, whose fixed-width hex sorts lexicographically in exactly numeric order,
+  and groups IPv4 before IPv6 before the hostnames and MX values the DNS column also holds
 * **`TRUSTED_PROXIES='*'` is no longer the documented default.** `*` tells Laravel to believe
   the `X-Forwarded-*` headers on every request, so anything able to reach the container
   directly picks the client IP it logs and throttles by. The README and `.env.example` now
@@ -110,8 +125,10 @@ now read from the `Authorization` header only._
   triggers are `.btn-delete[data-id][data-title]` rather than `@click="confirmDeleteModal"`
 * `vue` is no longer a dependency, and `globalThis.Vue` is not defined
 
-Test suite: **648 tests / 2,192 assertions**, green on both SQLite and MySQL, plus a
-20-check headless-Chromium pass over the rewritten interactions under the tightened CSP.
+Test suite: **656 tests / 2,239 assertions**, green on both SQLite and MySQL, plus two
+headless-Chromium passes: 20 checks over the rewritten interactions under the tightened CSP,
+and a sweep that clicks every sortable column on every index page and verifies the resulting
+order against each column's real numeric meaning (52 numeric columns, all correct).
 
 ## Fork revision `ap.9` — July 2026
 

@@ -41,17 +41,17 @@
                                     {{ $yab->server->hostname }}
                                 </a>
                             </td>
-                            <td class="text-center" title="{{ $yab->cpu_model }}">{{ $yab->cpu_cores }}</td>
-                            <td class="text-center text-nowrap" title="{{ $yab->cpu_model }}">
+                            <td class="text-center" title="{{ $yab->cpu_model }}" data-order="{{ $yab->cpu_cores ?? 0 }}">{{ $yab->cpu_cores }}</td>
+                            <td class="text-center text-nowrap" title="{{ $yab->cpu_model }}" data-order="{{ $yab->cpu_freq ?? 0 }}">
                                 {{ $yab->cpu_freq }}<small class="text-muted">MHz</small>
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->ram_mb ?? 0 }}">
                                 {{ $yab->ram }}<small class="text-muted">{{ $yab->ram_type }}</small>
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->disk_gb ?? 0 }}">
                                 {{ $yab->disk }}<small class="text-muted">{{ $yab->disk_type }}</small>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" data-order="{{ $yab->gb5_id ? ($yab->gb5_single ?? 0) : ($yab->gb6_id ? ($yab->gb6_single ?? 0) : 0) }}">
                                 @if($yab->gb5_id)
                                     <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb5_single }}</a>
                                 @elseif($yab->gb6_id)
@@ -60,7 +60,7 @@
                                     —
                                 @endif
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" data-order="{{ $yab->gb5_id ? ($yab->gb5_multi ?? 0) : ($yab->gb6_id ? ($yab->gb6_multi ?? 0) : 0) }}">
                                 @if($yab->gb5_id)
                                     <a href="https://browser.geekbench.com/v5/cpu/{{ $yab->gb5_id }}" class="text-decoration-none" target="_blank">{{ $yab->gb5_multi }}</a>
                                 @elseif($yab->gb6_id)
@@ -76,16 +76,16 @@
                                     <span class="text-muted">No</span>
                                 @endif
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->disk_speed->d_4k_as_mbps ?? 0 }}">
                                 {{ $yab->disk_speed->d_4k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_4k_type ?? '' }}</small>
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->disk_speed->d_64k_as_mbps ?? 0 }}">
                                 {{ $yab->disk_speed->d_64k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_64k_type ?? '' }}</small>
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->disk_speed->d_512k_as_mbps ?? 0 }}">
                                 {{ $yab->disk_speed->d_512k ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_512k_type ?? '' }}</small>
                             </td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-center text-nowrap" data-order="{{ $yab->disk_speed->d_1m_as_mbps ?? 0 }}">
                                 {{ $yab->disk_speed->d_1m ?? '—' }}<small class="text-muted">{{ $yab->disk_speed->d_1m_type ?? '' }}</small>
                             </td>
                             <td class="text-center text-nowrap">{{ date_format(new DateTime($yab->output_date), 'Y-m-d') }}</td>
