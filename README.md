@@ -110,7 +110,7 @@ now read from the `Authorization` header only._
   triggers are `.btn-delete[data-id][data-title]` rather than `@click="confirmDeleteModal"`
 * `vue` is no longer a dependency, and `globalThis.Vue` is not defined
 
-Test suite: **647 tests / 2,168 assertions**, green on both SQLite and MySQL, plus a
+Test suite: **648 tests / 2,192 assertions**, green on both SQLite and MySQL, plus a
 20-check headless-Chromium pass over the rewritten interactions under the tightened CSP.
 
 ## Fork revision `ap.9` — July 2026
