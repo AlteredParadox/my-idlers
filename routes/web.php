@@ -33,7 +33,7 @@ require __DIR__ . '/auth.php';
 // as it keeps requesting, and each cache miss here also rebuilds the whole
 // public server set.
 Route::get('servers/public', [ServerController::class, 'showServersPublic'])
-    ->middleware('throttle:30,1')
+    ->middleware('throttle:public-page')
     ->name('servers.public');
 
 Route::middleware(['auth'])->group(function () {
@@ -70,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('settings', SettingsController::class)->only(['index', 'update']);
 
     Route::put('preferences/{key}', [PreferenceController::class, 'update'])
-        ->middleware('throttle:60,1')->name('preferences.update');
+        ->middleware('throttle:preferences')->name('preferences.update');
 
     Route::resource('seedboxes', SeedBoxesController::class);
 
@@ -87,7 +87,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers-compare-choose', [ServerController::class, 'chooseCompare'])->name('servers.compare-choose');
     Route::get('servers-compare/{server1}/{server2}', [ServerController::class, 'compareServers'])->name('servers.compare');
 
-    Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:10,1'])->name('ip.pull.info');
+    Route::get('ip/{ip}/pull-ip-info', [IPsController::class, 'getUpdateWhoIs'])->middleware(['throttle:tools'])->name('ip.pull.info');
     // Any path segment: a tracker hostname may be a bare IPv6 address or
     // non-ASCII, both of which the status matcher deliberately supports —
     // an ASCII-only class here made the index show live status while the
@@ -98,22 +98,22 @@ Route::middleware(['auth'])->group(function () {
     $domainRegex = '[a-zA-Z0-9._-]+';
     Route::get('tools/online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
         ->where('hostname', $hostnameRegex)
-        ->middleware(['throttle:10,1'])
+        ->middleware(['throttle:tools'])
         ->name('tools.online');
     Route::get('tools/dns/{domainName}/{type}', [ToolsController::class, 'getIpForDomain'])
         ->where(['domainName' => $domainRegex, 'type' => 'A|AAAA'])
-        ->middleware(['throttle:20,1'])
+        ->middleware(['throttle:dns-tools'])
         ->name('tools.dns');
     Route::get('tools/prometheus/status', [ToolsController::class, 'prometheusStatus'])
-        ->middleware(['throttle:30,1'])
+        ->middleware(['throttle:prometheus'])
         ->name('tools.prometheus.status');
     Route::get('tools/prometheus/detail/{hostname}/{period}/{back}', [ToolsController::class, 'prometheusDetail'])
         ->where(['hostname' => $hostnameRegex, 'period' => '[0-9]+[hdmy]', 'back' => '[0-9]+'])
-        ->middleware(['throttle:30,1'])
+        ->middleware(['throttle:prometheus'])
         ->name('tools.prometheus.detail');
 
     // Export routes (throttled: they eager-load whole tables and build files in memory)
-    Route::middleware('throttle:10,1')->group(function () {
+    Route::middleware('throttle:exports')->group(function () {
         Route::get('/export/servers', [ExportController::class, 'servers'])->name('export.servers');
         Route::get('/export/domains', [ExportController::class, 'domains'])->name('export.domains');
         Route::get('/export/shared', [ExportController::class, 'shared'])->name('export.shared');

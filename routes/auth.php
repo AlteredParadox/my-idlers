@@ -27,33 +27,33 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/register', [RegisteredUserController::class, 'create'])
-                ->middleware(['guest', 'throttle:30,1'])
+                ->middleware(['guest', 'throttle:guest-pages'])
                 ->name('register');
 
 Route::post('/register', [RegisteredUserController::class, 'store'])
-                ->middleware(['guest', 'throttle:6,1']);
+                ->middleware(['guest', 'throttle:credentials']);
 
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-                ->middleware(['guest', 'throttle:30,1'])
+                ->middleware(['guest', 'throttle:guest-pages'])
                 ->name('login');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
                 ->middleware('guest');
 
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
-                ->middleware(['guest', 'throttle:30,1'])
+                ->middleware(['guest', 'throttle:guest-pages'])
                 ->name('password.request');
 
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-                ->middleware(['guest', 'throttle:6,1'])
+                ->middleware(['guest', 'throttle:credentials'])
                 ->name('password.email');
 
 Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-                ->middleware(['guest', 'throttle:30,1'])
+                ->middleware(['guest', 'throttle:guest-pages'])
                 ->name('password.reset');
 
 Route::post('/reset-password', [NewPasswordController::class, 'store'])
-                ->middleware(['guest', 'throttle:6,1'])
+                ->middleware(['guest', 'throttle:credentials'])
                 ->name('password.update');
 
 Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])
@@ -61,11 +61,11 @@ Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke
                 ->name('verification.notice');
 
 Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-                ->middleware(['auth', 'signed', 'throttle:6,1'])
+                ->middleware(['auth', 'signed', 'throttle:credentials'])
                 ->name('verification.verify');
 
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-                ->middleware(['auth', 'throttle:6,1'])
+                ->middleware(['auth', 'throttle:credentials'])
                 ->name('verification.send');
 
 Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])
@@ -76,7 +76,7 @@ Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])
 // it this endpoint is an unlimited password oracle for anyone holding a
 // session, which is exactly the position the confirm screen exists to test.
 Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])
-                ->middleware(['auth', 'throttle:6,1']);
+                ->middleware(['auth', 'throttle:credentials']);
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
                 ->middleware('auth')

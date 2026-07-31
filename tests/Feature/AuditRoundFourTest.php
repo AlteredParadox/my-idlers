@@ -37,8 +37,70 @@ class AuditRoundFourTest extends TestCase
         );
 
         $this->assertNotNull($route, "no GET route for $uri");
-        $this->assertContains('throttle:30,1', $route->gatherMiddleware(),
+        $this->assertContains('throttle:guest-pages', $route->gatherMiddleware(),
             "GET /$uri is unthrottled, so anonymous session rows grow at request rate");
+    }
+
+    /**
+     * Throttle buckets must be INDEPENDENT.
+     *
+     * An inline `throttle:n,1` does not get its own counter: Laravel keys a
+     * guest by sha1(domain|ip) and an authenticated caller by user id, with
+     * the route absent from the key. Every inline throttle therefore shared
+     * one counter, and a high-limit route starved a low-limit one -- twelve
+     * ordinary login-page views (limit 30) pushed the shared count past 6, so
+     * the next POST /forgot-password (limit 6) answered 429 and the user could
+     * not request a reset.
+     *
+     * Named limiters key on by(), so this asserts no route is left using the
+     * inline numeric form.
+     */
+    public function test_no_route_uses_an_inline_numeric_throttle()
+    {
+        $offenders = [];
+
+        foreach (['routes/web.php', 'routes/auth.php', 'routes/api.php'] as $file) {
+            if (preg_match_all('/throttle:\d+/', file_get_contents(base_path($file)), $m)) {
+                foreach ($m[0] as $hit) {
+                    $offenders[] = "$file: $hit";
+                }
+            }
+        }
+
+        $this->assertSame([], $offenders,
+            'an inline numeric throttle shares one counter with every other throttled route');
+    }
+
+    public function test_page_views_do_not_consume_the_credential_budget()
+    {
+        \App\Models\User::factory()->create(['email' => 'known@example.com']);
+
+        // Well past the credential limit of 6, but these are page views.
+        for ($i = 0; $i < 12; $i++) {
+            $this->get('/login')->assertStatus(200);
+        }
+
+        $this->post('/forgot-password', ['email' => 'known@example.com'])
+            ->assertStatus(302);
+    }
+
+    /**
+     * Isolating the buckets must not have loosened the credential budget.
+     * /forgot-password is used rather than /login because the login POST hits
+     * Laravel's own per-email limiter first, which answers with a validation
+     * error rather than a 429 -- a different control from the route throttle
+     * under test here.
+     */
+    public function test_the_credential_budget_still_bites()
+    {
+        \App\Models\User::factory()->create(['email' => 'known@example.com']);
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->post('/forgot-password', ['email' => 'known@example.com']);
+        }
+
+        $this->post('/forgot-password', ['email' => 'known@example.com'])
+            ->assertStatus(429);
     }
 
     /**

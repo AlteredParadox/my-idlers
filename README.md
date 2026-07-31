@@ -60,6 +60,25 @@ settings page — with it disabled the app behaves like upstream.
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
 
+## Fork revision `ap.13` — unreleased
+
+_A fast follow to `ap.12`, fixing one availability regression it introduced. No database or
+configuration changes. Version stamps still read `ap.12` and are bumped when this is tagged._
+
+* **Throttle buckets were not independent, and `ap.12` made that harmful.** An inline
+  `throttle:n,1` does not get its own counter: Laravel keys a guest by `sha1(domain|ip)` and an
+  authenticated caller by user id, with the *route absent from the key*. Every inline throttle on
+  the site therefore shared ONE counter per identity, each route merely comparing that shared count
+  against its own limit — so a high-limit route starved a low-limit one. Adding a 30/minute
+  throttle to the guest GET pages in `ap.12` put ordinary page views into the same counter as the
+  6/minute credential POSTs: **twelve login-page views were enough to make `POST /forgot-password`
+  answer 429**, locking a user out of password reset. Every throttled route now uses a named
+  limiter, whose `by()` key gives each bucket its own counter. The credential budget is unchanged —
+  login, registration, reset request, reset submission, password confirmation and the verification
+  resend still share one 6/minute budget, which is what the previous inline throttles added up to
+
+Test suite: **733 tests / 2,404 assertions**, green on both SQLite and MySQL.
+
 ## Fork revision `ap.12` — July 2026
 
 _A security release covering three audit passes: 18, 15 and 3 findings respectively, including one
