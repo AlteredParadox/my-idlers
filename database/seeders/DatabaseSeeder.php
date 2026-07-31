@@ -62,6 +62,25 @@ class DatabaseSeeder extends Seeder
         // config(), not env(): under a cached config (standard production
         // step) env() returns null at runtime and the demo set silently
         // never seeded — the CLI residual of the max_users class.
-        return filter_var(config('custom.seed_demo_data'), FILTER_VALIDATE_BOOL);
+        if (!filter_var(config('custom.seed_demo_data'), FILTER_VALIDATE_BOOL)) {
+            return false;
+        }
+
+        // The demo set includes a verified administrator with credentials
+        // published in the README. That is fine for a local look around and a
+        // full takeover of anything reachable, so production has to say so
+        // twice: SEED_DEMO_DATA alone is not enough there. The escape hatch
+        // exists because a public demo instance is a legitimate thing to run.
+        if (app()->environment('production')
+            && !filter_var(config('custom.allow_demo_data_in_production'), FILTER_VALIDATE_BOOL)) {
+            $this->command?->warn(
+                'Refusing to seed demo data in production: it creates ' . UsersSeeder::DEMO_EMAIL
+                . ' with a documented password. Set ALLOW_DEMO_DATA_IN_PRODUCTION=true if that is genuinely intended.'
+            );
+
+            return false;
+        }
+
+        return true;
     }
 }

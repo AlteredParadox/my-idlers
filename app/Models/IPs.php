@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\BoundedHttp;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -162,24 +163,23 @@ class IPs extends Model
         return $this->hasOne(Note::class, 'service_id', 'id');
     }
 
+    /** A whois record is well under a kilobyte; ample headroom. */
+    private const MAX_WHOIS_BYTES = 512 * 1024;
+
     public static function getUpdateIpInfo(IPs $ip): bool
     {
-        try {
-            // Explicit short timeouts: this runs on the synchronous create
-            // path, and the default (no timeout) let a slow upstream tie up
-            // a web worker indefinitely.
-            $response = Http::connectTimeout(3)->timeout(5)
-                ->get("https://ipwhois.app/json/{$ip->address}");
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // DNS/timeout/unreachable: don't 500 the IP create; callers treat
-            // false as "whois unavailable" and continue.
-            return false;
-        }
+        // Explicit short timeouts AND a size cap: this runs on the synchronous
+        // create path. The timeouts stop a slow upstream tying up a web worker;
+        // the cap stops a fast one that returns an enormous body from being
+        // materialized in full before anything can reject it. A whois record is
+        // well under a kilobyte.
+        $data = BoundedHttp::json("https://ipwhois.app/json/{$ip->address}", self::MAX_WHOIS_BYTES);
 
-        // ipwhois.app returns HTTP 200 with success:false when rate-limited;
-        // bail so we don't overwrite good whois data with nulls.
-        $data = $response->ok() ? $response->json() : null;
-        if (!($data['success'] ?? false)) {
+        // Null covers DNS/timeout/unreachable/oversize/non-2xx alike: callers
+        // treat false as "whois unavailable" and continue rather than 500ing
+        // the IP create. ipwhois.app also returns HTTP 200 with success:false
+        // when rate-limited, so bail on that too and keep the existing data.
+        if ($data === null || !($data['success'] ?? false)) {
             return false;
         }
 

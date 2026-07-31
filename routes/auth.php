@@ -56,8 +56,11 @@ Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])
                 ->middleware('auth')
                 ->name('password.confirm');
 
+// Throttled like every other credential-checking POST in this file: without
+// it this endpoint is an unlimited password oracle for anyone holding a
+// session, which is exactly the position the confirm screen exists to test.
 Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])
-                ->middleware('auth');
+                ->middleware(['auth', 'throttle:6,1']);
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
                 ->middleware('auth')

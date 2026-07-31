@@ -48,9 +48,22 @@
                                     </td>
                                     <td class="text-center">{!! App\Models\Server::osIntToIcon($s->os->name ?? '') !!}</td>
                                     <td class="text-center">{{ $s->cpu }}</td>
-                                    <td class="text-center text-nowrap">{{ $s->yabs[0]->cpu_freq ?? '—' }}</td>
+                                    {{-- YABS-derived, so gated like the Geekbench and disk-speed
+                                         cells below: with Show YABS off the benchmark measured
+                                         nothing the public is meant to see. --}}
                                     <td class="text-center text-nowrap">
-                                        @if(isset($s->yabs[0]->ram))
+                                        @if((int) $settings->show_server_value_yabs === 1)
+                                            {{ $s->yabs[0]->cpu_freq ?? '—' }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        {{-- The YABS reading is what the benchmark MEASURED; the
+                                             fallback is the operator's own configured figure. Only
+                                             the measured one is gated -- hiding YABS should fall
+                                             back to the configured value, not blank the column. --}}
+                                        @if((int) $settings->show_server_value_yabs === 1 && isset($s->yabs[0]->ram))
                                             {{ $s->yabs[0]->ram }}<small class="text-muted">{{ $s->yabs[0]->ram_type }}</small>
                                         @else
                                             {{ $s->ram_as_mb }}<small class="text-muted">MB</small>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\BoundedHttp;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,9 @@ class Pricing extends Model
 
     protected $fillable = ['service_id', 'service_type', 'currency', 'price', 'term', 'as_usd', 'usd_per_month', 'next_due_date', 'active'];
 
+    /** The rates document is a few KB; this is orders of magnitude of headroom. */
+    private const MAX_RATES_BYTES = 2 * 1024 * 1024;
+
     private static function refreshRates(): object
     {
         // Single read, not has()+get(): halves the cache round-trips (this
@@ -33,18 +37,48 @@ class Pricing extends Model
         }
 
         try {
-            $response = Http::timeout(5)->get($url)->throw()->object();
-            if ('success' === ($response->result ?? null)) {
-                return Cache::remember("currency_rates", now()->addWeek(1), function () use ($response) {
-                    return $response->rates;
+            // Size-capped: the rates document is a few KB, and this runs on a
+            // synchronous web request, so an endpoint that returns something
+            // enormous must not be materialized in full first.
+            $payload = BoundedHttp::json($url, self::MAX_RATES_BYTES);
+            if ($payload === null) {
+                Log::error("exchange rate fetch returned nothing usable");
+
+                return (object)null;
+            }
+
+            if ('success' === ($payload['result'] ?? null)) {
+                $rates = (object) ($payload['rates'] ?? []);
+
+                return Cache::remember("currency_rates", now()->addWeek(1), function () use ($rates) {
+                    return $rates;
                 });
             }
-            Log::error("exchange rate response is " . ($response->result ?? 'unknown') . ", expecting success");
+            Log::error("exchange rate response is " . ($payload['result'] ?? 'unknown') . ", expecting success");
         } catch (Exception $e) {
             Log::error("failed to fetch exchange rates", ['err' => $e]);
         }
 
         return (object)null;
+    }
+
+    /**
+     * A rate is usable only if it is a finite, strictly positive number.
+     *
+     * is_numeric alone is not enough: it rejects NAN/INF as floats (they are
+     * numeric) and accepts numeric STRINGS, which JSON can carry. Every branch
+     * here is reachable from a rates provider returning something other than
+     * the documented shape.
+     */
+    private static function isUsableRate(mixed $rate): bool
+    {
+        if (!is_int($rate) && !is_float($rate) && !(is_string($rate) && is_numeric($rate))) {
+            return false;
+        }
+
+        $value = (float) $rate;
+
+        return is_finite($value) && $value > 0;
     }
 
     private static function getRates($currency): float
@@ -53,18 +87,26 @@ class Pricing extends Model
         // currency (e.g. rates fetch failed) raises ErrorException before any
         // fallback can apply.
         $rate = self::refreshRates()->$currency ?? null;
-        if ($rate === null) {
+
+        // A null rate is the missing-currency case. A rate that is PRESENT but
+        // unusable is the upstream-data case, and it has to be rejected here
+        // too: usdEquivalent() divides by this value, so a zero rate is a
+        // DivisionByZeroError, and a negative, non-numeric, NAN or INF one
+        // silently writes a corrupted as_usd that outlives the bad response.
+        // Both degrade to 1:1 rather than 500ing a display path.
+        if (!self::isUsableRate($rate)) {
             if ($currency !== 'USD') {
-                // Reachable only for legacy/stale rows: validation blocks new
-                // writes with unrated currencies. Display paths must not 500,
-                // so degrade to 1:1 — but loudly.
-                Log::warning("no exchange rate available for $currency; converting 1:1");
+                // Reachable for legacy/stale rows (validation blocks new
+                // writes with unrated currencies) and for a hostile or broken
+                // rates provider. Display paths must not 500, so degrade to
+                // 1:1 — but loudly.
+                Log::warning("no usable exchange rate for $currency; converting 1:1", ['rate' => $rate]);
             }
 
             return 1.00;
         }
 
-        return $rate;
+        return (float) $rate;
     }
 
     /**

@@ -60,6 +60,66 @@ settings page — with it disabled the app behaves like upstream.
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
 
+## Fork revision `ap.12` — unreleased
+
+_Accumulating. The version stamps (badge, `EXPORT_VERSION`, docker-tag example) still read `ap.11`
+and are bumped when this revision is actually tagged._
+
+_A second security audit pass. 18 findings, 3 of them medium; 13 fixed, 5 assessed and
+deliberately left. No database changes._
+
+* **The account page now asks for your password before saving.** `AccountController::update()`
+  can replace the account recovery email *and* mint a fresh API token, with no proof the caller
+  knows the password — so a stolen session could convert itself into permanent access: move the
+  email so password reset goes elsewhere, rotate a token so access survives a password change.
+  Both now sit behind Laravel's `password.confirm`. Viewing the page is unchanged; saving prompts
+  once, then returns you to the account page to submit again
+* **`POST /confirm-password` was an unthrottled password oracle.** Every other credential-checking
+  POST in `routes/auth.php` already carried `throttle:6,1`; this one, whose entire job is testing
+  passwords, did not
+* **nginx was logging live capabilities to container stdout.** The stock `combined` format logs the
+  whole request line, so password-reset tokens (which sit in the path) and signed YABS URL
+  signatures (which sit in the query) were landing in plaintext where any log shipper could read
+  them. The access log now uses a format that drops the query string entirely and redacts the
+  `/reset-password/…` and `/verify-email/…` path segments
+* **The public server page ignored the Show YABS setting for two fields.** CPU frequency and the
+  YABS-*measured* RAM rendered unconditionally, while the Geekbench and disk-speed cells directly
+  beside them in the same template were correctly gated. Hiding YABS now falls back to the
+  operator's own configured RAM figure rather than blanking the column
+* **Exchange rates were used without checking they are usable.** `usdEquivalent()` divides by the
+  rate, and only a `null` was rejected — so a provider returning `0` was a `DivisionByZeroError`,
+  and a negative, non-numeric, `NAN` or `INF` rate silently wrote a corrupted `as_usd` that
+  outlived the response causing it. Rates are cached for a week, so one bad response had a long
+  tail. All unusable shapes now degrade to 1:1, loudly
+* **Demo data is refused in production.** The demo set creates a verified administrator whose
+  password is published in this README, so `SEED_DEMO_DATA=true` on a reachable deployment handed
+  it to anyone who read the docs. Production now needs `ALLOW_DEMO_DATA_IN_PRODUCTION=true` as
+  well — a public demo instance is legitimate, so this is a second switch rather than a block
+* **`TrustHosts` trusted every subdomain of `APP_URL`.** Laravel's default is
+  `^(.+\.)?example\.com$`, so anyone controlling any subdomain — a stale DNS entry, a takeover of
+  an unused name — could send a `Host` header the app accepts, and password-reset mail is built
+  from that host. Now pinned to the exact host, which is what this README already claimed
+* **Bounds on request-driven external work.** An 8 MB ceiling on any single Prometheus response
+  (a timeout bounds how *long* a reply takes, not how *big*); a 25-instance cap on the
+  offline-since range-query fan-out, whose cost otherwise scaled with the number of *down* targets
+  — exactly the number that spikes when the status page is most likely to be loaded; and a
+  streaming size cap on the exchange-rate and IP-whois fetches, both of which run synchronously on
+  a web request
+
+### Assessed and deliberately not fixed
+
+* **Signed YABS runs have no per-capability quota** — the route already carries `throttle:4`,
+  bounding this at roughly 2,880 rows across a 12-hour signature, and it needs a compromised
+  monitored host to begin with
+* **The API A-record lookup can block on DNS** — accurate, but `dns_get_record()` has no timeout
+  knob; bounding it means a resolver library or another child process, which is disproportionate
+* **Fresh bearer tokens pass through the unencrypted session table** — true, but that same row
+  holds the session cookie's server-side state, which already grants full operator access
+* **`export/all` materializes whole tables in memory** — unchanged assessment from the previous
+  audit: authenticated, self-owned, small datasets; the worst case is 500ing your own request
+
+Test suite: **690 tests / 2,321 assertions**, green on both SQLite and MySQL.
+
 ## Fork revision `ap.11` — July 2026
 
 _A fast follow to `ap.10`, fixing one visual regression it introduced. No database or
@@ -622,6 +682,7 @@ php artisan migrate:fresh --seed
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SEED_DEMO_DATA` | `false` | Set to `true` to seed demo user and sample data during `migrate:fresh --seed` |
+| `ALLOW_DEMO_DATA_IN_PRODUCTION` | `false` | Required **in addition** to `SEED_DEMO_DATA` when `APP_ENV=production`. The demo set creates a verified administrator with the password documented below, so seeding it on a reachable deployment hands that deployment to anyone who reads this file. Only set it if you are deliberately running a public demo |
 | `MAX_USERS` | `1` | Registration closes once this many users exist. `0` = unlimited — every account has full access to all stored data, so only raise this deliberately |
 
 ### Demo Login Credentials
