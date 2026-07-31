@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.11-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.12-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -60,13 +60,23 @@ settings page — with it disabled the app behaves like upstream.
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
 
-## Fork revision `ap.12` — unreleased
+## Fork revision `ap.12` — July 2026
 
-_Accumulating. The version stamps (badge, `EXPORT_VERSION`, docker-tag example) still read `ap.11`
-and are bumped when this revision is actually tagged._
+_A security release covering three audit passes: 18, 15 and 3 findings respectively, including one
+**high**. Everything reported was verified against the code before being fixed or rejected, and the
+rejections are recorded below rather than left implicit._
 
-_A second security audit pass. 18 findings, 3 of them medium; 13 fixed, 5 assessed and
-deliberately left. No database changes._
+> **Upgrading?** This revision **adds a migration** (the `jobs` and `failed_jobs` tables backing the
+> new queue worker). `AUTO_MIGRATE=true` applies it on boot; without it the container refuses to
+> start and says so. This is the first of these audit revisions to change the schema, so rolling
+> back past it is not as clean as the previous ones.
+>
+> If you are coming from **`ap.9` or earlier**, note that `ap.10` carries the one breaking change in
+> this series: API tokens are read from the `Authorization: Bearer` header only.
+
+#### Second audit pass
+
+_18 findings, 3 of them medium; 13 fixed, 5 assessed and deliberately left._
 
 * **The account page now asks for your password before saving.** `AccountController::update()`
   can replace the account recovery email *and* mint a fresh API token, with no proof the caller
@@ -886,7 +896,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.11` — note the Docker tag uses `-ap.11` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.12` — note the Docker tag uses `-ap.12` since `+` is not
 a valid Docker tag character).
 
 Notes:
