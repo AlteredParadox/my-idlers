@@ -99,7 +99,12 @@ class Round76RegressionTest extends TestCase
         $this->injectBefore('update', 'users', fn() => DB::table('users')
             ->where('id', $other->id)->update(['email' => 'contested@example.com']));
 
+        // Account update is behind password.confirm (it can move the recovery
+        // email and mint an API token). This test is about the unique-index
+        // race behind that gate, so satisfy the gate and leave it to
+        // AccountStepUpTest to prove the gate itself.
         $response = $this->actingAs($me)
+            ->withSession(['auth.password_confirmed_at' => time()])
             ->from(route('account.index'))
             ->put(route('account.update', $me), [
                 'name' => $me->name, 'email' => 'contested@example.com',

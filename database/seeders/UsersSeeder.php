@@ -10,11 +10,14 @@ use Illuminate\Support\Str;
 
 class UsersSeeder extends Seeder
 {
+    /** Published in the README, so the production guard names it explicitly. */
+    public const DEMO_EMAIL = 'admin@admin.com';
+
     public function run()
     {
         DB::table('users')->insert([
             'name' => 'Admin',
-            'email' => 'admin@admin.com',
+            'email' => self::DEMO_EMAIL,
             'password' => Hash::make('password'),
             'api_token' => \App\Models\User::hashApiToken(Str::random(60)),
             'email_verified_at' => Carbon::now(),

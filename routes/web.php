@@ -30,7 +30,15 @@ require __DIR__ . '/auth.php';
 Route::get('servers/public', [ServerController::class, 'showServersPublic'])->name('servers.public');
 
 Route::middleware(['auth'])->group(function () {
-    Route::resource('account', AccountController::class)->only(['index', 'update']);
+    // Step-up on update only: it can move the account recovery email AND mint
+    // a fresh API token, so a hijacked session would otherwise convert itself
+    // into permanent access without ever proving it knows the password.
+    // Viewing the page stays open, or the confirm screen could never be
+    // reached from it.
+    Route::resource('account', AccountController::class)->only(['index']);
+    Route::put('account/{account}', [AccountController::class, 'update'])
+        ->middleware('password.confirm')
+        ->name('account.update');
 
     Route::resource('dns', DNSController::class);
 
