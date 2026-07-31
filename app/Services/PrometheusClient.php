@@ -60,6 +60,33 @@ class PrometheusClient
      */
     private const MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
 
+    /**
+     * The size guard itself, as a cURL write callback.
+     *
+     * Extracted so the control can be exercised without a network: it is the
+     * piece that decides when to abandon a response, and "returned a short
+     * count so cURL aborts" is not something a mocked client would ever show.
+     *
+     * @param string $body        accumulates the bytes seen so far
+     * @param bool   $overflowed  set once the cap is passed
+     */
+    public static function sizeCappedWriter(string &$body, bool &$overflowed, int $limit): \Closure
+    {
+        return function ($ch, string $chunk) use (&$body, &$overflowed, $limit): int {
+            $body .= $chunk;
+
+            if (strlen($body) > $limit) {
+                $overflowed = true;
+
+                // A write count that differs from the chunk length is cURL's
+                // documented signal to abort the transfer.
+                return 0;
+            }
+
+            return strlen($chunk);
+        };
+    }
+
     private function fetch(string $url, int $timeout = 5): ?array
     {
         $body = '';
@@ -73,16 +100,7 @@ class PrometheusClient
             // instead of buffering all of it and checking afterwards.
             CURLOPT_TIMEOUT => $timeout,
             CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_WRITEFUNCTION => function ($ch, $chunk) use (&$body, &$overflowed) {
-                $body .= $chunk;
-                if (strlen($body) > self::MAX_RESPONSE_BYTES) {
-                    $overflowed = true;
-
-                    return 0;   // short write: tells cURL to abort the transfer
-                }
-
-                return strlen($chunk);
-            },
+            CURLOPT_WRITEFUNCTION => self::sizeCappedWriter($body, $overflowed, self::MAX_RESPONSE_BYTES),
             // Restrict to HTTP(S) so a crafted prometheus_url can't reach
             // file://, gopher://, dict:// etc. Private/internal addresses are
             // intentionally allowed: a self-hosted Prometheus normally lives
