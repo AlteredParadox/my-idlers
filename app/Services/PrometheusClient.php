@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Settings;
+use Illuminate\Support\Facades\Log;
 
 class PrometheusClient
 {
@@ -48,14 +49,40 @@ class PrometheusClient
         return rtrim($this->settings()->prometheus_url, '/');
     }
 
+    /**
+     * Ceiling on one Prometheus response body.
+     *
+     * A timeout bounds how LONG a response takes, not how BIG it is: a fast
+     * upstream returning a huge result set is decoded into PHP arrays in one
+     * go, and json_decode of a multi-hundred-megabyte body exhausts the worker
+     * before any application limit applies. 8 MB is far above a normal reply
+     * from this app's queries (a few hundred series at most).
+     */
+    private const MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
+
     private function fetch(string $url, int $timeout = 5): ?array
     {
+        $body = '';
+        $overflowed = false;
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
+            // Collected through a write callback rather than RETURNTRANSFER so
+            // the transfer can be aborted mid-body once it exceeds the cap,
+            // instead of buffering all of it and checking afterwards.
             CURLOPT_TIMEOUT => $timeout,
             CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_WRITEFUNCTION => function ($ch, $chunk) use (&$body, &$overflowed) {
+                $body .= $chunk;
+                if (strlen($body) > self::MAX_RESPONSE_BYTES) {
+                    $overflowed = true;
+
+                    return 0;   // short write: tells cURL to abort the transfer
+                }
+
+                return strlen($chunk);
+            },
             // Restrict to HTTP(S) so a crafted prometheus_url can't reach
             // file://, gopher://, dict:// etc. Private/internal addresses are
             // intentionally allowed: a self-hosted Prometheus normally lives
@@ -63,15 +90,23 @@ class PrometheusClient
             CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         ]);
-        $response = curl_exec($ch);
+        $ok = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || $response === false) {
+        if ($overflowed) {
+            Log::warning('Prometheus response exceeded the response-size cap; discarding', [
+                'limit_bytes' => self::MAX_RESPONSE_BYTES,
+            ]);
+
             return null;
         }
 
-        return json_decode($response, true);
+        if ($httpCode !== 200 || $ok === false) {
+            return null;
+        }
+
+        return json_decode($body, true);
     }
 
     /** Full response body for an instant query, or null on failure */

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
 
 class PrometheusService
 {
@@ -137,14 +138,39 @@ class PrometheusService
         return $metrics;
     }
 
+    /**
+     * How many offline instances get the "when did it go down" treatment.
+     *
+     * offlineSince() issues up to one range query PER TIER, sequentially, so
+     * the cost of this one page scales with the number of DOWN targets in
+     * Prometheus -- which the app does not control and which is exactly the
+     * number that spikes during an outage, the moment the status page is most
+     * likely to be loaded. Past this many, the remaining rows still render as
+     * offline; they just do not carry a since-timestamp.
+     */
+    private const MAX_OFFLINE_LOOKUPS = 25;
+
     private function addOfflineSince(array $upResults, array &$metrics): void
     {
+        $looked = 0;
+
         foreach ($upResults as $result) {
             if (PromQL::isUp($result)) {
                 continue;
             }
             $instance = $result['metric']['instance'] ?? '';
+
+            if ($looked >= self::MAX_OFFLINE_LOOKUPS) {
+                $metrics[$instance]['offline_since'] = null;
+                continue;
+            }
+
+            $looked++;
             $metrics[$instance]['offline_since'] = $this->offlineSince($instance);
+        }
+
+        if ($looked >= self::MAX_OFFLINE_LOOKUPS) {
+            Log::info('Prometheus offline-since lookups capped', ['limit' => self::MAX_OFFLINE_LOOKUPS]);
         }
     }
 
