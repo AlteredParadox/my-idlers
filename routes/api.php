@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Signed webhook — the one route NOT behind auth:api
-Route::middleware(['throttle:4', 'signed'])->post('yabs/{server}', [ServerManagementController::class, 'storeYabs'])->name('api.store-yabs');
+Route::middleware(['throttle:yabs-ingest', 'signed'])->post('yabs/{server}', [ServerManagementController::class, 'storeYabs'])->name('api.store-yabs');
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -83,7 +83,7 @@ Route::middleware('auth:api')->group(function () {
     // for as long as the destination stays slow or unresponsive.
     Route::get('online/{hostname}', [ToolsController::class, 'checkHostIsUp'])
         ->where('hostname', '[^/]+')
-        ->middleware(['throttle:10,1']);
+        ->middleware(['throttle:ping']);
 
     Route::get('prometheus/status', [ToolsController::class, 'prometheusStatus']);
     Route::get('prometheus/detail/{hostname}/{period}/{back}', [ToolsController::class, 'prometheusDetail'])

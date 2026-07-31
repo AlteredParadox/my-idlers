@@ -30,11 +30,17 @@ class PingResourceBoundsTest extends TestCase
         $this->fail("route $uri not registered");
     }
 
+    /**
+     * Named limiters now, not inline `throttle:10,1`: an inline throttle shares
+     * one counter with every other throttled route for the same identity, so a
+     * chattier endpoint could exhaust this one's budget.
+     */
     public function test_both_ping_routes_carry_the_dedicated_limiter()
     {
-        foreach (['api/online/{hostname}', 'tools/online/{hostname}'] as $uri) {
+        foreach (['api/online/{hostname}' => 'throttle:ping',
+                  'tools/online/{hostname}' => 'throttle:tools'] as $uri => $limiter) {
             $this->assertContains(
-                'throttle:10,1',
+                $limiter,
                 $this->routeFor($uri)->gatherMiddleware(),
                 "$uri lost its dedicated ping limiter"
             );
