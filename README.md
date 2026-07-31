@@ -152,6 +152,30 @@ _A third pass found 15 more, including one **high** that the second pass's own f
   Ambiguity now resolves to nothing — "no monitoring data" is visible and correctable, confidently
   wrong data is not
 
+#### Fourth audit pass
+
+_Three findings, all in one area: what an unauthenticated caller can make the server do._
+
+* **Guest pages persisted a session row per anonymous request.** Measured at one row per fresh
+  cookie-less request with the shipped database driver — including for a 404 — so a caller that
+  discards cookies grows the `sessions` table for as long as it keeps asking. Worth recording what
+  this is *not*: the audit attributed it to the settings-snapshot middleware forcing a save, but
+  disabling that middleware entirely changes nothing, and these pages cannot drop their session
+  anyway because the login and reset forms need a CSRF token bound to one. It is Laravel's session
+  handling, so the fix is a bound rather than a redesign: the four guest GET routes are now
+  throttled like their POST counterparts already were, making growth at most rate ×
+  `SESSION_LIFETIME`, which the session GC lottery prunes
+* **SMTP had no application-level deadline.** `timeout` was `null`, so a stalled or tarpitting mail
+  server held the PHP worker talking to it indefinitely — and with inline sending that worker was
+  serving a public request. Now an explicit `MAIL_TIMEOUT`, defaulting to 10 seconds
+* **The image now runs a queue worker, so password-reset mail leaves the request.** The previous
+  pass made the reset notification queueable, but the shipped image set `QUEUE_CONNECTION=sync`,
+  which sends inline — so it was a no-op exactly where it mattered. The image now uses the database
+  queue with a supervised, unprivileged worker (recycled hourly, failures landing in `failed_jobs`
+  rather than looping). Measured in the built image: the response for a known account and an
+  unknown one are now 0.2210s and 0.2218s — indistinguishable, where the known-account branch
+  previously carried the whole SMTP conversation
+
 ### Assessed and deliberately not fixed
 
 * **Signed YABS runs have no per-capability quota** — the route already carries `throttle:4`,
@@ -172,7 +196,7 @@ _A third pass found 15 more, including one **high** that the second pass's own f
 * **The YABS install pipes a remote script to a shell** — that is the upstream project's own
   documented workflow, not code this app ships or invokes
 
-Test suite: **721 tests / 2,366 assertions**, green on both SQLite and MySQL.
+Test suite: **730 tests / 2,389 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.11` — July 2026
 
