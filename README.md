@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.12-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.13-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -60,10 +60,11 @@ settings page — with it disabled the app behaves like upstream.
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
 
-## Fork revision `ap.13` — unreleased
+## Fork revision `ap.13` — July 2026
 
-_A fast follow to `ap.12`, fixing one availability regression it introduced. No database or
-configuration changes. Version stamps still read `ap.12` and are bumped when this is tagged._
+_A fast follow to `ap.12`, fixing one availability regression it introduced and one
+account-enumeration path found while reproducing it. No database or configuration changes, so
+rolling back to `ap.12` is clean — though `ap.12` is the release with the lockout._
 
 * **Throttle buckets were not independent, and `ap.12` made that harmful.** An inline
   `throttle:n,1` does not get its own counter: Laravel keys a guest by `sha1(domain|ip)` and an
@@ -925,7 +926,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.12` — note the Docker tag uses `-ap.12` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.13` — note the Docker tag uses `-ap.13` since `+` is not
 a valid Docker tag character).
 
 Notes:
