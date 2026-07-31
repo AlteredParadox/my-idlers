@@ -110,7 +110,7 @@ class AuditRoundThreeTest extends TestCase
         $route = collect(Route::getRoutes())->first(fn($r) => $r->uri() === 'servers/public');
 
         $this->assertNotNull($route);
-        $this->assertContains('throttle:30,1', $route->gatherMiddleware(),
+        $this->assertContains('throttle:public-page', $route->gatherMiddleware(),
             'the public page can be hit without limit, and each request persists a session row');
     }
 
