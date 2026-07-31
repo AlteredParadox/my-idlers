@@ -42,6 +42,38 @@ class AuditRoundFourTest extends TestCase
     }
 
     /**
+     * Delivery is only ATTEMPTED for an address that exists, so anything the
+     * delivery path throws happens for real accounts and not for unknown ones.
+     * With an unreachable mail server this endpoint answered 500 for a
+     * registered address and 302 for an unregistered one -- a cleaner
+     * account-existence oracle than any timing difference, and reachable
+     * wherever delivery is inline (QUEUE_CONNECTION=sync, which .env.example
+     * ships and the documented non-Docker install inherits).
+     */
+    public function test_a_delivery_failure_is_indistinguishable_from_an_unknown_address()
+    {
+        \App\Models\User::factory()->create(['email' => 'known@example.com']);
+
+        // Fail delivery the way an unreachable mail server does: a real
+        // connection attempt to a closed port, rather than a mocked sender
+        // that might not throw from the same place.
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => '127.0.0.1',
+            'mail.mailers.smtp.port' => 1,
+            'mail.mailers.smtp.timeout' => 1,
+            'queue.default' => 'sync',
+        ]);
+
+        $unknown = $this->post('/forgot-password', ['email' => 'nobody@example.com']);
+        $known = $this->post('/forgot-password', ['email' => 'known@example.com']);
+
+        $this->assertSame($unknown->getStatusCode(), $known->getStatusCode(),
+            'a delivery failure reveals that the account exists');
+        $this->assertSame(302, $known->getStatusCode());
+    }
+
+    /**
      * Throttle buckets must be INDEPENDENT.
      *
      * An inline `throttle:n,1` does not get its own counter: Laravel keys a

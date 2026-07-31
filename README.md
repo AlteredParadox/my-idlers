@@ -77,7 +77,17 @@ configuration changes. Version stamps still read `ap.12` and are bumped when thi
   login, registration, reset request, reset submission, password confirmation and the verification
   resend still share one 6/minute budget, which is what the previous inline throttles added up to
 
-Test suite: **733 tests / 2,404 assertions**, green on both SQLite and MySQL.
+* **A failed reset email revealed that the account exists.** Delivery is only *attempted* for an
+  address that exists, so anything thrown out of it happens for real accounts and not for unknown
+  ones: with an unreachable mail server `/forgot-password` answered **500** for a registered address
+  and **302** for an unregistered one — a cleaner account-existence oracle than any timing
+  difference. Reachable wherever delivery is inline, which is `QUEUE_CONNECTION=sync`: what
+  `.env.example` ships, and therefore what the documented non-Docker production install inherits.
+  The container's queue worker owns delivery, so this was never exposed there. The send is now
+  wrapped so the response cannot depend on the outcome, and the failure is logged with its
+  exception so a genuinely broken mail configuration stays diagnosable
+
+Test suite: **734 tests / 2,406 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.12` — July 2026
 
