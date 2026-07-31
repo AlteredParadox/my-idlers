@@ -53,7 +53,13 @@ return [
             'scheme' => env('MAIL_SCHEME'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // An explicit deadline, because null means "no application-level
+            // timeout": a stalled or tarpitting SMTP server holds the PHP
+            // worker that is talking to it for as long as it likes, and with
+            // the sync queue that worker is serving a public HTTP request.
+            // 10s is far above a healthy submission and far below the point
+            // where a handful of concurrent stalls exhaust the pool.
+            'timeout' => env('MAIL_TIMEOUT', 10),
             'auth_mode' => null,
         ],
 

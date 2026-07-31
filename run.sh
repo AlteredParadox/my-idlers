@@ -31,7 +31,10 @@ APP_URL=${APP_URL}
 CACHE_DRIVER=file
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-false}
-QUEUE_CONNECTION=sync
+# Real queue, not sync: password-reset mail is dispatched to it so the SMTP
+# conversation leaves the public request (see docker/supervisord.conf). The
+# worker is supervised alongside php-fpm and nginx.
+QUEUE_CONNECTION=database
 EOF
 fi
 
