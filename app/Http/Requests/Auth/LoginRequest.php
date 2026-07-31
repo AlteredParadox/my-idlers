@@ -88,6 +88,12 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey()
     {
-        return Str::lower($this->input('email')).'|'.$this->ip();
+        // Str::ascii as well as lower: the users lookup runs under a MySQL
+        // accent-insensitive collation, so 'jose@x.com' and 'josé@x.com' are
+        // the SAME account but were two different throttle buckets — doubling
+        // the allowance against one account for every accented spelling of it.
+        // Over-folding is safe here: the key is scoped by IP, so a caller can
+        // only ever throttle themselves.
+        return Str::ascii(Str::lower((string) $this->input('email'))).'|'.$this->ip();
     }
 }

@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+// The app sends the queueable subclass (see App\Notifications\
+// QueuedResetPassword): with a real queue configured the SMTP
+// conversation leaves the request, closing the /forgot-password timing
+// oracle. NotificationFake matches on the exact class, so assert on it.
+use App\Notifications\QueuedResetPassword as ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;

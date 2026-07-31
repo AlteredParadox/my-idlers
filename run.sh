@@ -83,7 +83,13 @@ fi
 # db (or its journal files) root-owned in the bind-mounted directory —
 # php-fpm runs as www-data and then 500s with "readonly database" on the
 # first write. Re-assert ownership every boot; harmless for MySQL setups.
-chown -R www-data:www-data /app/database
+#
+# Deliberately NOT -R over the whole tree: the migrations/seeders/factories
+# under here are PHP that the migrate step above runs as root, so leaving them
+# www-data-writable would let a compromised worker stage code for the next
+# boot. SQLite needs the directory itself plus its own files, nothing more.
+chown www-data:www-data /app/database
+find /app/database -maxdepth 1 -type f -exec chown www-data:www-data {} +
 
 # Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
 # (replaces artisan serve, which is PHP's single-threaded dev server)

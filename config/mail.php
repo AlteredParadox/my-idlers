@@ -38,7 +38,19 @@ return [
             'transport' => 'smtp',
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
             'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            // 'scheme', not 'encryption': Laravel 13's createSmtpTransport
+            // reads ONLY scheme (defaulting to smtps on port 465 and smtp
+            // otherwise) and never looks at 'encryption', so that key read as
+            // a TLS requirement while enforcing nothing.
+            //
+            // Note what each value actually guarantees. 'smtps' is implicit
+            // TLS and is enforced. Plain 'smtp' uses OPPORTUNISTIC STARTTLS:
+            // it upgrades when the server advertises it and continues in
+            // cleartext when a network attacker strips that advertisement,
+            // exposing SMTP credentials and the password-reset links being
+            // sent. Use MAIL_SCHEME=smtps with MAIL_PORT=465 where the
+            // provider supports it.
+            'scheme' => env('MAIL_SCHEME'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,

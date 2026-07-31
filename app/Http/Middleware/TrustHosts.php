@@ -19,6 +19,15 @@ class TrustHosts extends Middleware
      * This also makes the code match what the README already documents:
      * "requests with any other Host header are rejected in production".
      *
+     * These are REGULAR EXPRESSIONS, not literals. Symfony wraps each one as
+     * `{pattern}i` and preg_matches it unanchored (Request::setTrustedHosts),
+     * so a bare hostname is a substring test: 'example.com' would accept
+     * 'example.com.attacker.invalid' — a host-poisoning path straight into
+     * emailed password-reset links — and 'evil.example.com', and its
+     * unescaped dots would accept 'exampleXcom'. Hence the anchors and
+     * preg_quote, matching what Laravel's own allSubdomainsOfApplicationUrl()
+     * does for the pattern it builds.
+     *
      * @return array
      */
     public function hosts()
@@ -31,6 +40,6 @@ class TrustHosts extends Middleware
             return [$this->allSubdomainsOfApplicationUrl()];
         }
 
-        return [$host];
+        return ['^' . preg_quote($host) . '$'];
     }
 }

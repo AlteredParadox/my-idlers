@@ -106,6 +106,52 @@ deliberately left. No database changes._
   streaming size cap on the exchange-rate and IP-whois fetches, both of which run synchronously on
   a web request
 
+#### Third audit pass
+
+_A third pass found 15 more, including one **high** that the second pass's own fix introduced._
+
+* **`TrustHosts` accepted any host with the configured one as a prefix.** The previous pass pinned
+  the trusted host to the exact `APP_URL` hostname — but those patterns are **regular
+  expressions**, which Symfony wraps as `{pattern}i` and matches **unanchored**. A bare
+  `example.com` therefore accepted `example.com.attacker.invalid`, whose `Host` header then went
+  into emailed password-reset links; it also accepted `evil.example.com` and `exampleXcom`, so the
+  change had not even achieved the subdomain restriction it was made for. Now anchored and
+  `preg_quote`d, matching what Laravel's own `allSubdomainsOfApplicationUrl()` does. The test that
+  should have caught this applied the pattern with its own anchors added; it now applies it exactly
+  as `Request::setTrustedHosts()` does
+* **Reset tokens still reached the access log, via `Referer`.** The previous pass redacted them from
+  the request line, but the reset page loads same-origin assets and
+  `Referrer-Policy: strict-origin-when-cross-origin` sends the **full URL** for same-origin
+  requests — so the token was written one line later, from the asset fetch. `Referer` is now
+  redacted the same way, and the policy is tightened to `strict-origin` so browsers stop sending
+  the path at all
+* **Migration source was writable by the PHP identity while root executed it.** The image
+  `chown -R`'d `/app/database` to `www-data` for SQLite's sake, which included
+  `database/migrations`; the entrypoint then runs `artisan migrate` **as root**. A compromised
+  worker could drop a migration and wait for the next boot. SQLite needs the directory and its own
+  db file, not the shipped PHP, so the code directories stay root-owned
+* **The whois/exchange-rate fetcher followed redirects.** Both target a fixed third-party endpoint,
+  so following a redirect hands the destination to that third party — a `302` to `169.254.169.254`
+  or an internal address makes it a blind SSRF from inside the app's network. Redirects are off
+* **SMTP was never actually requiring TLS.** `config/mail.php` set `encryption`, which Laravel 13's
+  SMTP transport does not read at all — it uses `scheme`, defaulting to opportunistic STARTTLS,
+  which a network attacker can strip. Replaced with `MAIL_SCHEME` so `smtps` can be required
+* **The public server page loaded every historical benchmark** for every public server although it
+  renders only the newest, on an unauthenticated route that also had no rate limit. The eager load
+  is capped to the latest run and the route is throttled — each request through the web group also
+  persists a session row, so an anonymous caller could grow that table indefinitely
+* **The password-reset form distinguished an unknown email from a bad token**, answering "does this
+  account exist?" to anyone with a junk token. Both now render the same message. The reset
+  notification is also queueable, so with a real queue configured the SMTP conversation leaves the
+  request and the `/forgot-password` timing difference goes with it
+* **Login throttling keyed accented spellings separately** from the account they resolve to under
+  MySQL's accent-insensitive collation, doubling the allowance against one account per spelling
+* **An ambiguous Prometheus hostname bound to whichever node answered first.** A stored short name
+  like `web01` matches both `web01.dc1.example.com` and `web01.dc2.example.com`, and one machine's
+  charts, filesystems and uptime rendered under the other's name with nothing on screen saying so.
+  Ambiguity now resolves to nothing — "no monitoring data" is visible and correctable, confidently
+  wrong data is not
+
 ### Assessed and deliberately not fixed
 
 * **Signed YABS runs have no per-capability quota** — the route already carries `throttle:4`,
@@ -118,7 +164,15 @@ deliberately left. No database changes._
 * **`export/all` materializes whole tables in memory** — unchanged assessment from the previous
   audit: authenticated, self-owned, small datasets; the worst case is 500ing your own request
 
-Test suite: **690 tests / 2,321 assertions**, green on both SQLite and MySQL.
+* **Signed YABS runs still have no per-capability quota** (re-reported) — `throttle:4` bounds this
+  to roughly 2,880 rows across a 12-hour signature, and it needs the signed URL to begin with
+* **A fresh deployment lets the first requester claim the sole account** — this is the documented
+  single-user bootstrap (`MAX_USERS`, registration closes once the cap is reached). A self-hosted
+  app has nobody to authenticate its first user to
+* **The YABS install pipes a remote script to a shell** — that is the upstream project's own
+  documented workflow, not code this app ships or invokes
+
+Test suite: **721 tests / 2,366 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.11` — July 2026
 
