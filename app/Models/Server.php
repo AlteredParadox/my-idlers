@@ -72,8 +72,18 @@ class Server extends Model
     public static function allPublicServers()
     {//server data that will be publicly viewable (values in settings)
         return Cache::remember("public_server_data", now()->addMonth(1), function () {
+            // yabs is capped to the newest run per server: the public view only
+            // ever reads yabs[0], but the unconstrained eager load pulled EVERY
+            // historical benchmark — plus a disk_speed and network_speed child
+            // for each — for every public server, on an unauthenticated page.
+            // The relation is already ordered newest-first, so yabs[0] is
+            // unchanged.
             return Server::where('show_public', 1)
-                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])
+                ->with([
+                    'location', 'provider', 'os', 'price', 'ips', 'disks', 'labels',
+                    'yabs' => fn($query) => $query->limit(1),
+                    'yabs.disk_speed', 'yabs.network_speed',
+                ])
                 ->get();
         });
     }

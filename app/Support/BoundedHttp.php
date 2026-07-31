@@ -31,7 +31,18 @@ class BoundedHttp
         try {
             $response = Http::connectTimeout($connectTimeout)
                 ->timeout($timeout)
-                ->withOptions(['stream' => true])
+                ->withOptions([
+                    'stream' => true,
+                    // No redirect following. Both callers target a fixed,
+                    // known third-party endpoint that has no reason to
+                    // redirect, and following one hands the destination to
+                    // that third party (or to anyone who can answer for it):
+                    // a 302 to http://169.254.169.254/ or an internal address
+                    // turns this into a blind SSRF from inside the network the
+                    // app runs on. A legitimate permanent move should be
+                    // followed by updating the URL, not by the fetcher.
+                    'allow_redirects' => false,
+                ])
                 ->get($url);
         } catch (\Throwable $e) {
             Log::warning('bounded fetch failed', ['url' => $url, 'err' => $e->getMessage()]);

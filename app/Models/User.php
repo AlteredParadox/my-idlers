@@ -43,6 +43,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Use the queueable reset notification (see QueuedResetPassword): with a
+     * real queue configured this takes the SMTP conversation off the request,
+     * closing the timing oracle on /forgot-password. No-op on the sync driver.
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new \App\Notifications\QueuedResetPassword($token));
+    }
+
     public static function hashApiToken(string $token): string
     {
         return hash('sha256', $token);

@@ -64,33 +64,61 @@ class DeploymentHardeningTest extends TestCase
      * is built from the request host, so a subdomain an attacker controls would
      * put the reset link on their own domain.
      */
-    public function test_only_the_exact_app_url_host_is_trusted()
+    public function test_the_trusted_host_pattern_is_anchored_and_quoted()
     {
         config(['app.url' => 'https://idlers.example.com']);
 
-        $hosts = (new TrustHosts(app()))->hosts();
-
-        $this->assertSame(['idlers.example.com'], $hosts);
-        $this->assertNotContains('^(.+\.)?idlers\.example\.com$', $hosts);
+        // These are REGEXES, not literals. The anchors and preg_quote are the
+        // control, not decoration -- see symfonyAccepts() below.
+        $this->assertSame(['^idlers\.example\.com$'], (new TrustHosts(app()))->hosts());
     }
 
-    public function test_a_subdomain_is_not_trusted()
+    public static function untrustedHosts(): array
+    {
+        return [
+            'suffix domain' => ['idlers.example.com.attacker.invalid'],
+            'subdomain'     => ['evil.idlers.example.com'],
+            'unescaped dot' => ['idlersXexample.com'],
+            'prefix'        => ['notidlers.example.com'],
+            'unrelated'     => ['attacker.invalid'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('untrustedHosts')]
+    public function test_untrusted_hosts_are_rejected(string $host)
     {
         config(['app.url' => 'https://idlers.example.com']);
 
-        $hosts = (new TrustHosts(app()))->hosts();
+        $this->assertFalse($this->symfonyAccepts($host), "$host was trusted");
+    }
 
-        // TrustHosts patterns are matched as regex by the framework; the exact
-        // host must not match an attacker-controlled subdomain.
-        $subject = 'evil.idlers.example.com';
-        $matched = false;
-        foreach ($hosts as $pattern) {
-            if (preg_match('#^' . $pattern . '$#i', $subject)) {
-                $matched = true;
+    public function test_the_exact_host_is_still_accepted()
+    {
+        config(['app.url' => 'https://idlers.example.com']);
+
+        $this->assertTrue($this->symfonyAccepts('idlers.example.com'));
+        $this->assertTrue($this->symfonyAccepts('IDLERS.EXAMPLE.COM'), 'host matching is case-insensitive');
+    }
+
+    /**
+     * Applies the pattern the way Symfony does -- wrapped as `{pattern}i` and
+     * matched UNANCHORED -- rather than adding anchors in the test.
+     *
+     * That distinction is the whole point: an earlier version of this test
+     * anchored the pattern itself, which made a bare 'idlers.example.com'
+     * pattern look safe while Symfony was accepting
+     * 'idlers.example.com.attacker.invalid' and putting that host into emailed
+     * password-reset links.
+     */
+    private function symfonyAccepts(string $host): bool
+    {
+        foreach ((new TrustHosts(app()))->hosts() as $pattern) {
+            if (preg_match(sprintf('{%s}i', $pattern), $host)) {
+                return true;
             }
         }
 
-        $this->assertFalse($matched, 'a subdomain of APP_URL is still trusted');
+        return false;
     }
 
     public function test_an_unparseable_app_url_falls_back_rather_than_rejecting_everything()
