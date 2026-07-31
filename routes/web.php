@@ -27,7 +27,14 @@ Route::get('/', [HomeController::class, 'index'])->name('/');
 
 require __DIR__ . '/auth.php';
 
-Route::get('servers/public', [ServerController::class, 'showServersPublic'])->name('servers.public');
+// Throttled: this is the one unauthenticated page, and every request through
+// the web group starts a session, which the database driver persists as a row.
+// Without a limit an anonymous caller can grow the sessions table for as long
+// as it keeps requesting, and each cache miss here also rebuilds the whole
+// public server set.
+Route::get('servers/public', [ServerController::class, 'showServersPublic'])
+    ->middleware('throttle:30,1')
+    ->name('servers.public');
 
 Route::middleware(['auth'])->group(function () {
     // Step-up on update only: it can move the account recovery email AND mint

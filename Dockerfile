@@ -20,6 +20,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # AND its directory (journal/WAL files) — artisan serve ran as root and
 # masked this.
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
+# ...but NOT the PHP under /app/database. The entrypoint runs `artisan migrate`
+# as ROOT, so anything www-data can write there is code root will execute on
+# the next boot: a compromised php-fpm worker could drop a migration and wait.
+# SQLite needs the DIRECTORY writable (journal/WAL files) and its own db file,
+# neither of which requires the shipped source to be writable.
+RUN chown -R root:root /app/database/migrations /app/database/seeders /app/database/factories
 # public: favicon uploads create files in the webroot, which needs only
 # DIRECTORY write — deliberately non-recursive so the shipped files
 # (index.php and friends) stay root-owned; nginx additionally executes

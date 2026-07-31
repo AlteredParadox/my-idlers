@@ -12,14 +12,51 @@ class PrometheusInstanceResolver
     public function resolve(string $hostname): ?string
     {
         // Try matching by nodename via node_uname_info
+        $matches = [];
         foreach ($this->client->query('node_uname_info{job="node"}') as $r) {
             $nodename = $r['metric']['nodename'] ?? '';
             if (PromQL::hostMatches($hostname, $nodename)) {
-                return $r['metric']['instance'] ?? null;
+                $matches[] = $r['metric']['instance'] ?? null;
             }
         }
 
-        return $this->fromScrapeTargets($hostname);
+        if ($resolved = $this->exactlyOne($matches, $hostname)) {
+            return $resolved;
+        }
+
+        return $matches === [] ? $this->fromScrapeTargets($hostname) : null;
+    }
+
+    /**
+     * One instance, or nothing.
+     *
+     * hostMatches() deliberately accepts a stored SHORT hostname against an
+     * FQDN candidate, which is the convenience the whole feature rests on --
+     * but it means 'web01' matches both web01.dc1.example.com and
+     * web01.dc2.example.com. Returning the first was a silent coin flip: the
+     * charts, filesystem list and uptime for one machine shown under the
+     * other's name, with nothing on screen saying so.
+     *
+     * Ambiguity resolves to null instead. "No monitoring data" is a visible,
+     * correctable condition -- disambiguate by storing the FQDN -- whereas
+     * confidently wrong data is not.
+     */
+    private function exactlyOne(array $matches, string $hostname): ?string
+    {
+        $distinct = array_values(array_unique(array_filter($matches)));
+
+        if (count($distinct) === 1) {
+            return $distinct[0];
+        }
+
+        if (count($distinct) > 1) {
+            \Illuminate\Support\Facades\Log::warning(
+                'Prometheus hostname is ambiguous; refusing to bind it to any instance',
+                ['hostname' => $hostname, 'candidates' => $distinct]
+            );
+        }
+
+        return null;
     }
 
     private function fromScrapeTargets(string $hostname): ?string
@@ -27,11 +64,19 @@ class PrometheusInstanceResolver
         // Try matching by instance directly (hostname might be an IP or the
         // scrape target may be an FQDN while the tracker stores a short name)
         $up_results = $this->client->query('up{job="node"}');
+        $matches = [];
         foreach ($up_results as $r) {
             $instance = $r['metric']['instance'] ?? '';
             if (PromQL::hostMatches($hostname, preg_replace('/:\d+$/', '', $instance))) {
-                return $instance;
+                $matches[] = $instance;
             }
+        }
+
+        if ($resolved = $this->exactlyOne($matches, $hostname)) {
+            return $resolved;
+        }
+        if ($matches !== []) {
+            return null;   // ambiguous, not "keep looking"
         }
 
         // Offline nodes vanish from instant uname queries after Prometheus's
@@ -47,11 +92,11 @@ class PrometheusInstanceResolver
             }
             $lastKnown ??= $this->lastKnownNodenames();
             if (isset($lastKnown[$instance]) && PromQL::hostMatches($hostname, $lastKnown[$instance])) {
-                return $instance;
+                $matches[] = $instance;
             }
         }
 
-        return null;
+        return $this->exactlyOne($matches, $hostname);
     }
 
     /**

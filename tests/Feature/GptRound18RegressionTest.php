@@ -109,7 +109,11 @@ class GptRound18RegressionTest extends TestCase
 
         $this->assertStringContainsString('add_header X-Content-Type-Options "nosniff" always;', $conf);
         $this->assertStringContainsString('add_header X-Frame-Options "SAMEORIGIN" always;', $conf);
-        $this->assertStringContainsString('add_header Referrer-Policy "strict-origin-when-cross-origin" always;', $conf);
+        // strict-origin, not strict-origin-when-cross-origin: the latter sends
+        // the full URL as Referer for SAME-origin requests, and the
+        // password-reset page loads same-origin assets — so the reset token
+        // travelled in a header on every one of them.
+        $this->assertStringContainsString('add_header Referrer-Policy "strict-origin" always;', $conf);
         foreach (["default-src 'self'", "object-src 'none'", "base-uri 'self'",
                      "form-action 'self'", "frame-ancestors 'self'", "img-src 'self' data:",
                      "script-src 'self' 'unsafe-inline'"] as $directive) {

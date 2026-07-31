@@ -16,7 +16,10 @@ return [
     'reset' => 'Your password has been reset!',
     'sent' => 'We have emailed your password reset link!',
     'throttled' => 'Please wait before retrying.',
-    'token' => 'This password reset token is invalid.',
-    'user' => "We can't find a user with that email address.",
+    // Deliberately identical for an unknown email and a bad/expired token.
+    // Distinct wording on this UNAUTHENTICATED form answered "does this
+    // account exist?" for anyone who asked with a junk token.
+    'token' => 'This password reset link is invalid or has expired.',
+    'user' => 'This password reset link is invalid or has expired.',
 
 ];
