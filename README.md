@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.13-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.22-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.14-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.30-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,28 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.14` — September 2026
+
+_A dependency-only release. No application code, schema or configuration changes, so rolling back
+to `ap.13` is clean. It exists because the framework and HTTP-client updates below only reach the
+published image when a release is cut._
+
+* **Guzzle 7.15 → 8.1.** A major bump, taken deliberately: the app's only contact with Guzzle is
+  through Laravel's `Http` client with the `stream` and `allow_redirects` request options, both
+  unchanged in 8.x, and nothing on Guzzle 8's removal list is referenced. Guzzle 8 also hardens
+  cookie handling, proxy option validation and unserialization of persisted cookie jars
+* **Laravel framework 13.22 → 13.30**, plus `laravel/sail` 1.64 → 1.67 and `mockery` 1.6.12 →
+  1.6.15 (dev). Bug-fix releases; no security advisories in the range
+* **Front end:** DataTables 3.0.0 → 3.0.3, axios 1.18 → 1.20 (upstream security hardening of
+  runtime option handling), sass 1.102 → 1.103, Vite 8.1 → 8.2, laravel-vite-plugin 3.1 → 3.2.
+  The committed bundle is rebuilt from these versions; the `assets` CI gate caught the one
+  Dependabot PR that shipped the bump without the rebuild
+* **Release workflow:** `docker/setup-buildx-action` 4.3.0, `docker/login-action` 4.6.0,
+  `softprops/action-gh-release` 3.0.3, all SHA-pinned
+
+`composer audit` and `npm audit` report no advisories at these versions. Test suite: **734 tests /
+2,406 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.13` — July 2026
 
@@ -926,7 +948,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.13` — note the Docker tag uses `-ap.13` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.14` — note the Docker tag uses `-ap.14` since `+` is not
 a valid Docker tag character).
 
 Notes:
