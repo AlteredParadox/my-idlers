@@ -23,6 +23,7 @@ class PrometheusServiceTest extends TestCase
         return new FakePrometheusClient(
             instant: [
                 // order matters: most specific substrings first
+                'max_over_time(timestamp(up' => [['metric' => ['instance' => '10.0.0.2:9100'], 'value' => [1700000000, '200']]],
                 'last_over_time' => [['metric' => ['instance' => '10.0.0.2:9100', 'nodename' => 'down1'], 'value' => [1700000000, '1']]],
                 'node_uname_info' => [['metric' => ['instance' => '10.0.0.1:9100', 'nodename' => 'web1'], 'value' => [1700000000, '1']]],
                 'up{job="node"}' => [$this->upRow('10.0.0.1:9100', true), $this->upRow('10.0.0.2:9100', false)],
@@ -31,10 +32,6 @@ class PrometheusServiceTest extends TestCase
                 'receive' => [$this->metricRow('10.0.0.1:9100', '1000.77')],
                 'transmit' => [$this->metricRow('10.0.0.1:9100', '2000.22')],
                 'boot_time' => [$this->metricRow('10.0.0.1:9100', '86400.9')],
-            ],
-            range: [
-                // offline-since lookback for the down instance: last seen up at t=200
-                'up{job="node",instance="10.0.0.2:9100"}' => [['values' => [[100, '1'], [200, '1'], [300, '0']]]],
             ],
         );
     }
