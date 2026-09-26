@@ -973,8 +973,10 @@ Notes:
   rebuildable state (the file cache and compiled views) remains on the container's disk.
 * **SQLite setups** (`DB_CONNECTION=sqlite`): PHP runs as `www-data` (uid 82) since the
   nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
-  uid — `chown -R 82:82` the mounted directory (SQLite writes journal files next to the
-  db, so the directory itself needs write access, not just the file).
+  uid. Keep the directory owned by root with a sticky, group-writable mode, then give
+  only its top-level files to PHP: `chown root:82 database && chmod 1770 database &&
+  find database -maxdepth 1 -type f -exec chown 82:82 {} +`. SQLite can then create
+  journal files without making the migration source replaceable by the web worker.
 * Custom favicons are stored in the container's webroot, which is ephemeral by design —
   re-upload the favicon after pulling a new image (everything else lives in the database
   and carries over).
