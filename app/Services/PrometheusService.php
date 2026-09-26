@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
-
 class PrometheusService
 {
     private const FSTYPES = 'ext4|xfs|btrfs|zfs';
@@ -18,14 +16,6 @@ class PrometheusService
         'net_rx' => 'sum by (instance) (rate(node_network_receive_bytes_total{job="node",device!~"' . self::NET_DEVICE_EXCLUDE . '"}[2m]))',
         'net_tx' => 'sum by (instance) (rate(node_network_transmit_bytes_total{job="node",device!~"' . self::NET_DEVICE_EXCLUDE . '"}[2m]))',
         'uptime' => 'node_time_seconds{job="node"} - node_boot_time_seconds{job="node"}',
-    ];
-
-    // Lookback windows for finding when an offline node was last up
-    private const OFFLINE_TIERS = [
-        [3600, 15],        // 1h at 15s step
-        [86400, 60],       // 24h at 1m step
-        [86400 * 7, 300],  // 7d at 5m step
-        [86400 * 30, 900], // 30d at 15m step
     ];
 
     private const DETAIL_METRIC_ORDER = ['cpu', 'iowait', 'steal', 'ram', 'swap', 'disk', 'net_rx', 'net_tx', 'disk_read', 'disk_write'];
@@ -138,60 +128,39 @@ class PrometheusService
         return $metrics;
     }
 
-    /**
-     * How many offline instances get the "when did it go down" treatment.
-     *
-     * offlineSince() issues up to one range query PER TIER, sequentially, so
-     * the cost of this one page scales with the number of DOWN targets in
-     * Prometheus -- which the app does not control and which is exactly the
-     * number that spikes during an outage, the moment the status page is most
-     * likely to be loaded. Past this many, the remaining rows still render as
-     * offline; they just do not carry a since-timestamp.
-     */
-    private const MAX_OFFLINE_LOOKUPS = 25;
-
     private function addOfflineSince(array $upResults, array &$metrics): void
     {
-        $looked = 0;
+        $hasOffline = false;
+        foreach ($upResults as $result) {
+            if (!PromQL::isUp($result)) {
+                $hasOffline = true;
+                break;
+            }
+        }
+
+        if (!$hasOffline) {
+            return;
+        }
+
+        // Resolve every instance with one bounded request. The subquery keeps
+        // the former 15-second precision while max_over_time returns the most
+        // recent sample at which the target was up.
+        $lastUp = [];
+        $query = 'max_over_time(timestamp(up{job="node"} == 1)[30d:15s])';
+        foreach ($this->client->query($query) as $result) {
+            $instance = $result['metric']['instance'] ?? '';
+            if ($instance !== '' && isset($result['value'][1])) {
+                $lastUp[$instance] = (float)$result['value'][1];
+            }
+        }
 
         foreach ($upResults as $result) {
             if (PromQL::isUp($result)) {
                 continue;
             }
             $instance = $result['metric']['instance'] ?? '';
-
-            if ($looked >= self::MAX_OFFLINE_LOOKUPS) {
-                $metrics[$instance]['offline_since'] = null;
-                continue;
-            }
-
-            $looked++;
-            $metrics[$instance]['offline_since'] = $this->offlineSince($instance);
+            $metrics[$instance]['offline_since'] = $lastUp[$instance] ?? null;
         }
-
-        if ($looked >= self::MAX_OFFLINE_LOOKUPS) {
-            Log::info('Prometheus offline-since lookups capped', ['limit' => self::MAX_OFFLINE_LOOKUPS]);
-        }
-    }
-
-    /** Timestamp the instance was last seen up within tiered lookback windows */
-    private function offlineSince(string $instance): ?float
-    {
-        $now = time();
-        foreach (self::OFFLINE_TIERS as [$lookback, $step]) {
-            $offlineSince = null;
-            $results = $this->client->rangeQuery('up{job="node",instance="' . PromQL::quote($instance) . '"}', $now - $lookback, $now, $step);
-            foreach ($results[0]['values'] ?? [] as [$ts, $val]) {
-                if ($val === '1') {
-                    $offlineSince = (float)$ts;
-                }
-            }
-            if ($offlineSince !== null) {
-                return $offlineSince;
-            }
-        }
-
-        return null;
     }
 
     /** Key statuses/metrics by hostname (when known) and by instance IP as fallback */

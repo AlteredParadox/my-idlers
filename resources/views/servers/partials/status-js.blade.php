@@ -204,7 +204,11 @@ setInterval(function() {
     });
 }, 1000);
 
+var prometheusStatusPending = false;
 function fetchPrometheusStatus() {
+    if (prometheusStatusPending) return;
+    prometheusStatusPending = true;
+
     axios.get('/tools/prometheus/status').then(function(response) {
         if (response.data.statuses) {
             updateStatusIcons(response.data.statuses);
@@ -220,7 +224,9 @@ function fetchPrometheusStatus() {
             updateUptimeCells(response.data.statuses, response.data.metrics);
         }
         if (statsHidden) applyStatsToggle();
-    }).catch(function() {});
+    }).catch(function() {}).then(function() {
+        prometheusStatusPending = false;
+    });
 }
 
 if (prometheusEnabled && prometheusUrl) {

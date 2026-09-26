@@ -40,8 +40,11 @@ class FakePrometheusClient extends PrometheusClient
         return [];
     }
 
+    public array $instantQueries = [];
+
     public function rawQuery(string $query): ?array
     {
+        $this->instantQueries[] = $query;
         $rows = $this->match($this->instant, $query);
 
         return $rows === null ? null : ['status' => 'success', 'data' => ['result' => $rows]];

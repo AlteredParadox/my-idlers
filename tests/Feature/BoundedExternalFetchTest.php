@@ -140,12 +140,7 @@ class BoundedExternalFetchTest extends TestCase
         $this->assertFalse($overflowed, 'the cap is a ceiling, not an exclusive bound');
     }
 
-    /**
-     * offlineSince() issues range queries per DOWN target, sequentially. That
-     * count is not something the app controls, and it spikes during exactly
-     * the outage that makes someone load the status page.
-     */
-    public function test_offline_since_lookups_are_capped()
+    public function test_offline_since_lookup_does_not_fan_out_per_target()
     {
         $down = [];
         for ($i = 0; $i < 60; $i++) {
@@ -154,13 +149,14 @@ class BoundedExternalFetchTest extends TestCase
 
         $client = new FakePrometheusClient(
             instant: ['node_uname_info' => [], 'up{job="node"}' => $down],
-            range: ['up{job="node"' => [['values' => [[1, '1']]]]],
         );
 
         (new PrometheusService($client))->statusPayload();
 
-        $this->assertLessThanOrEqual(25, $client->rangeQueryCount,
-            'one status request fanned out past the cap');
-        $this->assertGreaterThan(0, $client->rangeQueryCount, 'no lookups happened at all');
+        $offlineQueries = array_filter($client->instantQueries,
+            fn(string $query) => str_contains($query, 'max_over_time(timestamp(up'));
+        $this->assertCount(1, $offlineQueries, 'offline lookup was not batched');
+        $this->assertSame(0, $client->rangeQueryCount,
+            'one status request issued per-target range queries');
     }
 }
