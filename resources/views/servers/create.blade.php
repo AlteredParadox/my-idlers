@@ -124,7 +124,7 @@
             <div class="card content-card mb-4">
                 <div class="card-header card-section-header">
                     <h5 class="card-section-title mb-0">Specifications</h5>
-                    <span class="text-muted small">YABS output will overwrite these values</span>
+                    <span class="text-muted small">As provisioned. A YABS run records its measurements alongside and never changes these.</span>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
