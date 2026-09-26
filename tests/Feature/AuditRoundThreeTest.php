@@ -120,15 +120,20 @@ class AuditRoundThreeTest extends TestCase
     {
         $dockerfile = file_get_contents(base_path('Dockerfile'));
         $run = file_get_contents(base_path('run.sh'));
+        $databaseConfig = file_get_contents(config_path('database.php'));
 
-        // The entrypoint runs `artisan migrate` as root, so anything www-data
-        // can write under /app/database is code root will execute next boot.
-        $this->assertStringContainsString(
-            'chown -R root:root /app/database/migrations /app/database/seeders /app/database/factories',
-            $dockerfile
-        );
+        // The entrypoint runs `artisan migrate` as root. Even root-owned
+        // migrations can be replaced when www-data owns their parent, so only
+        // the isolated SQLite data directory may be writable by the worker.
+        $this->assertStringContainsString('chown www-data:www-data /app/database/sqlite', $dockerfile);
+        $this->assertStringNotContainsString('www-data:www-data /app/database\n', $dockerfile);
         $this->assertStringNotContainsString('chown -R www-data:www-data /app/database', $run,
             'the entrypoint re-grants write on the migration source every boot');
+        $this->assertStringContainsString('chown www-data:www-data /app/database/sqlite', $run);
+        $this->assertStringNotContainsString('chown www-data:www-data /app/database\n', $run,
+            'owning the source parent lets the worker replace root-owned source directories');
+        $this->assertStringContainsString("database_path('sqlite/database.sqlite')", $databaseConfig,
+            'the default SQLite file must stay outside the executable source parent');
     }
 
     // ---- #7: the mail transport must be able to require TLS --------------

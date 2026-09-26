@@ -190,8 +190,8 @@ _A third pass found 15 more, including one **high** that the second pass's own f
 * **Migration source was writable by the PHP identity while root executed it.** The image
   `chown -R`'d `/app/database` to `www-data` for SQLite's sake, which included
   `database/migrations`; the entrypoint then runs `artisan migrate` **as root**. A compromised
-  worker could drop a migration and wait for the next boot. SQLite needs the directory and its own
-  db file, not the shipped PHP, so the code directories stay root-owned
+  worker could drop a migration and wait for the next boot. SQLite now uses the dedicated writable
+  `/app/database/sqlite` directory while its executable PHP and their parent stay root-owned
 * **The whois/exchange-rate fetcher followed redirects.** Both target a fixed third-party endpoint,
   so following a redirect hands the destination to that third party — a `302` to `169.254.169.254`
   or an internal address makes it a blind SSRF from inside the app's network. Redirects are off
@@ -605,9 +605,9 @@ _Patch release for an `ap.2` container regression._
 
 * **SQLite deployments broke under the new php-fpm stack**: PHP now runs as `www-data`
   instead of root, and `/app/database` wasn't writable by it — any save failed with
-  "attempt to write a readonly database" (reads worked). The image now grants ownership,
-  and bind-mounted database directories need `chown -R 82:82` on the host (see the
-  Docker notes). MySQL deployments were unaffected.
+  "attempt to write a readonly database" (reads worked). The image now grants ownership of a
+  dedicated SQLite data directory, and that bind-mounted directory needs `chown -R 82:82` on the
+  host (see the Docker notes). MySQL deployments were unaffected.
 
 ## Fork revision `ap.2` — July 2026
 
@@ -971,10 +971,11 @@ Notes:
 * Sessions are stored in the database (SQLite or MySQL, whichever the install uses), so
   logins and per-user view preferences survive container redeploys. Only ephemeral,
   rebuildable state (the file cache and compiled views) remains on the container's disk.
-* **SQLite setups** (`DB_CONNECTION=sqlite`): PHP runs as `www-data` (uid 82) since the
-  nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
-  uid — `chown -R 82:82` the mounted directory (SQLite writes journal files next to the
-  db, so the directory itself needs write access, not just the file).
+* **SQLite setups** (`DB_CONNECTION=sqlite`): mount persistent data at
+  `/app/database/sqlite` and set `DB_DATABASE=/app/database/sqlite/database.sqlite`. PHP runs as
+  `www-data` (uid 82), so that dedicated host directory must be writable by uid 82 — for example,
+  `chown -R 82:82 <sqlite-data-directory>`. Do not mount or change ownership of `/app/database`:
+  it also contains migrations and seeders that must remain non-writable to the PHP workers.
 * Custom favicons are stored in the container's webroot, which is ephemeral by design —
   re-upload the favicon after pulling a new image (everything else lives in the database
   and carries over).

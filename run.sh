@@ -38,6 +38,10 @@ QUEUE_CONNECTION=database
 EOF
 fi
 
+# A bind mount over /app/database hides the directory created in the image.
+# Create the isolated SQLite data path before any artisan command may open it.
+mkdir -p /app/database/sqlite
+
 # Clear and cache config for production. The app cache is cleared too:
 # it holds only rebuildable query snapshots, and a stale entry cached by
 # an older release (e.g. a pre-fix settings model) must not survive an
@@ -83,16 +87,15 @@ else
 fi
 
 # SQLite: this script runs as root, so a boot-time migration can leave the
-# db (or its journal files) root-owned in the bind-mounted directory —
+# db (or its journal files) root-owned in the bind-mounted data directory —
 # php-fpm runs as www-data and then 500s with "readonly database" on the
 # first write. Re-assert ownership every boot; harmless for MySQL setups.
 #
-# Deliberately NOT -R over the whole tree: the migrations/seeders/factories
-# under here are PHP that the migrate step above runs as root, so leaving them
-# www-data-writable would let a compromised worker stage code for the next
-# boot. SQLite needs the directory itself plus its own files, nothing more.
-chown www-data:www-data /app/database
-find /app/database -maxdepth 1 -type f -exec chown www-data:www-data {} +
+# The parent /app/database must remain root-owned: ownership of it would let a
+# compromised worker rename the root-owned migrations directory and replace it
+# before the next root-run migration.
+chown www-data:www-data /app/database/sqlite
+find /app/database/sqlite -maxdepth 1 -type f -exec chown www-data:www-data {} +
 
 # Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
 # (replaces artisan serve, which is PHP's single-threaded dev server)
