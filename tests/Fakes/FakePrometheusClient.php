@@ -57,9 +57,13 @@ class FakePrometheusClient extends PrometheusClient
     /** Range queries issued, so fan-out bounds can be asserted. */
     public int $rangeQueryCount = 0;
 
+    /** @var string[] the range query strings, in order */
+    public array $rangeQueries = [];
+
     public function rangeQuery(string $query, float $start, float $end, int $step): array
     {
         $this->rangeQueryCount++;
+        $this->rangeQueries[] = $query;
 
         return $this->match($this->range, $query) ?? [];
     }

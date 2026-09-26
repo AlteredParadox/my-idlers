@@ -34,7 +34,7 @@ class PrometheusServiceTest extends TestCase
             ],
             range: [
                 // offline-since lookback for the down instance: last seen up at t=200
-                'up{job="node",instance="10.0.0.2:9100"}' => [['values' => [[100, '1'], [200, '1'], [300, '0']]]],
+                'up{job="node",instance=~"' => [['metric' => ['instance' => '10.0.0.2:9100'], 'values' => [[100, '1'], [200, '1'], [300, '0']]]],
             ],
         );
     }
@@ -55,7 +55,8 @@ class PrometheusServiceTest extends TestCase
 
     public function test_status_payload_rounds_metrics_and_resolves_offline_since()
     {
-        $payload = (new PrometheusService($this->statusClient()))->statusPayload();
+        $client = $this->statusClient();
+        $payload = (new PrometheusService($client))->statusPayload();
 
         $this->assertEqualsWithDelta(42.4, $payload['metrics']['web1']['ram_pct'], 0.001);
         $this->assertEqualsWithDelta(10.1, $payload['metrics']['web1']['disk_pct'], 0.001);
@@ -64,6 +65,8 @@ class PrometheusServiceTest extends TestCase
         // last timestamp where up == '1'
         $this->assertSame(200.0, $payload['metrics']['down1']['offline_since']);
         $this->assertSame(200.0, $payload['metrics']['10.0.0.2']['offline_since']);
+        // Settled in the first (cheapest) lookback tier: no wider window fetched.
+        $this->assertSame(1, $client->rangeQueryCount);
     }
 
     public function test_status_payload_is_null_when_a_query_fails()
