@@ -182,6 +182,15 @@ class AuditRoundFourTest extends TestCase
             'the shipped image would send mail inline, leaving the timing oracle open');
     }
 
+    public function test_password_reset_jobs_are_encrypted()
+    {
+        $this->assertInstanceOf(
+            \Illuminate\Contracts\Queue\ShouldBeEncrypted::class,
+            new \App\Notifications\QueuedResetPassword('sensitive-token'),
+            'database queue payloads must not expose live password-reset tokens'
+        );
+    }
+
     /**
      * The worker must not run as root -- it executes application code and
      * needs nothing the fpm workers do not already have.
