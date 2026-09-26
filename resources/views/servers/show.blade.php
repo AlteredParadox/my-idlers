@@ -524,7 +524,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">RAM</span>
-                                    <span class="detail-value">@if(isset($server_data->yabs[0]->ram)){{ $server_data->yabs[0]->ram }} {{ $server_data->yabs[0]->ram_type }}@else{{ $server_data->ram }} {{ $server_data->ram_type }}@endif</span>
+                                    <span class="detail-value">{{ $server_data->ram }} {{ $server_data->ram_type }}</span>
                                 </div>
                             </div>
                             @if($server_data->disks->count() > 0)
@@ -540,7 +540,7 @@
                             <div class="col-6">
                                 <div class="detail-item">
                                     <span class="detail-label">Disk</span>
-                                    <span class="detail-value">@if(isset($server_data->yabs[0]->disk)){{ $server_data->yabs[0]->disk }} {{ $server_data->yabs[0]->disk_type }}@else{{ $server_data->disk }} {{ $server_data->disk_type }}@endif</span>
+                                    <span class="detail-value">{{ $server_data->disk }} {{ $server_data->disk_type }}</span>
                                 </div>
                             </div>
                             @endif
@@ -596,6 +596,20 @@
                                 <div class="detail-item">
                                     <span class="detail-label">CPU Model</span>
                                     <span class="detail-value">{{ $server_data->yabs[0]->cpu_model }}</span>
+                                </div>
+                            </div>
+                            {{-- Measured, not provisioned: usable RAM and the root filesystem
+                                 only. The Specifications block above keeps the entered values. --}}
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Usable RAM</span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->ram }} {{ $server_data->yabs[0]->ram_type }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">Root Filesystem</span>
+                                    <span class="detail-value">{{ $server_data->yabs[0]->disk }} {{ $server_data->yabs[0]->disk_type }}</span>
                                 </div>
                             </div>
                             <div class="col-6">
