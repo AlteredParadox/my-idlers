@@ -146,10 +146,11 @@ class Server extends Model
 
     public function yabs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        // Newest first: yabs ids are random char(8), so without an order
-        // MySQL returns rows in arbitrary PK order and yabs[0] positional
-        // access across the views showed a stale run after a new ingest.
-        return $this->hasMany(Yabs::class, 'server_id', 'id')->orderByDesc('output_date');
+        // Use the server-controlled ingestion time rather than the run time
+        // supplied by the signed-URL caller. The id makes ties deterministic.
+        return $this->hasMany(Yabs::class, 'server_id', 'id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
     }
 
     public function ips(): \Illuminate\Database\Eloquent\Relations\HasMany
