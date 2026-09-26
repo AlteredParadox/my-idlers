@@ -140,7 +140,13 @@ class BoundedExternalFetchTest extends TestCase
         $this->assertFalse($overflowed, 'the cap is a ceiling, not an exclusive bound');
     }
 
-    public function test_offline_since_lookup_does_not_fan_out_per_target()
+    /**
+     * The offline-since lookup must not fan out per DOWN target. That count
+     * is not something the app controls, and it spikes during exactly the
+     * outage that makes someone load the status page. Nothing here was ever
+     * seen up, so every lookback tier is exhausted: the worst case.
+     */
+    public function test_offline_since_lookups_do_not_fan_out_per_target()
     {
         $down = [];
         for ($i = 0; $i < 60; $i++) {
@@ -151,12 +157,16 @@ class BoundedExternalFetchTest extends TestCase
             instant: ['node_uname_info' => [], 'up{job="node"}' => $down],
         );
 
-        (new PrometheusService($client))->statusPayload();
+        $payload = (new PrometheusService($client))->statusPayload();
 
-        $offlineQueries = array_filter($client->instantQueries,
-            fn(string $query) => str_contains($query, 'max_over_time(timestamp(up'));
-        $this->assertCount(1, $offlineQueries, 'offline lookup was not batched');
-        $this->assertSame(0, $client->rangeQueryCount,
-            'one status request issued per-target range queries');
+        $this->assertGreaterThan(0, $client->rangeQueryCount, 'no lookups happened at all');
+        $this->assertLessThanOrEqual(4, $client->rangeQueryCount,
+            'one status request fanned out beyond one query per lookback tier');
+        // Every down target rides in the same batched selector.
+        $this->assertStringContainsString('instance=~"', $client->rangeQueries[0]);
+        $this->assertStringContainsString('10\\\\.0\\\\.0\\\\.0:9100|', $client->rangeQueries[0]);
+        $this->assertStringContainsString('|10\\\\.0\\\\.0\\\\.59:9100', $client->rangeQueries[0]);
+        // Unresolved rows still render as offline, without a since-timestamp.
+        $this->assertNull($payload['metrics']['10.0.0.7']['offline_since']);
     }
 }
