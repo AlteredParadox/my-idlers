@@ -19,6 +19,21 @@ final class PromQL
         return str_replace(['\\', '"', "\n"], ['\\\\', '\\"', '\\n'], $value);
     }
 
+    /**
+     * Body of an `=~"..."` matcher selecting exactly the given label values:
+     * each value RE2-escaped, joined with `|`, then string-quoted as above.
+     * Prometheus anchors regex matchers, so no `^`/`$` is needed.
+     */
+    public static function regexAlternation(array $values): string
+    {
+        $escaped = array_map(
+            fn(string $value) => preg_replace('/[\\\\.+*?()|\[\]{}^$]/', '\\\\$0', $value),
+            $values
+        );
+
+        return self::quote(implode('|', $escaped));
+    }
+
     public static function isUp(array $result): bool
     {
         return isset($result['value'][1]) && $result['value'][1] === '1';

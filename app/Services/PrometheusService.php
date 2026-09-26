@@ -128,38 +128,57 @@ class PrometheusService
         return $metrics;
     }
 
+    // Lookback windows for finding when an offline node was last up. Most
+    // outages are recent, so the cheap fine-grained window usually settles
+    // every instance and the wider, coarser ones are rarely reached.
+    private const OFFLINE_TIERS = [
+        [3600, 15],        // 1h at 15s step
+        [86400, 60],       // 24h at 1m step
+        [86400 * 7, 300],  // 7d at 5m step
+        [86400 * 30, 900], // 30d at 15m step
+    ];
+
+    /**
+     * Stamp each offline instance with the last time it was seen up.
+     *
+     * One range query per tier covers EVERY still-unresolved instance, so a
+     * status request issues at most count(OFFLINE_TIERS) lookups however many
+     * targets are down -- a number the app does not control and which spikes
+     * during exactly the outage that makes someone load this page. A
+     * per-instance loop, even capped, let a slow Prometheus pin a PHP worker
+     * for cap x tiers x timeout.
+     */
     private function addOfflineSince(array $upResults, array &$metrics): void
     {
-        $hasOffline = false;
+        $pending = [];
         foreach ($upResults as $result) {
             if (!PromQL::isUp($result)) {
-                $hasOffline = true;
-                break;
+                $instance = $result['metric']['instance'] ?? '';
+                $metrics[$instance]['offline_since'] = null;
+                $pending[$instance] = true;
             }
         }
 
-        if (!$hasOffline) {
-            return;
-        }
-
-        // Resolve every instance with one bounded request. The subquery keeps
-        // the former 15-second precision while max_over_time returns the most
-        // recent sample at which the target was up.
-        $lastUp = [];
-        $query = 'max_over_time(timestamp(up{job="node"} == 1)[30d:15s])';
-        foreach ($this->client->query($query) as $result) {
-            $instance = $result['metric']['instance'] ?? '';
-            if ($instance !== '' && isset($result['value'][1])) {
-                $lastUp[$instance] = (float)$result['value'][1];
+        $now = time();
+        foreach (self::OFFLINE_TIERS as [$lookback, $step]) {
+            if ($pending === []) {
+                return;
             }
-        }
 
-        foreach ($upResults as $result) {
-            if (PromQL::isUp($result)) {
-                continue;
+            $selector = 'up{job="node",instance=~"' . PromQL::regexAlternation(array_keys($pending)) . '"}';
+            foreach ($this->client->rangeQuery($selector, $now - $lookback, $now, $step) as $series) {
+                $instance = $series['metric']['instance'] ?? '';
+                $lastUp = null;
+                foreach ($series['values'] ?? [] as [$ts, $val]) {
+                    if ($val === '1') {
+                        $lastUp = (float)$ts; // samples are chronological: last match wins
+                    }
+                }
+                if ($lastUp !== null && isset($pending[$instance])) {
+                    $metrics[$instance]['offline_since'] = $lastUp;
+                    unset($pending[$instance]);
+                }
             }
-            $instance = $result['metric']['instance'] ?? '';
-            $metrics[$instance]['offline_since'] = $lastUp[$instance] ?? null;
         }
     }
 
