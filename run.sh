@@ -88,10 +88,11 @@ fi
 # first write. Re-assert ownership every boot; harmless for MySQL setups.
 #
 # Deliberately NOT -R over the whole tree: the migrations/seeders/factories
-# under here are PHP that the migrate step above runs as root, so leaving them
-# www-data-writable would let a compromised worker stage code for the next
-# boot. SQLite needs the directory itself plus its own files, nothing more.
-chown www-data:www-data /app/database
+# under here are PHP that the migrate step above runs as root. Keep the parent
+# root-owned and sticky so www-data can create SQLite journals but cannot swap
+# out those root-owned source directories before the next boot.
+chown root:www-data /app/database
+chmod 1770 /app/database
 find /app/database -maxdepth 1 -type f -exec chown www-data:www-data {} +
 
 # Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
