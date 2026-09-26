@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Notifications\QueuedResetPassword;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -180,6 +184,26 @@ class AuditRoundFourTest extends TestCase
         $this->assertStringContainsString('QUEUE_CONNECTION=database', $run);
         $this->assertStringNotContainsString('QUEUE_CONNECTION=sync', $run,
             'the shipped image would send mail inline, leaving the timing oracle open');
+    }
+
+    /**
+     * The reset token is a property of the queued notification, and with the
+     * database driver the serialized job sits in `jobs` (or `failed_jobs`)
+     * until a worker picks it up. Unencrypted, that row hands a live reset
+     * token to anyone with read access to the database.
+     */
+    public function test_queued_password_reset_payloads_do_not_expose_the_token()
+    {
+        config(['queue.default' => 'database']);
+        $user = User::factory()->create();
+
+        $user->sendPasswordResetNotification('sensitive-token');
+
+        $payload = DB::table('jobs')->value('payload');
+        $this->assertNotNull($payload, 'the reset notification was not queued');
+        $this->assertStringNotContainsString('sensitive-token', $payload,
+            'database queue payloads must not expose live password-reset tokens');
+        $this->assertInstanceOf(ShouldBeEncrypted::class, new QueuedResetPassword('x'));
     }
 
     /**

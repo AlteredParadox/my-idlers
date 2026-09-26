@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -21,7 +22,7 @@ use Illuminate\Queue\InteractsWithQueue;
  * inline -- so it is a no-op for the documented default rather than a silent
  * requirement to run a worker.
  */
-class QueuedResetPassword extends ResetPassword implements ShouldQueue
+class QueuedResetPassword extends ResetPassword implements ShouldBeEncrypted, ShouldQueue
 {
     use InteractsWithQueue;
 }
