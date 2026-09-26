@@ -96,7 +96,11 @@ class ClientTemplateInjectionTest extends TestCase
      */
     public function test_a_stored_mustache_renders_as_inert_text()
     {
-        $payload = "{{ 7*6 }}";
+        // Not `7*6`: the page also carries a random CSRF token and random
+        // 8-character ids, and a two-digit product turned up in one of those
+        // often enough to fail CI on an unrelated dependency bump. The
+        // nine-digit product cannot appear by accident.
+        $payload = "{{ 12345679*81 }}";
 
         Providers::create(['name' => $payload]);
         Locations::create(['name' => $payload]);
@@ -108,7 +112,7 @@ class ClientTemplateInjectionTest extends TestCase
             $html = $response->getContent();
 
             $this->assertStringContainsString($payload, $html, "$page did not render the stored value");
-            $this->assertStringNotContainsString('42', $html, "$page evaluated the stored expression");
+            $this->assertStringNotContainsString('999999999', $html, "$page evaluated the stored expression");
             $this->assertStringNotContainsString('id="app"', $html, "$page still declares a Vue mount point");
         }
     }
