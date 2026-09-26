@@ -36,7 +36,13 @@ Route::get('servers/public', [ServerController::class, 'showServersPublic'])
     ->middleware('throttle:public-page')
     ->name('servers.public');
 
-Route::middleware(['auth'])->group(function () {
+// no_store: every page here is an authenticated view of the inventory. Without
+// it a browser may serve the page again from its cache -- or restore it from
+// the back-forward cache -- after logout, so Back on a shared machine shows
+// the last page viewed with no request reaching the server. (The plaintext
+// API token used to be in the page too; it is hashed and shown once now, so
+// this is about the inventory itself.)
+Route::middleware(['auth', 'cache.headers:no_store'])->group(function () {
     // Step-up on update only: it can move the account recovery email AND mint
     // a fresh API token, so a hijacked session would otherwise convert itself
     // into permanent access without ever proving it knows the password.
