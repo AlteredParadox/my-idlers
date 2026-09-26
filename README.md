@@ -989,10 +989,10 @@ The signed URL is scoped to one server and expires.
 
 Example yabs.sh call to POST the result:
 
-`curl -sL yabs.sh | bash -s -- -s "https://yourdomain.com/api/yabs/SERVERID?expires=...&signature=..."`
+`curl -sL https://yabs.sh | bash -s -- -s "https://yourdomain.com/api/yabs/SERVERID?expires=...&signature=..."`
 
 If the instance is not reachable from the benchmarked server (private/LAN-only deployments),
-use **Add YABS** on the YABS page instead: run `curl -sL yabs.sh | bash -s -- -j` on the
+use **Add YABS** on the YABS page instead: run `curl -sL https://yabs.sh | bash -s -- -j` on the
 server and paste the JSON it prints.
 
 ## Credits
@@ -1203,10 +1203,10 @@ E.g if the term is a month then the due date gets updated to be 1 month from the
 
 **Supporting YABS commands:**
 
-```curl -sL yabs.sh | bash```
+```curl -sL https://yabs.sh | bash```
 
 or
 
-```curl -sL yabs.sh | bash -s -- -r```
+```curl -sL https://yabs.sh | bash -s -- -r```
 
 Logo icons created by Freepik - Flaticon
