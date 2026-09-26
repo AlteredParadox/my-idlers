@@ -121,14 +121,17 @@ class AuditRoundThreeTest extends TestCase
         $dockerfile = file_get_contents(base_path('Dockerfile'));
         $run = file_get_contents(base_path('run.sh'));
 
-        // The entrypoint runs `artisan migrate` as root, so anything www-data
-        // can write under /app/database is code root will execute next boot.
-        $this->assertStringContainsString(
-            'chown -R root:root /app/database/migrations /app/database/seeders /app/database/factories',
-            $dockerfile
-        );
+        // The entrypoint runs `artisan migrate` as root. The SQLite directory
+        // must be writable by www-data, but root ownership plus the sticky bit
+        // prevents it from replacing root-owned source subdirectories.
+        foreach ([$dockerfile, $run] as $startupSource) {
+            $this->assertStringContainsString('chown root:www-data /app/database', $startupSource);
+            $this->assertStringContainsString('chmod 1770 /app/database', $startupSource);
+        }
         $this->assertStringNotContainsString('chown -R www-data:www-data /app/database', $run,
             'the entrypoint re-grants write on the migration source every boot');
+        $this->assertStringNotContainsString('chown -R www-data:www-data /app/database', $dockerfile,
+            'the image grants write on migration source at build time');
     }
 
     // ---- #7: the mail transport must be able to require TLS --------------
