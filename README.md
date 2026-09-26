@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.14-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.30-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.15-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.31-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,97 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.15` — September 2026
+
+_A security release, plus one display fix. The security fixes come from the first batch of
+findings filed against this repository by **Daybreak Blue**, OpenAI's Codex security program,
+which proposed each one as a pull request.
+Every proposal was verified against the code before merging — the two container findings were
+reproduced in a throwaway container — and the record of what was taken, reworked or closed is
+below. Dependency updates ride along._
+
+> **Upgrading?** No schema change, so `AUTO_MIGRATE` has nothing to do and rolling back to `ap.14`
+> is clean. Two behaviour changes are worth reading before pulling the image:
+>
+> * **php-fpm no longer listens on the container network.** It binds `127.0.0.1:9000`; the nginx
+>   inside the container remains the only front. If anything outside the container spoke FastCGI
+>   to port 9000 directly, that was never a supported setup and it stops working here.
+> * **`/app/database` is now `root:www-data`, mode `1770`** (sticky, group-writable) instead of
+>   www-data-owned. The entrypoint re-applies this on every boot, so existing SQLite bind mounts
+>   need no action. The host-side recipe in the Docker notes changed accordingly; the old
+>   `chown -R 82:82` still works until the container next starts and corrects it.
+
+**Security — findings by Daybreak Blue**
+
+* **Password-reset tokens sat in plain text in the `jobs` table.** The queued reset notification
+  carries the live token as a property, and the `database` queue driver (what the image runs)
+  serializes the whole notification into the `jobs` row — and into `failed_jobs` if delivery fails
+  and stays there. Anyone with read access to the database could lift a token and reset the
+  account. The notification now declares `ShouldBeEncrypted`, so the payload is encrypted with
+  `APP_KEY` before it is stored. Jobs queued before the upgrade still process — the worker accepts
+  both payload shapes. The regression test pushes a reset through the database queue and inspects
+  the stored row rather than checking for the interface (#75)
+* **The PHP identity could replace the migration source after all.** `ap.12` made
+  `database/migrations`, `seeders` and `factories` root-owned so a compromised php-fpm worker could
+  not stage code for the root-run `artisan migrate`. But www-data still owned the *parent*
+  directory, and renaming a directory needs write permission on its parent only: `mv migrations
+  migrations.old && mkdir migrations` succeeded as www-data in a test container, leaving root to
+  execute whatever was put there on the next boot. `/app/database` is now root-owned with the
+  sticky bit, which lets www-data create SQLite's journal and WAL files but refuses to let it
+  rename or unlink entries it does not own. Verified: the rename now fails with `EPERM`; SQLite
+  sidecar create/delete still works (#76). A second proposal for the same finding (#77) moved the
+  SQLite file to a new default path under `database/sqlite/`; closed, because an existing install
+  relying on the default path would have come up on an empty database
+* **php-fpm inherited the base image's wildcard listener.** `php:*-fpm-alpine` ships
+  `listen = 9000`, all interfaces, "for easy override" — and nothing overrode it, so FastCGI on
+  port 9000 was reachable from every container on the same Docker network (and from the host, had
+  the port been published). A direct FastCGI client bypasses every nginx rule, including the
+  exact-match one that keeps uploaded files out of the interpreter. The pool now binds
+  `127.0.0.1:9000`; confirmed with `php-fpm -tt` against the base image (#80; #78 was the same
+  change filed twice)
+* **Prometheus offline-since lookups fanned out per down target.** When nodes are offline, the
+  status endpoint looked up when each was last seen up with up to four sequential range queries
+  per target — bounded at 25 targets since `ap.12`, but still up to 100 requests per poll, with a
+  slow Prometheus able to pin a PHP worker for 100 × the timeout, and browser timer ticks free to
+  start a new poll while the previous one was still outstanding. The proposal here was reworked:
+  Codex's single `max_over_time(timestamp(up == 1)[30d:15s])` subquery would have had Prometheus
+  evaluate 172,800 steps per series on every 20-second poll. Instead the existing 1h/24h/7d/30d
+  lookback tiers are kept but each tier is one range query over every still-unresolved instance
+  (`instance=~"a|b|c"`, RE2-escaped), so a status request issues at most four Prometheus requests
+  however many targets are down. The 25-target cap and its log line are gone, and the browser now
+  skips a tick while a poll is in flight, as proposed (#79)
+* **Documentation:** the yabs.sh examples spell out `https://` — `curl -sL yabs.sh | bash` lets a
+  first plain-HTTP hop hand the script to whoever is on the path (#81)
+
+**Fixes**
+
+* **A server's specs disagreed across pages** (issue #74, reported by bugsse). The list and the
+  edit form showed the values entered when the server was created; the detail page swapped in the
+  latest YABS measurement for RAM and disk; and the create/edit forms still promised "YABS output
+  will overwrite these values" — which the ingest stopped doing in `ap.1`, because `server_disks`
+  is the disk source of truth and YABS only sees usable RAM and the root filesystem. The entered
+  values now show everywhere. The measurements are not lost: they appear in the YABS Benchmark
+  section as **Usable RAM** and **Root Filesystem**, and the form note now says what happens.
+  No data change (#84)
+
+**Dependencies**
+
+* Laravel framework 13.30 → 13.31, Guzzle 8.1 → 8.2
+* Front end: DataTables 3.0.3 → 3.0.4, sass 1.103 → 1.104, Vite 8.2 → 8.3; bundle rebuilt
+* Release workflow: `docker/setup-buildx-action` 4.4.1, `docker/build-push-action` 7.4.0,
+  `SonarSource/sonarqube-scan-action` 8.2.2, all SHA-pinned and verified against their tags; the
+  dry-run build passed with them
+
+`composer audit` and `npm audit` report no advisories at these versions.
+
+**Tests**
+
+* One flaky assertion fixed: the template-injection probe asserted the page contained no `42`,
+  which a random CSRF token or row id occasionally did, failing CI on an unrelated bump. It now
+  probes for a nine-digit product
+
+Test suite: **739 tests / 2,443 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.14` — September 2026
 
@@ -948,7 +1039,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.14` — note the Docker tag uses `-ap.14` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.15` — note the Docker tag uses `-ap.15` since `+` is not
 a valid Docker tag character).
 
 Notes:
