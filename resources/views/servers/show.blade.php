@@ -1,7 +1,7 @@
 @section("title", "{$server_data->hostname} server")
 @section('css_links')
     @if(session('prometheus_enabled') && session('prometheus_url'))
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
+    @vite(['resources/js/charts.js'])
     @endif
 @endsection
 @section('style')
@@ -409,8 +409,14 @@
             }
         }
 
-        fetchDetail();
-        refreshTimer = setInterval(fetchDetail, 30000);
+        // ApexCharts arrives in a deferred Vite module (resources/js/charts.js),
+        // which the browser runs after parsing and before DOMContentLoaded. This
+        // inline script runs mid-parse, so a first fetch started here could in
+        // principle resolve before the global exists; wait for the event.
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchDetail();
+            refreshTimer = setInterval(fetchDetail, 30000);
+        });
     })();
     </script>
     @endif
