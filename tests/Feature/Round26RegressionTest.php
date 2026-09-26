@@ -152,18 +152,24 @@ class Round26RegressionTest extends TestCase
         $this->actingAs($this->user)->get(route('servers.index'))->assertOk();
     }
 
-    public function test_yabs_relation_returns_newest_first()
+    public function test_yabs_relation_returns_most_recently_ingested_first()
     {
         $server = $this->makeServer('yabsord1');
 
-        foreach ([['old00001', '2025-01-01 00:00:00'], ['new00001', '2026-06-01 00:00:00']] as [$id, $date]) {
+        $runs = [
+            // A caller-controlled future run time must not pin this result.
+            ['old00001', '9999-12-31 23:59:59', '2026-06-01 00:00:00'],
+            ['new00001', '2025-01-01 00:00:00', '2026-06-01 00:01:00'],
+        ];
+
+        foreach ($runs as [$id, $date, $createdAt]) {
             DB::table('yabs')->insert([
                 'id' => $id, 'server_id' => 'yabsord1', 'has_ipv6' => 0,
                 'aes' => 1, 'vm' => 1, 'output_date' => $date, 'cpu_cores' => 2,
                 'cpu_freq' => 2400, 'cpu_model' => 'test', 'ram' => 4, 'ram_type' => 'GB',
                 'ram_mb' => 4096, 'disk' => 50, 'disk_type' => 'GB', 'disk_gb' => 50,
                 'gb5_single' => 100, 'gb5_multi' => 200, 'gb5_id' => 1,
-                'created_at' => now(), 'updated_at' => now(),
+                'created_at' => $createdAt, 'updated_at' => $createdAt,
             ]);
         }
 
