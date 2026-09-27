@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.15-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.31-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.16-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.33-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 ## Changes from upstream (this fork)
 
@@ -59,6 +59,105 @@ settings page — with it disabled the app behaves like upstream.
 ### Tooling
 
 * `php artisan import:servers <file> [--domain-suffix=example.com]` — CSV import command for bulk-loading servers
+
+## Fork revision `ap.16` — September 2026
+
+_The second Daybreak Blue batch (OpenAI's Codex security program), plus its two findings that
+arrived without a patch, one of which turned out to be the most significant item in the release.
+Twenty-one proposals were reviewed: seven were taken (three after rework), fourteen closed, each
+with its reason on the pull request. The repository's history was also rewritten to purge a
+committed inventory file; see the note below if you have a clone._
+
+> **Upgrading?** No schema change, so `AUTO_MIGRATE` has nothing to do and rolling back to `ap.15`
+> is clean. Three behaviour changes:
+>
+> * **New sessions are budgeted per client address**, 60 a minute. A browser that keeps its cookie
+>   is exempt; only requests arriving without a usable session cookie count. Behind a reverse proxy
+>   the budget is shared by every visitor unless `TRUSTED_PROXIES` is set.
+> * **Authenticated pages send `Cache-Control: no-store`**, so Back after logout cannot restore an
+>   inventory page from the browser cache.
+> * **The Prometheus charts on the server page work in the container again.** They had been
+>   loading ApexCharts from jsDelivr, which the image's Content-Security-Policy has blocked since
+>   it landed; the library is now bundled.
+>
+> **If you have a clone or fork of this repository:** on 2026-09-26 the history was rewritten with
+> `git filter-repo` to remove `servers_import.csv`, an operator inventory file committed in July.
+> Every commit after that point, and every `v4.1.0+ap.*` tag, has a new hash; upstream's commits
+> are untouched. Re-clone, or `git fetch --tags --force` and reset any local branch onto the new
+> `main`. Release images and the Releases page are unaffected.
+
+**Security — findings by Daybreak Blue**
+
+* **Anonymous requests could fill the database with sessions.** Every web request that arrives
+  without a usable session cookie stores a `sessions` row, whatever the route or status. Measured on
+  a live server: 40 cookie-less `GET /login` wrote 40 rows, and the 10 that the guest-page throttle
+  answered with 429 still wrote theirs, because `StartSession` runs before `ThrottleRequests`.
+  Auth redirects, CSRF 419s and garbage cookies wrote rows too; only unknown paths did not. So the
+  route throttles added in `ap.12` bounded page work, never database growth. A `ThrottleNewSessions`
+  middleware now sits before `StartSession` and budgets session creation per address; over the
+  budget the request is refused with the framework's 429 and nothing is stored. Growth is bounded at
+  60 × `SESSION_LIFETIME` rows per address. Verified live: 70 cookie-less requests = 60 rows and 10
+  refusals; 70 requests from a client holding its cookie = no new rows (#106)
+* **Back navigation after logout.** The finding also claimed the API token sat in every page; that
+  half was stale (hashed at rest and shown once since `ap.10`). The cache half stood: nothing had
+  replaced the pageshow reload dropped with the Vue build. Authenticated responses now carry
+  `Cache-Control: no-store` (#88)
+* **Third-party assets without integrity.** The error pages loaded Bootstrap from jsDelivr with no
+  `integrity` attribute; removed, the bundle already has it. The same check found the server page
+  loading ApexCharts the same way — and the container CSP had been blocking it, so the charts were
+  broken in the image without anyone noticing. ApexCharts is now an npm dependency built as its own
+  Vite entry that only the server page loads, and a test fails on any view that references a script
+  or stylesheet on another origin (#87)
+* **Latest YABS run chosen by a caller-supplied timestamp.** The relation ordered by
+  `output_date`, which comes from the benchmark payload; a run posted with a future time would pin
+  itself as the result every view shows. Ordered by the server-side `created_at` now (#86)
+* **Operator inventory in the repository.** `servers_import.csv`, 54 rows of hostname labels,
+  providers, locations, specs and costs, had been committed in July and later deleted from the tree
+  but not from history. Purged with `git filter-repo`; see the clone note above
+
+**Fixes**
+
+* **Prometheus offline-since missed brief recoveries in the coarse tiers.** A 15-minute
+  `query_range` step evaluates `up` from the last sample within the lookback window, so a node that
+  came back for two minutes between step points read as never up. Coarse tiers now query
+  `max_over_time(up[step])`, folding every scrape in each bucket (#94, test fixed)
+* **Address sort keys could be sorted as numbers.** DataTables type-detects a column from its sort
+  values, and a packed IPv6 key can be all digits (`2001:4860:4860::8844` is one), so a column of
+  such keys was compared as JavaScript numbers and 33-digit keys lost precision. Keys now start with
+  a letter. The proposal's `other:` prefix sorted text above addresses; replaced with ordered
+  letters that keep the fixed widths (#95)
+* **Currencies: provider-derived list, and the stored one stays selectable.** Validation accepted
+  only currencies on a hand-kept ISO table that already lagged real codes (XCG, ZWG); it now accepts
+  any three-letter provider key with a usable rate (#100). And during a rate outage the edit form's
+  currency list collapsed to USD, so the browser silently submitted USD for a EUR price on any
+  unrelated edit; the stored currency stays in the list, and the edit fails on validation instead of
+  relabelling the price (#98; #99 was the same fix filed twice)
+* **Hide Domains and Hide Stats lost on DataTables page changes.** Both toggles only reached rows in
+  the DOM, and DataTables keeps other pages' rows out of it. Both states now reapply on every draw,
+  unconditionally: a first version guarded the calls and so reapplied "hide" but never "show",
+  which Daybreak Blue caught in the follow-up (#102, #115)
+* The 2022 `dashboard_currency` migration has a real `down()` (#111)
+
+**Assessed and not changed** — closed on the pull requests with reasons: a multi-replica
+registration lock (#92; every other cache is per-container), nodename corroboration that would break
+hostname mapping for IP-targeted Prometheus instances (#93), two reports that inline `@section`
+titles are unescaped (#96, #109; Blade escapes them, now pinned by a test, #114), a change that
+would have disabled the boot-time migration guard (#97), backfills and key versioning for upgrades
+that shipped months or years ago (#101, #103, #105, #108, #113), a "regression" that is upstream's
+2022 API shape (#110), a null-location fix for a NOT NULL column (#112), and the cached-array
+contract for providers and locations (#104).
+
+**Dependencies**
+
+* Laravel framework 13.31 → 13.33
+* Front end: DataTables 3.0.4 → 3.1.1 (its new `exports` map made the bare stylesheet import
+  resolve to JavaScript; imported by path now), sass 1.104 → 1.105, apexcharts 3.54 added and
+  bundled; bundle rebuilt
+* Dependabot: apexcharts majors are held until the charts have been checked in a browser (#107)
+
+`composer audit` and `npm audit` report no advisories at these versions.
+
+Test suite: **756 tests / 2,996 assertions**, green on both SQLite and MySQL.
 
 ## Fork revision `ap.15` — September 2026
 
@@ -1039,7 +1138,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.15` — note the Docker tag uses `-ap.15` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.16` — note the Docker tag uses `-ap.16` since `+` is not
 a valid Docker tag character).
 
 Notes:
