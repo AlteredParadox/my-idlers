@@ -162,13 +162,15 @@ class Pricing extends Model
 
         $currencies = $currencies ?: self::FALLBACK_CURRENCIES;
 
-        // Edit forms must retain a persisted ISO currency even when the rate
-        // provider is unavailable or no longer returns it. Otherwise the
-        // browser selects the first option (USD) and an unrelated edit can
-        // silently relabel the stored price. Validation still rejects that
-        // unrated currency, so it cannot be newly stored or recalculated 1:1.
+        // Edit forms must keep offering a persisted currency even when the
+        // rate provider is unavailable or no longer returns it. Otherwise the
+        // browser selects the first option (USD) and an unrelated edit
+        // silently relabels the stored price. currencyRule() still rejects an
+        // unrated currency, so the edit fails loudly instead of being
+        // recalculated 1:1 -- the option only stops the silent relabel. Same
+        // shape test as the provider keys above; anything else is not a code.
         if ($currentCurrency !== null
-            && in_array($currentCurrency, self::ISO_CURRENCIES, true)
+            && preg_match('/^[A-Z]{3}$/D', $currentCurrency) === 1
             && !in_array($currentCurrency, $currencies, true)) {
             $currencies[] = $currentCurrency;
         }
