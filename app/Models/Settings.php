@@ -46,9 +46,9 @@ class Settings extends Model
 
     public static function getSettings(): Settings
     {
-        return Cache::remember('settings', now()->addWeek(1), function () {
+        $loadSettings = function () {
             $settings = self::where('id', 1)->first();
-            if (is_null($settings)){
+            if (is_null($settings)) {
                 // fresh(): the model create() returns carries only the
                 // attributes PHP supplied — none of the column defaults —
                 // and it gets cached for a week; every ->attribute read on a
@@ -59,7 +59,19 @@ class Settings extends Model
                 $settings = Settings::create(['id' => 1])->fresh();
             }
             return $settings;
-        });
+        };
+
+        $settings = Cache::remember('settings', now()->addWeek(1), $loadSettings);
+
+        // Releases before this model used the query builder and cached a
+        // stdClass under the same key. Discard that incompatible value so
+        // upgrades cannot fail this method's Settings return type.
+        if (! $settings instanceof self) {
+            Cache::forget('settings');
+            $settings = Cache::remember('settings', now()->addWeek(1), $loadSettings);
+        }
+
+        return $settings;
     }
 
     public static function setSettingsToSession($settings): void

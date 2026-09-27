@@ -75,6 +75,17 @@ class Round48RegressionTest extends TestCase
         $this->assertNotNull($settings->default_currency);
     }
 
+    public function test_legacy_query_builder_settings_cache_is_replaced()
+    {
+        Settings::firstOrCreate(['id' => 1]);
+        Cache::put('settings', (object) ['id' => 1], now()->addWeek());
+
+        $settings = Settings::getSettings();
+
+        $this->assertInstanceOf(Settings::class, $settings);
+        $this->assertInstanceOf(Settings::class, Cache::get('settings'));
+    }
+
     public function test_note_truncation_is_multibyte_safe()
     {
         $user = User::factory()->create();
