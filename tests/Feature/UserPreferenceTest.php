@@ -122,10 +122,13 @@ class UserPreferenceTest extends TestCase
         $servers->assertSee('dt.servers-table', false);
         $servers->assertSee('idlersDataTable(\'#servers-table\'', false);
         // Rows off the current page are not in the DOM when a toggle runs, so
-        // both saved states must be reapplied on every DataTables draw.
-        $servers->assertSee(".on('draw.dt', function () {", false);
-        $servers->assertSee('if (domainHidden) applyDomainToggle();', false);
-        $servers->assertSee('if (statsHidden) applyStatsToggle();', false);
+        // both states must be reapplied on every DataTables draw -- and
+        // unconditionally: a guarded call reapplies "hide" but never "show", so
+        // rows hidden on page 1 and shown from page 2 came back abbreviated.
+        $this->assertMatchesRegularExpression(
+            "/\\.on\\('draw\\.dt', function \\(\\) \\{\\s*applyDomainToggle\\(\\);\\s*applyStatsToggle\\(\\);\\s*\\}\\);/",
+            $servers->getContent()
+        );
         // Theme-explicit colvis styling: the themes hide filter-label text
         // with font-size:0 (our labels live in the filter div) and paint
         // near-invisible dropdown text, so the menu ships its own rules
