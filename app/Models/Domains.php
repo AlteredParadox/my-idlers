@@ -32,7 +32,7 @@ class Domains extends Model
     public static function allDomains()
     {//All domains and relationships (no using joins)
         return Cache::remember("all_domains", now()->addMonth(1), function () {
-            $query = Domains::with(['provider', 'price', 'labels']);
+            $query = Domains::with(['provider', 'price', 'labels.label']);
             self::applyPricingSort($query);
             return $query->get();
         });
@@ -58,7 +58,7 @@ class Domains extends Model
     {//Single domains and relationships (no using joins)
         return Cache::remember("domain.$domain_id", now()->addMonth(1), function () use ($domain_id) {
             return Domains::where('id', $domain_id)
-                ->with(['provider', 'price', 'labels'])->first();
+                ->with(['provider', 'price', 'labels.label'])->first();
         });
     }
 

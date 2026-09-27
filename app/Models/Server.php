@@ -36,7 +36,7 @@ class Server extends Model
     public static function allServers()
     {//All servers and relationships (no using joins)
         return Cache::remember("all_servers", now()->addMonth(1), function () {
-            $query = Server::with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels']);
+            $query = Server::with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels.label']);
             self::applyPricingSort($query);
             return $query->get();
         });
@@ -46,7 +46,7 @@ class Server extends Model
     {//Single server and relationships (no using joins)
         return Cache::remember("server.$server_id", now()->addMonth(1), function () use ($server_id) {
             return Server::where('id', $server_id)
-                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels'])->first();
+                ->with(['location', 'provider', 'os', 'price', 'ips', 'disks', 'yabs', 'yabs.disk_speed', 'yabs.network_speed', 'labels.label'])->first();
         });
     }
 

@@ -31,7 +31,7 @@ class Reseller extends Model
     public static function allResellerHosting()
     {//All reseller hosting and relationships (no using joins)
         return Cache::remember("all_reseller", now()->addMonth(1), function () {
-            $query = Reseller::with(['location', 'provider', 'price', 'ips', 'labels']);
+            $query = Reseller::with(['location', 'provider', 'price', 'ips', 'labels.label']);
             self::applyPricingSort($query);
             return $query->get();
         });
@@ -57,7 +57,7 @@ class Reseller extends Model
     {//Single reseller hosting and relationships (no using joins)
         return Cache::remember("reseller_hosting.$reseller_id", now()->addMonth(1), function () use ($reseller_id) {
             return Reseller::where('id', $reseller_id)
-                ->with(['location', 'provider', 'price', 'ips', 'labels'])->first();
+                ->with(['location', 'provider', 'price', 'ips', 'labels.label'])->first();
         });
     }
 

@@ -36,7 +36,7 @@ class SeedBoxes extends Model
     public static function allSeedboxes()
     {//All seedboxes and relationships (no using joins)
         return Cache::remember("all_seedboxes", now()->addMonth(1), function () {
-            $query = SeedBoxes::with(['location', 'provider', 'price', 'ips']);
+            $query = SeedBoxes::with(['location', 'provider', 'price', 'ips', 'labels.label']);
             self::applyPricingSort($query);
             return $query->get();
         });
@@ -46,7 +46,7 @@ class SeedBoxes extends Model
     {//Single seedbox and relationships (no using joins)
         return Cache::remember("seedbox.$seedbox_id", now()->addMonth(1), function () use ($seedbox_id) {
             return SeedBoxes::where('id', $seedbox_id)
-                ->with(['location', 'provider', 'price', 'ips'])->first();
+                ->with(['location', 'provider', 'price', 'ips', 'labels.label'])->first();
         });
     }
 
