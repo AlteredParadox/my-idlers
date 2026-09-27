@@ -68,7 +68,7 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     done
 else
     tries=0
-    until php artisan migrate:status --pending=1 > /dev/null 2>&1; do
+    until php artisan migrate:status --pending > /dev/null 2>&1; do
         tries=$((tries + 1))
         if [ "$tries" -ge 10 ]; then
             echo "ERROR: the database has pending migrations, is not initialized, or is unreachable." >&2
