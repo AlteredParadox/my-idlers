@@ -121,6 +121,7 @@ class UserPreferenceTest extends TestCase
         $servers->assertSee('idlersPrefs', false);
         $servers->assertSee('dt.servers-table', false);
         $servers->assertSee('idlersDataTable(\'#servers-table\'', false);
+        $servers->assertSee(".on('draw.dt', applyDomainToggle)", false);
         // Theme-explicit colvis styling: the themes hide filter-label text
         // with font-size:0 (our labels live in the filter div) and paint
         // near-invisible dropdown text, so the menu ships its own rules

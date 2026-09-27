@@ -349,6 +349,10 @@
                 });
             }
 
+            // DataTables detaches rows on other pages, so reapply the current
+            // masking state whenever pagination or another table draw occurs.
+            $('#servers-table, #inactive-servers-table').on('draw.dt', applyDomainToggle);
+
             function applyStatsToggle() {
                 var display = statsHidden ? 'none' : '';
                 document.querySelectorAll('.ram-usage, .disk-usage, .link-usage').forEach(function(el) {
