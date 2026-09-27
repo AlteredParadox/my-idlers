@@ -166,7 +166,10 @@ class PrometheusService
             }
 
             $selector = 'up{job="node",instance=~"' . PromQL::regexAlternation(array_keys($pending)) . '"}';
-            foreach ($this->client->rangeQuery($selector, $now - $lookback, $now, $step) as $series) {
+            // A coarse query_range step alone can skip an entire brief recovery.
+            // Fold every scrape in each coarse bucket into its returned value.
+            $query = $step > 15 ? "max_over_time({$selector}[{$step}s])" : $selector;
+            foreach ($this->client->rangeQuery($query, $now - $lookback, $now, $step) as $series) {
                 $instance = $series['metric']['instance'] ?? '';
                 $lastUp = null;
                 foreach ($series['values'] ?? [] as [$ts, $val]) {
