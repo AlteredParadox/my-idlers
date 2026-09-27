@@ -15,7 +15,8 @@ class Home extends Model
 
     public static function homePageCacheForget(): void
     {
-        Cache::forget('services_count');//Main page services_count cache
+        Cache::forget('services_count');//Legacy main page services_count cache
+        Cache::forget('services_count_v2');//Main page services_count cache
         Cache::forget('due_soon');//Main page due_soon cache
         Cache::forget('recently_added');//Main page recently_added cache
         Cache::forget('all_active_pricing');
@@ -26,7 +27,7 @@ class Home extends Model
 
     public static function servicesCount()
     {
-        return Cache::remember('services_count', now()->addHours(6), function () {
+        return Cache::remember('services_count_v2', now()->addHours(6), function () {
             return [
                 'servers' => DB::table('servers')->where('active', 1)->count(),
                 'shared' => DB::table('shared_hosting')->where('active', 1)->count(),
