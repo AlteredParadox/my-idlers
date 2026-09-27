@@ -10,6 +10,7 @@ use App\Models\Server;
 use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -138,5 +139,24 @@ class GptRound5RegressionTest extends TestCase
         ]))->assertRedirect(route('servers.index'));
 
         $this->assertDatabaseHas('pricings', ['currency' => 'USD', 'price' => 0.00]);
+    }
+
+    public function test_current_provider_currencies_are_displayed_and_accepted()
+    {
+        Cache::put('currency_rates', (object) [
+            'USD' => 1.0,
+            'XCG' => 1.79,
+            'ZWG' => 25.0,
+            'junk' => 2.0,
+            'BAD' => 0,
+        ], now()->addDay());
+
+        $this->assertSame(['USD', 'XCG', 'ZWG'], Pricing::getCurrencyList());
+
+        $this->actingAs($this->user)->post(route('servers.store'), $this->webServerPayload([
+            'currency' => 'XCG',
+        ]))->assertRedirect(route('servers.index'));
+
+        $this->assertDatabaseHas('pricings', ['currency' => 'XCG']);
     }
 }

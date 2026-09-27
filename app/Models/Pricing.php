@@ -118,32 +118,6 @@ class Pricing extends Model
     public const FALLBACK_CURRENCIES = ['USD'];
 
     /**
-     * ISO 4217 active alpha codes. Validation uses this FIXED list rather
-     * than getCurrencyList(): the live list depends on the exchange-rate API
-     * being reachable, and an outage must not brick editing non-USD services.
-     * Unknown codes previously passed size:3 and were silently converted 1:1
-     * as USD, corrupting as_usd/usd_per_month and every total built on them.
-     */
-    public const ISO_CURRENCIES = [
-        'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
-        'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
-        'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
-        'COP', 'CRC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP',
-        'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD',
-        'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS',
-        'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR',
-        'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD',
-        'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU',
-        'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK',
-        'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG',
-        'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK',
-        'SGD', 'SHP', 'SLE', 'SOS', 'SRD', 'SSP', 'STN', 'SVC', 'SYP', 'SZL',
-        'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH',
-        'UGX', 'USD', 'UYU', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XCD',
-        'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL',
-    ];
-
-    /**
      * The web-form pricing rules shared by every service type's store and
      * update (the API uses date_format variants and its own optionality).
      */
@@ -168,18 +142,23 @@ class Pricing extends Model
      * else the explicit FALLBACK_CURRENCIES. Accepting any ISO code let a
      * valid-but-unrated currency (e.g. JPY with no rates configured) be
      * stored and silently converted 1:1 as USD, corrupting every total.
-     * The ISO list still filters out junk keys from the rates API itself.
+     * Requiring an uppercase three-letter provider key and a usable rate
+     * filters malformed entries without freezing the accepted currencies to
+     * a stale, hand-maintained ISO snapshot.
      */
     public static function currencyRule(): string
     {
-        $accepted = array_values(array_intersect(self::getCurrencyList(), self::ISO_CURRENCIES));
-
-        return 'in:' . implode(',', $accepted ?: self::FALLBACK_CURRENCIES);
+        return 'in:' . implode(',', self::getCurrencyList());
     }
 
     public static function getCurrencyList(): array
     {
-        $currencies = array_keys((array)self::refreshRates());
+        $currencies = [];
+        foreach ((array) self::refreshRates() as $currency => $rate) {
+            if (preg_match('/^[A-Z]{3}$/D', $currency) === 1 && self::isUsableRate($rate)) {
+                $currencies[] = $currency;
+            }
+        }
 
         return $currencies ?: self::FALLBACK_CURRENCIES;
     }
