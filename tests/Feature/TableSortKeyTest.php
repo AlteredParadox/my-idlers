@@ -272,9 +272,21 @@ class TableSortKeyTest extends TestCase
     public function test_address_sort_keys_are_fixed_width_per_family()
     {
         // Equal width is what makes a lexicographic compare match numeric order.
-        $this->assertSame(9, strlen(Process::addressSortKey('1.2.3.4')));
-        $this->assertSame(9, strlen(Process::addressSortKey('255.255.255.255')));
-        $this->assertSame(33, strlen(Process::addressSortKey('2001:db8::1')));
-        $this->assertSame(33, strlen(Process::addressSortKey('::1')));
+        $this->assertSame(11, strlen(Process::addressSortKey('1.2.3.4')));
+        $this->assertSame(11, strlen(Process::addressSortKey('255.255.255.255')));
+        $this->assertSame(35, strlen(Process::addressSortKey('2001:db8::1')));
+        $this->assertSame(35, strlen(Process::addressSortKey('::1')));
+    }
+
+    public function test_address_sort_keys_cannot_be_coerced_to_javascript_numbers()
+    {
+        // These packed IPv6 addresses contain digits only. Without an alphabetic
+        // prefix DataTables detects both long keys as numbers and loses precision.
+        $first = Process::addressSortKey('2001:4860:4860::8844');
+        $second = Process::addressSortKey('2001:4860:4860::8888');
+
+        $this->assertFalse(is_numeric($first));
+        $this->assertFalse(is_numeric($second));
+        $this->assertLessThan(0, strcmp($first, $second));
     }
 }
