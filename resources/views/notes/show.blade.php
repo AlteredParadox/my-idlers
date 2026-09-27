@@ -1,4 +1,4 @@
-@section("title", "Note $note->id")
+@section('title')Note {{ $note->id }}@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

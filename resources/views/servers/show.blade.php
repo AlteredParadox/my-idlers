@@ -1,4 +1,4 @@
-@section("title", "{$server_data->hostname} server")
+@section('title'){{ $server_data->hostname }} server@endsection
 @section('css_links')
     @if(session('prometheus_enabled') && session('prometheus_url'))
     @vite(['resources/js/charts.js'])

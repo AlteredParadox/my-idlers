@@ -1,4 +1,4 @@
-@section("title", "{$server_data->hostname} edit")
+@section('title'){{ $server_data->hostname }} edit@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

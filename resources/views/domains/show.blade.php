@@ -1,4 +1,4 @@
-@section("title", "{$domain_info->domain}.{$domain_info->extension} domain")
+@section('title'){{ $domain_info->domain }}.{{ $domain_info->extension }} domain@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

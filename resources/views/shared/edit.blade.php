@@ -1,4 +1,4 @@
-@section("title", "{$shared->main_domain} edit")
+@section('title'){{ $shared->main_domain }} edit@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

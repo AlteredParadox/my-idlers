@@ -1,4 +1,4 @@
-@section("title", "{$provider->name} provider")
+@section('title'){{ $provider->name }} provider@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

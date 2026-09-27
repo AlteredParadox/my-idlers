@@ -1,4 +1,4 @@
-@section("title", "{$seedbox_data->title} seed box")
+@section('title'){{ $seedbox_data->title }} seed box@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

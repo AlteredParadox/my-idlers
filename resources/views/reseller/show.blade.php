@@ -1,4 +1,4 @@
-@section("title", "{$reseller->main_domain} reseller hosting")
+@section('title'){{ $reseller->main_domain }} reseller hosting@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

@@ -1,4 +1,4 @@
-@section("title", "{$label->label} label")
+@section('title'){{ $label->label }} label@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

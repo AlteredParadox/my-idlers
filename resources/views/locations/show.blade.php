@@ -1,4 +1,4 @@
-@section("title", "{$location->name} location")
+@section('title'){{ $location->name }} location@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">

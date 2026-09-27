@@ -1,4 +1,4 @@
-@section("title", "{$misc_data->name} service")
+@section('title'){{ $misc_data->name }} service@endsection
 <x-app-layout>
     <div class="container">
         <div class="page-header">
