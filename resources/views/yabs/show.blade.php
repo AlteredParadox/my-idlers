@@ -1,4 +1,4 @@
-@section("title", "{$yabs->server?->hostname} {$yabs->id} YABS")
+@section("title", e($yabs->server?->hostname)." {$yabs->id} YABS")
 <x-app-layout>
     <div class="container">
         <div class="page-header">

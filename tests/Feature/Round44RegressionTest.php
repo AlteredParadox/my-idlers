@@ -31,6 +31,7 @@ class Round44RegressionTest extends TestCase
     public function test_yabs_show_title_includes_the_server_hostname()
     {
         $user = User::factory()->create();
+        $hostname = 'title.example.com</title><script>alert(1)</script><title>';
         Settings::create(['id' => 1]);
         Pricing::create([
             'service_id' => 'r44srv01', 'service_type' => 1, 'currency' => 'USD',
@@ -38,7 +39,7 @@ class Round44RegressionTest extends TestCase
             'next_due_date' => now()->addMonth()->format('Y-m-d'),
         ]);
         Server::create([
-            'id' => 'r44srv01', 'hostname' => 'title.example.com', 'server_type' => 1,
+            'id' => 'r44srv01', 'hostname' => $hostname, 'server_type' => 1,
             'os_id' => OS::create(['name' => 'D'])->id,
             'provider_id' => Providers::create(['name' => 'P'])->id,
             'location_id' => Locations::create(['name' => 'L'])->id,
@@ -54,10 +55,13 @@ class Round44RegressionTest extends TestCase
             'gb5_single' => 1200, 'gb5_multi' => 4500,
         ]);
 
-        // The title read $yabs->hostname (nonexistent) — tab showed no host
+        // The title read $yabs->hostname (nonexistent) — tab showed no host.
+        // The layout yields section content raw, so the hostname must also be
+        // escaped before it is assigned to the title section.
         $this->actingAs($user)->get(route('yabs.show', 'r44yabs1'))
             ->assertStatus(200)
-            ->assertSee('title.example.com r44yabs1 YABS', false);
+            ->assertSee('title.example.com&lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;title&gt; r44yabs1 YABS', false)
+            ->assertDontSee($hostname, false);
     }
 
     public function test_pricing_update_of_missing_row_is_404()
