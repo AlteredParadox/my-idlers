@@ -151,7 +151,7 @@ class Pricing extends Model
         return 'in:' . implode(',', self::getCurrencyList());
     }
 
-    public static function getCurrencyList(): array
+    public static function getCurrencyList(?string $currentCurrency = null): array
     {
         $currencies = [];
         foreach ((array) self::refreshRates() as $currency => $rate) {
@@ -160,7 +160,20 @@ class Pricing extends Model
             }
         }
 
-        return $currencies ?: self::FALLBACK_CURRENCIES;
+        $currencies = $currencies ?: self::FALLBACK_CURRENCIES;
+
+        // Edit forms must retain a persisted ISO currency even when the rate
+        // provider is unavailable or no longer returns it. Otherwise the
+        // browser selects the first option (USD) and an unrelated edit can
+        // silently relabel the stored price. Validation still rejects that
+        // unrated currency, so it cannot be newly stored or recalculated 1:1.
+        if ($currentCurrency !== null
+            && in_array($currentCurrency, self::ISO_CURRENCIES, true)
+            && !in_array($currentCurrency, $currencies, true)) {
+            $currencies[] = $currentCurrency;
+        }
+
+        return $currencies;
     }
 
     public static function convertFromUSD(string $amount, string $convert_to): float

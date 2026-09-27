@@ -63,6 +63,17 @@ class GptRound7RegressionTest extends TestCase
         $this->assertNotContains('EUR', Pricing::getCurrencyList());
     }
 
+    public function test_existing_currency_remains_available_to_edit_forms_when_rates_are_unavailable()
+    {
+        $this->assertSame(['USD'], Pricing::getCurrencyList());
+        $this->assertSame(['USD', 'EUR'], Pricing::getCurrencyList('EUR'));
+        $this->assertSame(['USD'], Pricing::getCurrencyList('NOT-A-CURRENCY'));
+
+        // Retaining the option must not make unrated currencies valid for a
+        // write: an edit is rejected rather than recalculated at 1:1.
+        $this->assertSame('in:USD', Pricing::currencyRule());
+    }
+
     public function test_api_cannot_supply_contradictory_as_columns()
     {
         Pricing::create([
