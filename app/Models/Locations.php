@@ -16,10 +16,10 @@ class Locations extends Model
 
     protected $keyType = 'string';
 
-    public static function allLocations(): array
+    public static function allLocations()
     {
         return Cache::remember("locations", now()->addMonth(1), function () {
-            return self::orderBy('name')->get()->toArray();
+            return self::orderBy('name')->get();
         });
     }
 }

@@ -17,10 +17,10 @@ class Providers extends Model
 
     protected $table = 'providers';
 
-    public static function allProviders(): array
+    public static function allProviders()
     {
         return Cache::remember("providers", now()->addMonth(1), function () {
-            return self::orderBy('name')->get()->toArray();
+            return self::orderBy('name')->get();
         });
     }
 
