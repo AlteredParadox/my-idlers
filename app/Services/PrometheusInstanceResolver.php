@@ -15,8 +15,10 @@ class PrometheusInstanceResolver
         $matches = [];
         foreach ($this->client->query('node_uname_info{job="node"}') as $r) {
             $nodename = $r['metric']['nodename'] ?? '';
-            if (PromQL::hostMatches($hostname, $nodename)) {
-                $matches[] = $r['metric']['instance'] ?? null;
+            $instance = $r['metric']['instance'] ?? '';
+            if (PromQL::hostMatches($hostname, $nodename)
+                && PromQL::nodenameMatchesInstance($nodename, $instance)) {
+                $matches[] = $instance;
             }
         }
 
@@ -112,7 +114,9 @@ class PrometheusInstanceResolver
             $instance = $r['metric']['instance'] ?? '';
             $nodename = $r['metric']['nodename'] ?? '';
             // first result wins, matching the old per-instance query's [0]
-            if ($instance !== '' && $nodename !== '' && !isset($map[$instance])) {
+            if ($instance !== '' && $nodename !== ''
+                && PromQL::nodenameMatchesInstance($nodename, $instance)
+                && !isset($map[$instance])) {
                 $map[$instance] = $nodename;
             }
         }

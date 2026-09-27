@@ -72,4 +72,18 @@ final class PromQL
             || $stored === explode('.', $candidate)[0]
             || str_starts_with($stored, $candidate . '.');
     }
+
+    /**
+     * A node_exporter nodename is self-reported and must not be allowed to
+     * name an unrelated scrape target. Only accept it when the trusted
+     * Prometheus instance label names the same host.
+     */
+    public static function nodenameMatchesInstance(string $nodename, string $instance): bool
+    {
+        $host = preg_match('/^\[([^]]+)](?::\d+)?$/', $instance, $matches)
+            ? $matches[1]
+            : preg_replace('/:\d+$/', '', $instance);
+
+        return self::hostMatches($host, $nodename);
+    }
 }

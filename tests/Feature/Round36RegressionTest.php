@@ -7,10 +7,8 @@ use Tests\Fakes\FakePrometheusClient;
 use Tests\TestCase;
 
 /**
- * Regression for the round-36 review finding: offline nodes vanish from
- * instant uname queries, but the LIST keeps tracking them via
- * last_over_time — the detail page must resolve them the same way or a
- * down server's monitoring panel 404s while its history exists.
+ * Offline nodenames remain usable only when the scrape target corroborates
+ * them; node_exporter labels are otherwise attacker-controlled.
  */
 class Round36RegressionTest extends TestCase
 {
@@ -35,12 +33,9 @@ class Round36RegressionTest extends TestCase
         ]);
     }
 
-    public function test_offline_node_resolves_via_last_known_nodename()
+    public function test_offline_node_rejects_uncorroborated_last_known_nodename()
     {
-        $this->assertSame(
-            '10.0.0.5:9100',
-            $this->resolve($this->offlineClient('web1.example.com'), 'web1')
-        );
+        $this->assertNull($this->resolve($this->offlineClient('web1.example.com'), 'web1'));
     }
 
     public function test_offline_fallback_keeps_reject_semantics()

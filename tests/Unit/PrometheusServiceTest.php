@@ -39,18 +39,32 @@ class PrometheusServiceTest extends TestCase
         );
     }
 
-    public function test_status_payload_keys_by_hostname_and_instance_ip()
+    public function test_status_payload_does_not_trust_nodename_for_ip_instance()
     {
         $payload = (new PrometheusService($this->statusClient()))->statusPayload();
 
         $this->assertNotNull($payload);
         $this->assertSame([
             '10.0.0.1' => true,
-            'web1' => true,
             '10.0.0.2' => false,
-            'down1' => false,
         ], $payload['statuses']);
         $this->assertSame(30, $payload['interval']);
+    }
+
+    public function test_status_payload_keeps_corroborated_hostname_instance()
+    {
+        $client = new FakePrometheusClient(instant: [
+            'node_uname_info' => [[
+                'metric' => ['instance' => 'web1.example.com:9100', 'nodename' => 'web1'],
+                'value' => [1700000000, '1'],
+            ]],
+            'up{job="node"}' => [$this->upRow('web1.example.com:9100', true)],
+        ]);
+
+        $payload = (new PrometheusService($client))->statusPayload();
+
+        $this->assertTrue($payload['statuses']['web1.example.com']);
+        $this->assertTrue($payload['statuses']['web1']);
     }
 
     public function test_status_payload_rounds_metrics_and_resolves_offline_since()
@@ -58,12 +72,11 @@ class PrometheusServiceTest extends TestCase
         $client = $this->statusClient();
         $payload = (new PrometheusService($client))->statusPayload();
 
-        $this->assertEqualsWithDelta(42.4, $payload['metrics']['web1']['ram_pct'], 0.001);
-        $this->assertEqualsWithDelta(10.1, $payload['metrics']['web1']['disk_pct'], 0.001);
-        $this->assertEqualsWithDelta(1000.8, $payload['metrics']['web1']['net_rx'], 0.001);
-        $this->assertEquals(86401, $payload['metrics']['web1']['uptime']);
+        $this->assertEqualsWithDelta(42.4, $payload['metrics']['10.0.0.1']['ram_pct'], 0.001);
+        $this->assertEqualsWithDelta(10.1, $payload['metrics']['10.0.0.1']['disk_pct'], 0.001);
+        $this->assertEqualsWithDelta(1000.8, $payload['metrics']['10.0.0.1']['net_rx'], 0.001);
+        $this->assertEquals(86401, $payload['metrics']['10.0.0.1']['uptime']);
         // last timestamp where up == '1'
-        $this->assertSame(200.0, $payload['metrics']['down1']['offline_since']);
         $this->assertSame(200.0, $payload['metrics']['10.0.0.2']['offline_since']);
         // Settled in the first (cheapest) lookback tier: no wider window fetched.
         $this->assertSame(1, $client->rangeQueryCount);

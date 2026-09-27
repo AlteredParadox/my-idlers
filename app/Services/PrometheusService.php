@@ -87,7 +87,7 @@ class PrometheusService
         foreach ($unameResults as $result) {
             $instance = $result['metric']['instance'] ?? '';
             $nodename = $result['metric']['nodename'] ?? '';
-            if ($instance && $nodename) {
+            if ($instance && $nodename && PromQL::nodenameMatchesInstance($nodename, $instance)) {
                 $map[$instance] = $nodename;
             }
         }
