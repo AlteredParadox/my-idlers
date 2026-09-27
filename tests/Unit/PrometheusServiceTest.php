@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\PrometheusService;
+use App\Services\PromQL;
 use Tests\Fakes\FakePrometheusClient;
 use Tests\TestCase;
 
@@ -86,7 +87,9 @@ class PrometheusServiceTest extends TestCase
                 'up{job="node"}' => [$this->upRow($instance, false)],
             ],
             range: [
-                'max_over_time(up{job="node",instance=~"10\\.0\\.0\\.2:9100"}[900s])' => [
+                // The selector's regex escaping is doubled for the PromQL string
+                // literal; build the key the same way the service does.
+                'max_over_time(up{job="node",instance=~"' . PromQL::regexAlternation([$instance]) . '"}[900s])' => [
                     ['metric' => ['instance' => $instance], 'values' => [[100, '0'], [1000, '1'], [1900, '0']]],
                 ],
             ],
