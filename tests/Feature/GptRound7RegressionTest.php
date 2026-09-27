@@ -63,6 +63,12 @@ class GptRound7RegressionTest extends TestCase
         $this->assertNotContains('EUR', Pricing::getCurrencyList());
     }
 
+    public function test_edit_currency_list_retains_the_persisted_currency_during_rate_outage()
+    {
+        $this->assertSame(['USD', 'EUR'], Pricing::getCurrencyList('EUR'));
+        $this->assertSame(['USD'], Pricing::getCurrencyList('NOT-A-CURRENCY'));
+    }
+
     public function test_api_cannot_supply_contradictory_as_columns()
     {
         Pricing::create([

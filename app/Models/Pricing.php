@@ -177,11 +177,19 @@ class Pricing extends Model
         return 'in:' . implode(',', $accepted ?: self::FALLBACK_CURRENCIES);
     }
 
-    public static function getCurrencyList(): array
+    public static function getCurrencyList(?string $currentCurrency = null): array
     {
         $currencies = array_keys((array)self::refreshRates());
 
-        return $currencies ?: self::FALLBACK_CURRENCIES;
+        // Edit forms must retain the persisted currency even when a rates
+        // outage reduces the selectable list to USD. Without this option the
+        // browser silently selects USD and an unrelated edit changes the
+        // denomination while keeping the original numeric price.
+        if ($currentCurrency !== null && in_array($currentCurrency, self::ISO_CURRENCIES, true)) {
+            $currencies[] = $currentCurrency;
+        }
+
+        return array_values(array_unique($currencies ?: self::FALLBACK_CURRENCIES));
     }
 
     public static function convertFromUSD(string $amount, string $convert_to): float
