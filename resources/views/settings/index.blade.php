@@ -66,7 +66,7 @@
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">Default Currency</label>
                             <select class="form-select" name="default_currency">
-                                @foreach (App\Models\Pricing::getCurrencyList() as $currency)
+                                @foreach (App\Models\Pricing::getCurrencyList($setting->default_currency) as $currency)
                                     <option value="{{ $currency }}" {{ $setting->default_currency === $currency ? 'selected' : '' }}>
                                         {{ $currency }}
                                     </option>
@@ -76,7 +76,7 @@
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label">Dashboard Currency</label>
                             <select class="form-select" name="dashboard_currency">
-                                @foreach (App\Models\Pricing::getCurrencyList() as $currency)
+                                @foreach (App\Models\Pricing::getCurrencyList($setting->dashboard_currency) as $currency)
                                     <option value="{{ $currency }}" {{ $setting->dashboard_currency === $currency ? 'selected' : '' }}>
                                         {{ $currency }}
                                     </option>

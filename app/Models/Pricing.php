@@ -151,7 +151,7 @@ class Pricing extends Model
         return 'in:' . implode(',', self::getCurrencyList());
     }
 
-    public static function getCurrencyList(): array
+    public static function getCurrencyList(?string $currentCurrency = null): array
     {
         $currencies = [];
         foreach ((array) self::refreshRates() as $currency => $rate) {
@@ -160,7 +160,22 @@ class Pricing extends Model
             }
         }
 
-        return $currencies ?: self::FALLBACK_CURRENCIES;
+        $currencies = $currencies ?: self::FALLBACK_CURRENCIES;
+
+        // Edit forms must keep offering a persisted currency even when the
+        // rate provider is unavailable or no longer returns it. Otherwise the
+        // browser selects the first option (USD) and an unrelated edit
+        // silently relabels the stored price. currencyRule() still rejects an
+        // unrated currency, so the edit fails loudly instead of being
+        // recalculated 1:1 -- the option only stops the silent relabel. Same
+        // shape test as the provider keys above; anything else is not a code.
+        if ($currentCurrency !== null
+            && preg_match('/^[A-Z]{3}$/D', $currentCurrency) === 1
+            && !in_array($currentCurrency, $currencies, true)) {
+            $currencies[] = $currentCurrency;
+        }
+
+        return $currencies;
     }
 
     public static function convertFromUSD(string $amount, string $convert_to): float

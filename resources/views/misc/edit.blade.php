@@ -32,7 +32,7 @@
                         <div class="col-6 col-md-6 col-lg-2">
                             <label class="form-label">Currency</label>
                             <select class="form-select" name="currency">
-                                @foreach (App\Models\Pricing::getCurrencyList() as $currency)
+                                @foreach (App\Models\Pricing::getCurrencyList($misc_data->price->currency) as $currency)
                                     <option value="{{ $currency }}" {{ $misc_data->price->currency == $currency ? 'selected' : '' }}>{{ $currency }}</option>
                                 @endforeach
                             </select>
