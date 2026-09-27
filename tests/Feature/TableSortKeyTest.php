@@ -146,10 +146,10 @@ class TableSortKeyTest extends TestCase
                 if (is_numeric($key)) {
                     continue;
                 }
-                // Address key: family digit + packed hex for a real address,
-                // or the '9' + raw-text fallback the DNS column relies on for
+                // Address key: family letter + packed hex for a real address,
+                // or the 'z' + raw-text fallback the DNS column relies on for
                 // hostnames and MX values.
-                if (preg_match('/^4[0-9a-f]{8}$|^6[0-9a-f]{32}$|^9/', $key)) {
+                if (preg_match('/^a[0-9a-f]{8}$|^b[0-9a-f]{32}$|^z/', $key)) {
                     continue;
                 }
                 $bad[] = "{$page}: " . $key;
@@ -276,5 +276,20 @@ class TableSortKeyTest extends TestCase
         $this->assertSame(9, strlen(Process::addressSortKey('255.255.255.255')));
         $this->assertSame(33, strlen(Process::addressSortKey('2001:db8::1')));
         $this->assertSame(33, strlen(Process::addressSortKey('::1')));
+    }
+
+    public function test_address_sort_keys_cannot_be_coerced_to_javascript_numbers()
+    {
+        // These packed IPv6 addresses contain digits only. With a digit prefix
+        // DataTables detected both long keys as numbers and lost precision.
+        $first = Process::addressSortKey('2001:4860:4860::8844');
+        $second = Process::addressSortKey('2001:4860:4860::8888');
+
+        $this->assertFalse(is_numeric($first));
+        $this->assertFalse(is_numeric($second));
+        $this->assertLessThan(0, strcmp($first, $second));
+        // ...and the same for an all-digit IPv4 key, and the text fallback.
+        $this->assertFalse(is_numeric(Process::addressSortKey('1.2.3.4')));
+        $this->assertFalse(is_numeric(Process::addressSortKey('12345')));
     }
 }
