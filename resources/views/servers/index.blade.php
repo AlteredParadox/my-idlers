@@ -349,6 +349,15 @@
                 });
             }
 
+            // DataTables detaches the rows that are not on the current page, so
+            // a toggle only ever reached the rows in the DOM at the time. Reapply
+            // both saved states on every draw (paginate, sort, search, redraw)
+            // or the next page shows full hostnames and stats again.
+            $('#servers-table, #inactive-servers-table').on('draw.dt', function () {
+                if (domainHidden) applyDomainToggle();
+                if (statsHidden) applyStatsToggle();
+            });
+
             function applyStatsToggle() {
                 var display = statsHidden ? 'none' : '';
                 document.querySelectorAll('.ram-usage, .disk-usage, .link-usage').forEach(function(el) {
