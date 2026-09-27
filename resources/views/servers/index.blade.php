@@ -351,11 +351,13 @@
 
             // DataTables detaches the rows that are not on the current page, so
             // a toggle only ever reached the rows in the DOM at the time. Reapply
-            // both saved states on every draw (paginate, sort, search, redraw)
-            // or the next page shows full hostnames and stats again.
+            // both states on every draw (paginate, sort, search, redraw).
+            // Unconditionally: each apply writes the CURRENT state in either
+            // direction, and a row hidden on page 1 then "shown" from page 2
+            // comes back still abbreviated if the handler only runs while hiding.
             $('#servers-table, #inactive-servers-table').on('draw.dt', function () {
-                if (domainHidden) applyDomainToggle();
-                if (statsHidden) applyStatsToggle();
+                applyDomainToggle();
+                applyStatsToggle();
             });
 
             function applyStatsToggle() {
