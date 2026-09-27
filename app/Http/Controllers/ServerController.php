@@ -78,7 +78,9 @@ class ServerController extends Controller
             'disk_media.*' => 'required|in:SSD,HDD,NVMe',
             'os_id' => 'required|integer|exists:os,id',
             'provider_id' => 'required|integer|exists:providers,id',
-            'location_id' => 'required|integer|exists:locations,id',
+            'location_id' => $for_store
+                ? 'required|integer|exists:locations,id'
+                : 'nullable|integer|exists:locations,id',
             ...\App\Models\Pricing::webValidationRules(),
             'cpu' => 'required|integer|min:1|max:1024',
             'cpu_model' => 'sometimes|nullable|string|max:255',

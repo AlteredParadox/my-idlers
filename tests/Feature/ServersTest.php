@@ -245,6 +245,48 @@ class ServersTest extends TestCase
         $response->assertViewIs('servers.edit');
     }
 
+    public function test_edit_form_preserves_a_server_without_a_location()
+    {
+        $server = $this->createServerWithPricing('testsvr5', 'unlocated.example.com');
+        $server->update(['location_id' => null]);
+
+        $response = $this->actingAs($this->user)->get(route('servers.edit', $server));
+
+        $response->assertOk();
+        $response->assertSee('<option value="" selected>None</option>', false);
+    }
+
+    public function test_server_without_a_location_can_be_updated_without_assigning_one()
+    {
+        $server = $this->createServerWithPricing('testsvr6', 'unlocated.example.com');
+        $server->update(['location_id' => null]);
+
+        $this->actingAs($this->user)->put(route('servers.update', $server), [
+            'hostname' => 'renamed.example.com',
+            'server_type' => 1,
+            'os_id' => $this->os->id,
+            'provider_id' => $this->provider->id,
+            'location_id' => '',
+            'ram' => 2048,
+            'ram_type' => 'MB',
+            'disk' => [50],
+            'disk_type' => ['GB'],
+            'disk_media' => ['SSD'],
+            'cpu' => 2,
+            'bandwidth' => 1000,
+            'ssh_port' => 22,
+            'was_promo' => 0,
+            'currency' => 'USD',
+            'price' => 5.00,
+            'payment_term' => 1,
+            'next_due_date' => now()->addMonth()->format('Y-m-d'),
+        ])->assertRedirect(route('servers.index'));
+
+        $server->refresh();
+        $this->assertSame('renamed.example.com', $server->hostname);
+        $this->assertNull($server->location_id);
+    }
+
     public function test_authenticated_user_can_delete_server()
     {
         $server = $this->createServerWithPricing('testsvr3', 'test-server.example.com');

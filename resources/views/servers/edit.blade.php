@@ -141,8 +141,9 @@
                         <div class="col-12 col-md-4 col-lg-2">
                             <label class="form-label">Location</label>
                             <select class="form-select" name="location_id">
+                                <option value="" {{ old('location_id', $server_data->location_id) === null || old('location_id', $server_data->location_id) === '' ? 'selected' : '' }}>None</option>
                                 @foreach (App\Models\Locations::all() as $location)
-                                    <option value="{{ $location->id }}" {{ $server_data->location_id == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
+                                    <option value="{{ $location->id }}" {{ old('location_id', $server_data->location_id) == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
                                 @endforeach
                             </select>
                         </div>
