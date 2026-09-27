@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\PrometheusService;
+use App\Services\PromQL;
 use Tests\Fakes\FakePrometheusClient;
 use Tests\TestCase;
 
@@ -74,6 +75,33 @@ class PrometheusServiceTest extends TestCase
         $client = new FakePrometheusClient(instant: ['up{job="node"}' => null]);
 
         $this->assertNull((new PrometheusService($client))->statusPayload());
+    }
+
+    public function test_offline_since_coarse_tiers_include_brief_recoveries()
+    {
+        $instance = '10.0.0.2:9100';
+        $client = new FakePrometheusClient(
+            instant: [
+                'node_uname_info' => [],
+                'last_over_time' => [],
+                'up{job="node"}' => [$this->upRow($instance, false)],
+            ],
+            range: [
+                // The selector's regex escaping is doubled for the PromQL string
+                // literal; build the key the same way the service does.
+                'max_over_time(up{job="node",instance=~"' . PromQL::regexAlternation([$instance]) . '"}[900s])' => [
+                    ['metric' => ['instance' => $instance], 'values' => [[100, '0'], [1000, '1'], [1900, '0']]],
+                ],
+            ],
+        );
+
+        $payload = (new PrometheusService($client))->statusPayload();
+
+        $this->assertSame(1000.0, $payload['metrics']['10.0.0.2']['offline_since']);
+        $this->assertSame(4, $client->rangeQueryCount);
+        $this->assertStringContainsString('[60s])', $client->rangeQueries[1]);
+        $this->assertStringContainsString('[300s])', $client->rangeQueries[2]);
+        $this->assertStringContainsString('[900s])', $client->rangeQueries[3]);
     }
 
     private function detailClient(): FakePrometheusClient
