@@ -54,12 +54,17 @@ class Process
      * IPv4, 16 for IPv6 -- so no 128-bit arithmetic (which a JS float cannot
      * hold anyway) is needed on either side.
      *
-     * The leading family label groups v4 before v6 before anything unparseable
-     * and forces DataTables to compare the keys as strings. A numeric prefix
-     * could make an all-numeric IPv6 key get coerced to an imprecise JavaScript
-     * number before sorting. This is what the DNS address column needs: it also
+     * The leading family letter groups v4 ('a') before v6 ('b') before anything
+     * unparseable ('z'), which is what the DNS address column needs: it also
      * holds hostnames and "10 mail.example.com" MX values, and those fall back
      * to text order among themselves instead of interleaving with the addresses.
+     *
+     * A LETTER, not a digit: DataTables type-detects a column from its sort
+     * values, and packed hex can happen to be all digits (2001:4860:4860::8844
+     * is 20014860486000000000000000008844). A column where every key looked
+     * numeric was sorted as JavaScript numbers, and a 33-digit key does not
+     * survive a double -- the two Google resolvers compared equal. A leading
+     * letter keeps every key a string.
      */
     public static function addressSortKey(?string $address): string
     {
@@ -67,10 +72,10 @@ class Process
         $packed = $address === '' ? false : @inet_pton($address);
 
         if ($packed === false) {
-            return 'other:' . $address;
+            return 'z' . $address;
         }
 
-        return (strlen($packed) === 4 ? 'v4:' : 'v6:') . bin2hex($packed);
+        return (strlen($packed) === 4 ? 'a' : 'b') . bin2hex($packed);
     }
 
     public static function tableRowCompare(string $val1, string $val2, string $value_type = '', bool $is_int = true): string
