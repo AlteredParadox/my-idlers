@@ -33,6 +33,14 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # The Prometheus charts are inline Blade JS against the ApexCharts global,
+    # exercised by neither CI nor the suite. A major bump (3.x -> 7.x offered
+    # 2026-09) needs the server detail page checked in a browser first, so
+    # majors are opted out here rather than re-proposed every week; minors
+    # and patches still arrive through the group. Drop this once validated.
+    ignore:
+      - dependency-name: apexcharts
+        update-types: ['version-update:semver-major']
     groups:
       npm:
         applies-to: version-updates
