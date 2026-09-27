@@ -19,7 +19,7 @@ use Tests\TestCase;
  * everything. The rounds 43-47 locked-re-read lens covered every update
  * and destroy path but never this one.
  *
- * Serialization uses an out-of-band atomic lock, not a data row: a warm
+ * Serialization uses a shared-database atomic lock, not a data row: a warm
  * `settings` cache entry shadowing a deleted row made getSettings()
  * return a ghost model while lockForUpdate()->first() found nothing and
  * took no lock at all (round 72, demonstrated live).
@@ -45,7 +45,7 @@ class Round71RegressionTest extends TestCase
         config(['custom.max_users' => 1, 'custom.registration_lock_seconds' => 0]);
         Settings::firstOrCreate(['id' => 1]);
 
-        $held = Cache::lock('registration.cap', 10);
+        $held = Cache::store('database')->lock('registration.cap', 10);
         $this->assertTrue($held->get(), 'precondition: the lock is acquirable');
 
         try {
@@ -104,7 +104,7 @@ class Round71RegressionTest extends TestCase
         Settings::getSettings();              // warm the cache
         DB::table('settings')->delete();      // ...then lose the row
 
-        $held = Cache::lock('registration.cap', 10);
+        $held = Cache::store('database')->lock('registration.cap', 10);
         $this->assertTrue($held->get(), 'precondition: the lock is acquirable');
 
         try {

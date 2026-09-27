@@ -73,8 +73,11 @@ class RegisteredUserController extends Controller
         // settings row silently no-ops whenever a warm `settings` cache
         // entry shadows a missing row (getSettings() returns the cached
         // ghost, lockForUpdate()->first() finds nothing, no lock is taken).
+        // Use the shared database cache store explicitly. The default file
+        // store is local to one container, so its locks cannot serialize
+        // registrations handled by separate replicas sharing this database.
         // The transaction and the re-check inside it are defence in depth.
-        $lock = Cache::lock('registration.cap', 10);
+        $lock = Cache::store('database')->lock('registration.cap', 10);
 
         try {
             // Fail closed: a lock we cannot take means someone else is
