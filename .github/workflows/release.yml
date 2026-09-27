@@ -95,5 +95,5 @@ jobs:
             docker pull ${{ steps.meta.outputs.image }}:latest
             ```
 
-            See the **Fork revision** changelog in the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for what changed in this release.
+            See this revision's section in the [changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for what changed in this release.
           generate_release_notes: true
