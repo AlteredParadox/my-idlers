@@ -60,6 +60,39 @@ class Round44RegressionTest extends TestCase
             ->assertSee('title.example.com r44yabs1 YABS', false);
     }
 
+    /**
+     * Two external reviews (#96, #109) read the two-argument
+     * `@section("title", "...")` form as an unescaped sink. It is not:
+     * ManagesLayouts::startSection passes inline content through e(). Pin that
+     * with a hostile hostname so the next review can be answered by CI.
+     */
+    public function test_inline_title_sections_escape_dynamic_values()
+    {
+        $user = User::factory()->create();
+        $hostile = 'evil.example.com</title><script>alert(1)</script>';
+        Settings::create(['id' => 1]);
+        Pricing::create([
+            'service_id' => 'r44srv02', 'service_type' => 1, 'currency' => 'USD',
+            'price' => 5.00, 'term' => 1, 'as_usd' => 5.00, 'usd_per_month' => 5.00,
+            'next_due_date' => now()->addMonth()->format('Y-m-d'),
+        ]);
+        Server::create([
+            'id' => 'r44srv02', 'hostname' => $hostile, 'server_type' => 1,
+            'os_id' => OS::create(['name' => 'D'])->id,
+            'provider_id' => Providers::create(['name' => 'P'])->id,
+            'location_id' => Locations::create(['name' => 'L'])->id,
+            'ram' => 1, 'ram_type' => 'GB', 'ram_as_mb' => 1024,
+            'disk' => 10, 'disk_type' => 'GB', 'disk_as_gb' => 10, 'cpu' => 1, 'active' => 1,
+        ]);
+
+        $html = $this->actingAs($user)->get(route('servers.show', 'r44srv02'))->assertOk()->getContent();
+
+        preg_match('#<title>(.*?)</title>#s', $html, $title);
+        $this->assertStringContainsString('evil.example.com&lt;/title&gt;&lt;script&gt;', $title[1]);
+        $this->assertStringNotContainsString('<script>', $title[1]);
+        $this->assertStringNotContainsString('alert(1)</script><title>', $html);
+    }
+
     public function test_pricing_update_of_missing_row_is_404()
     {
         $token = Str::random(60);
