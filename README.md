@@ -1062,6 +1062,10 @@ Notes:
 * Sessions are stored in the database (SQLite or MySQL, whichever the install uses), so
   logins and per-user view preferences survive container redeploys. Only ephemeral,
   rebuildable state (the file cache and compiled views) remains on the container's disk.
+  Every request that arrives without a session cookie creates a session row, so their
+  creation is budgeted per client address (60 a minute); a browser that keeps its cookie is
+  exempt. Behind a reverse proxy that budget is shared by everyone unless `TRUSTED_PROXIES`
+  is set, which is one more reason to set it.
 * **SQLite setups** (`DB_CONNECTION=sqlite`): PHP runs as `www-data` (uid 82) since the
   nginx+php-fpm switch, so a bind-mounted database directory must be writable by that
   uid. Keep the directory owned by root with a sticky, group-writable mode, then give

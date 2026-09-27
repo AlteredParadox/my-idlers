@@ -32,6 +32,9 @@ class Kernel extends HttpKernel
     protected $middlewareGroups = [
         'web' => [
             \App\Http\Middleware\EncryptCookies::class,
+            // After EncryptCookies (it reads the decrypted session cookie) and
+            // before StartSession (a rejected request must not store one).
+            \App\Http\Middleware\ThrottleNewSessions::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\Session\Middleware\AuthenticateSession::class,
