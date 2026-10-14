@@ -1,6 +1,9 @@
 @section("title", "Dashboard")
 <x-app-layout>
     <div class="dashboard-container">
+        {{-- Safety net for issue #121: a back() redirect that lands here (a
+             proxy stripping the Referer path) must still show the errors --}}
+        <x-response-alerts></x-response-alerts>
         <!-- Stats Overview -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-4 col-lg-2">
