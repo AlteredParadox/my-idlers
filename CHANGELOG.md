@@ -10,6 +10,48 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.17` — October 2026
+
+_A small release for one user-reported bug that had been in the image since `ap.16`'s security
+round, plus the dependency updates that accumulated behind it._
+
+> **Upgrading?** No schema change, so `AUTO_MIGRATE` has nothing to do and rolling back to `ap.16`
+> is clean. One behaviour change:
+>
+> * **The container sends `Referrer-Policy: same-origin`** instead of `strict-origin`. Same-origin
+>   requests carry the full URL as Referer again; cross-origin requests now send nothing at all,
+>   which is stricter than before. If a reverse proxy in front of the container sets its own
+>   `Referrer-Policy` to `strict-origin`, `origin` or `no-referrer`, remove it: it will reintroduce
+>   the bug below.
+
+**Fixes**
+
+* **Every failed create form "redirected to the dashboard" with its errors lost** (#121, reported
+  as "Can't add more than 10 idlers"). Every validation failure, and the YABS parse failure, is a
+  Laravel `back()`, which redirects to the Referer URL. `ap.16`'s security round had tightened the
+  image's `Referrer-Policy` to `strict-origin`, which trims the Referer to the bare origin — so a
+  failed form 302ed to `/`, the one page that did not render the flashed errors. Nothing limits the
+  number of servers; the reporter had hit an ordinary validation error (a hostname under five
+  characters fits) and saw only a silent bounce. The password-reset form's failure path was broken
+  the same way. The header is now `same-origin`; the reset-token-in-log concern that motivated the
+  tightening was already covered by the access-log referer redaction. The dashboard also renders
+  flashed errors now, so a `back()` that lands there behind some other path-stripping proxy is
+  not silent. Regression tests pin the header, drive both failure paths behind an origin-only
+  Referer, and create twelve servers (#125)
+
+**Dependencies**
+
+* Laravel 13.34 (#118); Vite 8.3.1, sass 1.105.1, DataTables 3.1.2 (#119); GitHub Actions pins
+  (#122)
+* `npm audit` is clean again: source-map-js 1.2.2 (#123) and `@parcel/watcher` 2.6.0, which drops
+  the micromatch/braces chain under sass's file watcher (#124). Dev-only; the shipped bundle is
+  byte-identical
+
+**Docs**
+
+* The release notes moved out of the README into this file, with the **Upgrading?** callouts
+  summarised in the README under *Notable and breaking changes* (#117)
+
 ## Fork revision `ap.16` — September 2026
 
 _The second Daybreak Blue batch (OpenAI's Codex security program), plus its two findings that
