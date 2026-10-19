@@ -37,8 +37,13 @@ Route::get('/login', [AuthenticatedSessionController::class, 'create'])
                 ->middleware(['guest', 'throttle:guest-pages'])
                 ->name('login');
 
+// In the shared `credentials` budget like every other credential-checking
+// POST in this file -- RouteServiceProvider::RATE_LIMITS has said so since
+// the named limiters landed, but this route was the one that never carried
+// it. LoginRequest's own lockout (5 failures per email|ip) still applies on
+// top: that one guards an account, this one bounds an address.
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-                ->middleware('guest');
+                ->middleware(['guest', 'throttle:credentials']);
 
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->middleware(['guest', 'throttle:guest-pages'])

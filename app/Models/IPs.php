@@ -185,15 +185,22 @@ class IPs extends Model
 
         // Coalesced: the columns are nullable and a success-true response
         // missing a field must not throw undefined-key mid-request.
+        // Clipped: they are varchar(255), the body cap bounds the response
+        // and not any one field, and under MySQL strict mode an over-long
+        // org/isp string is a "Data too long" 500 -- thrown AFTER the IP row
+        // has been committed on the create path. A non-scalar value (an
+        // unexpected nested object) is dropped like a missing key.
+        $clip = fn ($value) => is_scalar($value) ? mb_substr((string) $value, 0, 255) : null;
+
         $ip->update([
-            'continent' => $data['continent'] ?? null,
-            'country' => $data['country'] ?? null,
-            'region' => $data['region'] ?? null,
-            'city' => $data['city'] ?? null,
-            'org' => $data['org'] ?? null,
-            'isp' => $data['isp'] ?? null,
-            'asn' => $data['asn'] ?? null,
-            'timezone_gmt' => $data['timezone_gmt'] ?? null,
+            'continent' => $clip($data['continent'] ?? null),
+            'country' => $clip($data['country'] ?? null),
+            'region' => $clip($data['region'] ?? null),
+            'city' => $clip($data['city'] ?? null),
+            'org' => $clip($data['org'] ?? null),
+            'isp' => $clip($data['isp'] ?? null),
+            'asn' => $clip($data['asn'] ?? null),
+            'timezone_gmt' => $clip($data['timezone_gmt'] ?? null),
             'fetched_at' => now()
         ]);
 

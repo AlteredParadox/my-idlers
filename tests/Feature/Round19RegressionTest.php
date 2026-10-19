@@ -150,6 +150,7 @@ class Round19RegressionTest extends TestCase
 
     public function test_seedbox_destroy_deletes_assigned_ips()
     {
+        (new Pricing)->insertPricing(6, 'seedbx01', 'USD', 5, 1, '2027-01-01');
         $seedbox = SeedBoxes::create(['id' => 'seedbx01', 'title' => 'Test SB', 'active' => 1]);
         IPs::insertIP('seedbx01', '10.11.12.13');
 

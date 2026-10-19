@@ -1,4 +1,7 @@
-FROM php:8.5-fpm-alpine
+# Version tag AND digest: the tag is what Dependabot's docker ecosystem bumps
+# (digest alongside), the digest is what makes two builds of one commit the
+# same image. The only unpinned links in an otherwise SHA-pinned supply chain.
+FROM php:8.5.11-fpm-alpine@sha256:fa01fb1645cd0fc566a5f146b099adace33b906571f972f71f2182a7c12d1cd7
 
 # Build deps for PHP extensions + the production web stack:
 # nginx fronts php-fpm (the base image's actual runtime), supervisor runs both
@@ -7,7 +10,7 @@ RUN apk add --no-cache linux-headers nginx supervisor
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql sockets bcmath pcntl
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 COPY . .

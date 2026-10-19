@@ -71,7 +71,9 @@ behaviour, the schema or a deployment default for someone upgrading — every re
 * **[ap.17](CHANGELOG.md#fork-revision-ap17--october-2026)** — The container's `Referrer-Policy` header is
   `same-origin` (was `strict-origin`), because the stricter value had broken every failed form: validation
   errors bounced to the dashboard unseen. If your own reverse proxy sets `Referrer-Policy` to
-  `strict-origin`, `origin` or `no-referrer`, remove that or forms will keep misbehaving.
+  `strict-origin`, `origin` or `no-referrer`, remove that or forms will keep misbehaving. The login
+  and password pages themselves send no Referer at all (a per-page `no-referrer` meta), so a reset
+  token never reaches your proxy's access log through the page's asset loads.
 * **[ap.16](CHANGELOG.md#fork-revision-ap16--september-2026)** — New sessions are budgeted per client address (60 a minute; a
   browser keeping its cookie is exempt), and behind a reverse proxy the budget is shared unless
   `TRUSTED_PROXIES` is set. Authenticated pages send `Cache-Control: no-store`. The Prometheus
