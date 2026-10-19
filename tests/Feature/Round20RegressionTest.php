@@ -118,10 +118,10 @@ class Round20RegressionTest extends TestCase
     {
         // NULLs sort first on both drivers; with the window capped they
         // crowd out real renewals, which then never get auto-advanced.
-        SeedBoxes::create(['id' => 'sbnull01', 'title' => 'No Date', 'active' => 1]);
-        SeedBoxes::create(['id' => 'sbdate01', 'title' => 'Has Date', 'active' => 1]);
         $this->makePricing('sbnull01', 6, null);
         $this->makePricing('sbdate01', 6, now()->addDays(3)->format('Y-m-d'));
+        SeedBoxes::create(['id' => 'sbnull01', 'title' => 'No Date', 'active' => 1]);
+        SeedBoxes::create(['id' => 'sbdate01', 'title' => 'Has Date', 'active' => 1]);
 
         // The limit reads the live settings row (round 47), not the session
         \App\Models\Settings::firstOrCreate(['id' => 1])->update(['due_soon_amount' => 1]);

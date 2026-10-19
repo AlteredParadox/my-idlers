@@ -171,6 +171,7 @@ class Round22RegressionTest extends TestCase
     public function test_provider_show_lists_domains_and_seedboxes_blocking_deletion()
     {
         $this->makeDomain('provdom1', 'blockingdomain');
+        (new Pricing)->insertPricing(6, 'provsbx1', 'USD', 5, 1, '2027-01-01');
         SeedBoxes::create([
             'id' => 'provsbx1', 'title' => 'Blocking Seedbox',
             'provider_id' => $this->provider->id, 'location_id' => $this->location->id,

@@ -115,8 +115,8 @@ class LabelsTest extends TestCase
     public function test_label_page_shows_seedbox_assignment()
     {
         $label = Labels::create(['id' => 'sblabel1', 'label' => 'Seedbox Label']);
-        \App\Models\SeedBoxes::create(['id' => 'sbx00001', 'title' => 'My Seedbox', 'active' => 1]);
         (new \App\Models\Pricing)->insertPricing(6, 'sbx00001', 'USD', 5, 1, '2027-01-01');
+        \App\Models\SeedBoxes::create(['id' => 'sbx00001', 'title' => 'My Seedbox', 'active' => 1]);
         Labels::insertLabelsAssigned([$label->id, null, null, null], 'sbx00001');
 
         $response = $this->actingAs($this->user)->get(route('labels.show', $label));

@@ -306,11 +306,16 @@ class ExportSeedboxesTest extends TestCase
     }
 
     /**
-     * Test exportSeedboxes handles seedbox without pricing
+     * A seedbox without pricing used to be a reachable state (seedboxes was
+     * the one service table without an id -> pricings foreign key) and this
+     * test proved the export tolerated it. Since add_seedboxes_pricing_foreign_key
+     * the database refuses the row, on both drivers; the transformer's null
+     * branch stays as defensive code.
      */
-    public function test_export_seedboxes_handles_seedbox_without_pricing()
+    public function test_a_seedbox_without_pricing_cannot_be_created()
     {
-        // Create seedbox without pricing
+        $this->expectException(\Illuminate\Database\QueryException::class);
+
         SeedBoxes::create([
             'id' => 'sb015',
             'title' => 'No Pricing Seedbox',
@@ -326,13 +331,6 @@ class ExportSeedboxesTest extends TestCase
             'active' => 1,
             'owned_since' => '2024-01-01'
         ]);
-
-        $result = $this->exportService->exportSeedboxes('json');
-        $data = json_decode($result['data'], true);
-        $seedbox = $data[0];
-
-        $this->assertArrayHasKey('pricing', $seedbox);
-        $this->assertNull($seedbox['pricing']);
     }
 
     /**
