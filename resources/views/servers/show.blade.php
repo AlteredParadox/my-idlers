@@ -359,7 +359,11 @@
             loading.style.display = '';
 
             fetch('/tools/prometheus/detail/' + encodeURIComponent(hostname) + '/' + currentPeriod + '/' + currentBack, {
-                headers: {'Accept': 'application/json'}
+                // X-Requested-With: StartSession skips ajax() requests when it
+                // records the session's previous URL, so this poll must not
+                // become what a later back() redirects to. Its siblings in
+                // status-js and create.blade already set it via axios defaults.
+                headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
             }).then(function(resp) {
                 if (!resp.ok) throw new Error(resp.status);
                 return resp.json();

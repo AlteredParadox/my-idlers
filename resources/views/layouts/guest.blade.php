@@ -4,6 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- No Referer from any guest page. /reset-password/{token} loads this
+         layout's same-origin assets, and under the container's
+         Referrer-Policy: same-origin every one of those requests carries the
+         full reset URL -- redacted in the container's own access log, but in
+         plaintext in the log of any proxy in front of it, for the token's
+         whole validity window. A document-level policy overrides the header
+         for this page only. With no Referer at all, a failed guest form's
+         back() falls through to the session's previous URL, which each of
+         these pages sets on its GET and nothing on them overwrites. --}}
+    <meta name="referrer" content="no-referrer">
 
     <title>@yield('title') - @if (config()->has('app.name')) {{ config('app.name') }} @else My idlers @endif</title>
     <link rel="icon" type="image" href="{{asset(\App\Models\Settings::getSettings()->favicon ?? 'favicon.ico')}}"/>
