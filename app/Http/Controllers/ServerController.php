@@ -16,6 +16,9 @@ use Illuminate\Support\Str;
 
 class ServerController extends Controller
 {
+    /** Same ceiling as ImportServersCommand::assertRowValid() puts on disk_as_gb. */
+    private const MAX_TOTAL_DISK_GB = 100000000;
+
 
     public function index()
     {
@@ -70,11 +73,15 @@ class ServerController extends Controller
             // in: rules — these land in char(2)/varchar(4) columns, so a
             // forged value is a MySQL-strict truncation 500 without them
             'ram_type' => 'required|in:MB,GB',
-            'disk' => 'required|array',
+            // Array caps here, total cap in assertDiskArraysAligned(): one
+            // disk at the per-entry max (1000000 TB = 1024000000 GB) fits the
+            // int disk_as_gb column, three do not -- an unbounded sum was a
+            // MySQL-strict out-of-range 500 on insert instead of a 422
+            'disk' => 'required|array|min:1|max:64',
             'disk.*' => 'required|integer|min:1|max:1000000',
-            'disk_type' => 'required|array',
+            'disk_type' => 'required|array|max:64',
             'disk_type.*' => 'required|in:GB,TB',
-            'disk_media' => 'required|array',
+            'disk_media' => 'required|array|max:64',
             'disk_media.*' => 'required|in:SSD,HDD,NVMe',
             'os_id' => 'required|integer|exists:os,id',
             'provider_id' => 'required|integer|exists:providers,id',
@@ -332,6 +339,14 @@ class ServerController extends Controller
         if (count((array) $request->disk_type) !== $count || count((array) $request->disk_media) !== $count) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'disk' => 'Each disk must have a matching type and media.',
+            ]);
+        }
+
+        // Only meaningful once the arrays are aligned (totalDiskAsGb() indexes
+        // disk_type by disk's keys)
+        if ($this->totalDiskAsGb($request) > self::MAX_TOTAL_DISK_GB) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'disk' => 'Total disk may not exceed ' . number_format(self::MAX_TOTAL_DISK_GB) . ' GB.',
             ]);
         }
     }
