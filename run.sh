@@ -47,6 +47,35 @@ php artisan route:cache
 php artisan view:cache
 php artisan cache:clear > /dev/null 2>&1 || true
 
+# SQLite ownership, re-asserted every boot (harmless for MySQL setups):
+# /app/database stays root-owned, group-writable and sticky so www-data can
+# create journal files but cannot replace the root-owned migrations, seeders
+# or factories under it; the top-level files (the database and its journals)
+# belong to www-data, which is what php-fpm runs as.
+#
+# Deliberately NOT -R over the whole tree, for the reason above.
+chown root:www-data /app/database
+chmod 1770 /app/database
+find /app/database -maxdepth 1 -type f -exec chown www-data:www-data {} +
+
+# Artisan commands that write to the database run as www-data, never as
+# root. In a sticky, group-writable directory the kernel's
+# fs.protected_regular guard (2 on current Debian/Ubuntu hosts; it is a host
+# sysctl, so it applies inside the container) refuses an O_CREAT open of a
+# file by anyone but the file's owner — root included. SQLite always opens
+# its database with O_CREAT, silently falls back to read-only on that EACCES,
+# and the first write then fails with "attempt to write a readonly database".
+# That is exactly what the ap.18 boot-time migration hit on every SQLite
+# install (the database file is www-data's, the migration ran as root). A
+# container started with --user is already unprivileged and runs as is.
+as_www_data() {
+    if [ "$(id -u)" = "0" ]; then
+        su-exec www-data "$@"
+    else
+        "$@"
+    fi
+}
+
 # Run migrations if AUTO_MIGRATE is set; otherwise refuse to boot a database
 # with pending migrations — the session middleware queries the sessions table
 # on EVERY request, so booting anyway would serve 500s on every page
@@ -57,7 +86,7 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     # Same retry as the guard below: a database container that starts
     # slower than the app must not leave a silently-unmigrated boot.
     tries=0
-    until php artisan migrate --force; do
+    until as_www_data php artisan migrate --force; do
         tries=$((tries + 1))
         if [ "$tries" -ge 10 ]; then
             echo "ERROR: migrations failed after ${tries} attempts (database unreachable or a migration error above)." >&2
@@ -68,12 +97,12 @@ if [ "${AUTO_MIGRATE}" = "true" ]; then
     done
 else
     tries=0
-    until php artisan migrate:status --pending=1 > /dev/null 2>&1; do
+    until as_www_data php artisan migrate:status --pending=1 > /dev/null 2>&1; do
         tries=$((tries + 1))
         if [ "$tries" -ge 10 ]; then
             echo "ERROR: the database has pending migrations, is not initialized, or is unreachable." >&2
             echo "Set AUTO_MIGRATE=true (recommended), or run the migrations once with:" >&2
-            echo "  docker run --rm --env-file <your env file> --entrypoint php <image> artisan migrate --force" >&2
+            echo "  docker run --rm --user 82 --env-file <your env file> <your volume flags> --entrypoint php <image> artisan migrate --force" >&2
             echo "(docker exec cannot be used here — this container refuses to start until migrated)" >&2
             exit 1
         fi
@@ -81,19 +110,6 @@ else
         sleep 3
     done
 fi
-
-# SQLite: this script runs as root, so a boot-time migration can leave the
-# db (or its journal files) root-owned in the bind-mounted directory —
-# php-fpm runs as www-data and then 500s with "readonly database" on the
-# first write. Re-assert ownership every boot; harmless for MySQL setups.
-#
-# Deliberately NOT -R over the whole tree: the migrations/seeders/factories
-# under here are PHP that the migrate step above runs as root. Keep the parent
-# root-owned and sticky so www-data can create SQLite journals but cannot swap
-# out those root-owned source directories before the next boot.
-chown root:www-data /app/database
-chmod 1770 /app/database
-find /app/database -maxdepth 1 -type f -exec chown www-data:www-data {} +
 
 # Hand off to supervisord: php-fpm workers + nginx serving public/ on :8000
 # (replaces artisan serve, which is PHP's single-threaded dev server)

@@ -5,7 +5,9 @@ FROM php:8.5.11-fpm-alpine@sha256:fa01fb1645cd0fc566a5f146b099adace33b906571f972
 
 # Build deps for PHP extensions + the production web stack:
 # nginx fronts php-fpm (the base image's actual runtime), supervisor runs both
-RUN apk add --no-cache linux-headers nginx supervisor
+# su-exec: run.sh drops to www-data for the artisan commands that write to
+# the database (see the fs.protected_regular note there).
+RUN apk add --no-cache linux-headers nginx supervisor su-exec
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql sockets bcmath pcntl
