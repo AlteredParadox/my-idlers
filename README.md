@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.17-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.34-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.18-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.37-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 **Release notes:** [CHANGELOG.md](CHANGELOG.md) — every fork revision, newest first. Breaking and behaviour changes are summarised in [Notable and breaking changes](#notable-and-breaking-changes) below.
 
@@ -68,12 +68,16 @@ The full release notes live in [CHANGELOG.md](CHANGELOG.md). This list carries o
 behaviour, the schema or a deployment default for someone upgrading — every release's
 **Upgrading?** callout, newest first. If a release has none, it is not here.
 
+* **[ap.18](CHANGELOG.md#fork-revision-ap18--october-2026)** — `seedboxes` gains the pricing foreign key
+  the other service tables already have; `AUTO_MIGRATE=true` applies it, and any seedbox that has no
+  pricing row first gets a zero-price USD placeholder (logged as a warning), so check those and set a
+  real price. The login and password pages send no Referer at all (a per-page `no-referrer` meta), so a
+  reset token never reaches your proxy's access log through the page's asset loads. `POST /login` now
+  also counts against the 6-a-minute `credentials` limit per client address.
 * **[ap.17](CHANGELOG.md#fork-revision-ap17--october-2026)** — The container's `Referrer-Policy` header is
   `same-origin` (was `strict-origin`), because the stricter value had broken every failed form: validation
   errors bounced to the dashboard unseen. If your own reverse proxy sets `Referrer-Policy` to
-  `strict-origin`, `origin` or `no-referrer`, remove that or forms will keep misbehaving. The login
-  and password pages themselves send no Referer at all (a per-page `no-referrer` meta), so a reset
-  token never reaches your proxy's access log through the page's asset loads.
+  `strict-origin`, `origin` or `no-referrer`, remove that or forms will keep misbehaving.
 * **[ap.16](CHANGELOG.md#fork-revision-ap16--september-2026)** — New sessions are budgeted per client address (60 a minute; a
   browser keeping its cookie is exempt), and behind a reverse proxy the budget is shared unless
   `TRUSTED_PROXIES` is set. Authenticated pages send `Cache-Control: no-store`. The Prometheus
@@ -200,7 +204,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.17` — note the Docker tag uses `-ap.17` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.18` — note the Docker tag uses `-ap.18` since `+` is not
 a valid Docker tag character).
 
 Notes:
