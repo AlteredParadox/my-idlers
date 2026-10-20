@@ -10,6 +10,63 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.18` — October 2026
+
+_The first release driven by the weekly cloud review: its 2026-10-19 run reported eight findings,
+all of which verified against the code and are fixed here, plus a dependency round that puts the
+whole Symfony stack on one 8.1 line and moves the test suite to PHPUnit 13._
+
+> **Upgrading?** One schema change: `seedboxes` gains the `id → pricings.service_id` foreign key
+> (with cascade) that the other five service tables already had. `AUTO_MIGRATE=true` applies it.
+> Before adding the constraint the migration gives any seedbox that has no pricing row a zero-price
+> USD placeholder and logs a warning naming it, so the constraint can be created on an existing
+> database; check those seedboxes afterwards and set a real price. Rolling the code back to `ap.17`
+> is clean, because `ap.17` already wrote the pricing row before the seedbox row. On SQLite the
+> constraint cannot be dropped again (`down()` refuses there, like the earlier catalog foreign-key
+> migration). Two behaviour changes:
+>
+> * **The login, register and password pages send no Referer at all**: a per-page `no-referrer`
+>   meta overrides the container's `same-origin` header on those pages only. A password-reset token
+>   therefore never reaches a reverse proxy's access log through the page's asset loads.
+>   Authenticated pages are unchanged, so `ap.17`'s failed-form fix stands.
+> * **`POST /login` counts against the `credentials` rate limit** (6 a minute per client address)
+>   on top of the existing lockout of 5 attempts per email. Behind a reverse proxy that budget is
+>   shared by every visitor unless `TRUSTED_PROXIES` is set, as with the session limiter from `ap.16`.
+
+**Security**
+
+* **symfony/http-foundation 8.0.15 → 8.1.9** for CVE-2026-108082, a pre-authentication ReDoS through
+  the `Cache-Control` request-header parser; symfony/yaml moves with it for CVE-2026-109413 (dev-only,
+  pulled in by Sail). Neither CVE is in GitHub's advisory database, so Dependabot could not have
+  delivered them; `composer audit --locked` is what catches transitive Symfony advisories (#130)
+* The password pages no longer send a Referer (see the callout), and the Prometheus poll on the
+  server page marks itself as an XHR so it can no longer overwrite the session's previous-URL
+  fallback that a failed form redirects to (#130)
+* `POST /login` joined the `credentials` throttle budget; the route had never carried a throttle,
+  despite an earlier commit message claiming it did (#130)
+* The Dockerfile's base images (`php:8.5.11-fpm-alpine`, `composer:2.10.3`) are pinned by digest as
+  well as tag; Dependabot's docker ecosystem bumps both together (#130)
+
+**Fixes**
+
+* **Server disks are capped** at 64 entries and a 100,000,000 GB total, the import command's
+  ceiling. Three disks at the per-entry maximum used to overflow `disk_as_gb` into a MySQL
+  out-of-range 500 that SQLite hid (#130)
+* **Seedboxes get the pricing foreign key** the other service tables have, so deleting a pricing row
+  cascades to its seedbox and a seedbox can no longer exist without one (#130)
+* **Whois fields are clipped to 255 characters** and non-scalar values dropped before they reach the
+  `varchar(255)` columns, where MySQL strict mode turned an over-long `org` into a 500 (#130)
+
+**Dependencies**
+
+* Laravel 13.37, Guzzle 8.3, Carbon 3.15, Sail 1.69, and the whole Symfony stack on one 8.1 line,
+  console included; Dependabot's own re-resolution had dropped http-foundation back to 7.4 (#131).
+  setup-php 2.40.0 (#129); Vite 8.3.4 and DataTables 3.1.4 with the bundle rebuilt (#127)
+* PHPUnit 13.4 (#132). Dev-only, no test changes; the constraint was widened so Dependabot now
+  tracks the 13.x line
+* The app's PHP constraint is `^8.4.1` (was `^8.4`), the floor PHPUnit 13 needs for a dev install.
+  No runtime effect: 8.4.1 was 8.4's general-availability release
+
 ## Fork revision `ap.17` — October 2026
 
 _A small release for one user-reported bug that had been in the image since `ap.16`'s security
