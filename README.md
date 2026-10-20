@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.18-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.37-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.19-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.37-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 **Release notes:** [CHANGELOG.md](CHANGELOG.md) — every fork revision, newest first. Breaking and behaviour changes are summarised in [Notable and breaking changes](#notable-and-breaking-changes) below.
 
@@ -68,6 +68,11 @@ The full release notes live in [CHANGELOG.md](CHANGELOG.md). This list carries o
 behaviour, the schema or a deployment default for someone upgrading — every release's
 **Upgrading?** callout, newest first. If a release has none, it is not here.
 
+* **[ap.19](CHANGELOG.md#fork-revision-ap19--october-2026)** — Hotfix: `ap.18`'s boot-time migration failed on
+  SQLite installs with "attempt to write a readonly database". Boot-time migrations now run as `www-data`
+  instead of root, so the database file and its directory must be writable by uid 82, which the SQLite
+  instructions below already require. Stuck on `ap.18`? Run the migration once by hand, then start
+  normally: `docker compose run --rm --user 82 --entrypoint php <service> artisan migrate --force`
 * **[ap.18](CHANGELOG.md#fork-revision-ap18--october-2026)** — `seedboxes` gains the pricing foreign key
   the other service tables already have; `AUTO_MIGRATE=true` applies it, and any seedbox that has no
   pricing row first gets a zero-price USD placeholder (logged as a warning), so check those and set a
@@ -204,7 +209,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.18` — note the Docker tag uses `-ap.18` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.19` — note the Docker tag uses `-ap.19` since `+` is not
 a valid Docker tag character).
 
 Notes:
@@ -236,7 +241,9 @@ Notes:
   uid. Keep the directory owned by root with a sticky, group-writable mode, then give
   only its top-level files to PHP: `chown root:82 database && chmod 1770 database &&
   find database -maxdepth 1 -type f -exec chown 82:82 {} +`. SQLite can then create
-  journal files without making the migration source replaceable by the web worker.
+  journal files without making the migration source replaceable by the web worker. Boot-time
+  migrations run as that same uid (since `ap.19`), and the entrypoint re-applies this ownership
+  to the top-level files on every boot, so an existing install needs nothing extra.
 * Custom favicons are stored in the container's webroot, which is ephemeral by design —
   re-upload the favicon after pulling a new image (everything else lives in the database
   and carries over).

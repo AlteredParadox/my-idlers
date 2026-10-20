@@ -10,6 +10,35 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.19` — October 2026
+
+_A hotfix for `ap.18`, whose boot-time migration failed on every SQLite install with "attempt to
+write a readonly database". MySQL installs were unaffected. Nothing else changes._
+
+> **Upgrading?** Same schema as `ap.18`: the seedboxes migration that `ap.18` could not apply on
+> SQLite runs on the first boot of this image (with `AUTO_MIGRATE=true`), including the zero-price
+> placeholder for any seedbox without a pricing row described under `ap.18`. One behaviour change:
+>
+> * **Boot-time migrations run as `www-data`**, the user php-fpm runs as, instead of root. For
+>   SQLite that means the database file and its directory must be writable by uid 82, which the
+>   README's SQLite instructions already required for the app itself to work; the entrypoint still
+>   re-asserts the documented ownership of `/app/database` on every boot, now before migrating.
+>   Containers started with `--user` are unaffected.
+
+**Fixes**
+
+* **`ap.18` could not migrate a SQLite database at boot** (#134). Since `ap.15`, `/app/database` is
+  sticky and group-writable and the database file belongs to `www-data`. The kernel's
+  `fs.protected_regular` guard (2 on current Debian and Ubuntu hosts, and a host sysctl, so it
+  applies inside the container) refuses an `O_CREAT` open of a file in such a directory by anyone
+  but the file's owner, root included. SQLite always opens its database with `O_CREAT`, silently
+  falls back to read-only on that refusal, and the first write fails. php-fpm never hit it because
+  it is the owner; the migrate step ran as root, and `ap.18` was the first release with a pending
+  migration since `ap.15`. The entrypoint now runs `artisan migrate` and the pending-migration
+  check through `su-exec` as `www-data`, after re-asserting ownership. Stuck on `ap.18`? Either
+  pull this image, or run the migration once by hand as the file's owner and start normally:
+  `docker compose run --rm --user 82 --entrypoint php <service> artisan migrate --force`
+
 ## Fork revision `ap.18` — October 2026
 
 _The first release driven by the weekly cloud review: its 2026-10-19 run reported eight findings,
