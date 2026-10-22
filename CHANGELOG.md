@@ -10,6 +10,33 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.20` — October 2026
+
+_A security rebuild of the Docker image on PHP 8.5.12, the out-of-band release that fixes two
+critical vulnerabilities. Nothing in the application, its dependencies or the deployment defaults
+changes; an existing install only needs to pull the image._
+
+**Security**
+
+* **Docker base image moved from `php:8.5.11-fpm-alpine` to `php:8.5.12-fpm-alpine`** (#136,
+  contributed by [@herobrauni](https://github.com/herobrauni)). PHP's security release of
+  21 October 2026 fixes two remote-code-execution bugs, CVE-2026-109618
+  ([GHSA-w8hw-w9fx-j79w](https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w),
+  "RCE via OOM corruption") and CVE-2026-109619
+  ([GHSA-6wmf-4rv5-p3rp](https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp),
+  "RCE via stale global state"), both rated CVSS v4.0 9.2 (Critical) and listed under 8.5.12 in
+  the [PHP 8 changelog](https://www.php.net/ChangeLog-8.php#8.5.12) as "Avoid state corruption
+  via bailout". Every image up to `ap.19` runs the vulnerable 8.5.11, so this release exists to get
+  the patched runtime tagged. The pin keeps the tag-plus-digest convention: `8.5.12` resolves to
+  a manifest list that Docker Hub has since republished with a different ppc64le manifest, so
+  Dependabot's next docker run may offer a digest-only refresh of the same amd64 image.
+
+**Dependencies**
+
+* `follow-redirects` 1.16.0 → 1.16.1 (Dependabot security group, #137). A transitive dev
+  dependency of the front-end build; it is not part of the published image, whose assets are
+  built ahead of time and committed.
+
 ## Fork revision `ap.19` — October 2026
 
 _A hotfix for `ap.18`, whose boot-time migration failed on every SQLite install with "attempt to
