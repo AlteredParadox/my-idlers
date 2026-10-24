@@ -28,7 +28,7 @@ class ExportService
     /**
      * Version stamped into export metadata
      */
-    protected const EXPORT_VERSION = '4.1.0+ap.20';
+    protected const EXPORT_VERSION = '4.1.0+ap.21';
 
     /**
      * Everything needed to export one section. Order matters: it is the
