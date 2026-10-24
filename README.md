@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.20-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.37-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.21-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.38-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 **Release notes:** [CHANGELOG.md](CHANGELOG.md) — every fork revision, newest first. Breaking and behaviour changes are summarised in [Notable and breaking changes](#notable-and-breaking-changes) below.
 
@@ -209,7 +209,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.20` — note the Docker tag uses `-ap.20` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.21` — note the Docker tag uses `-ap.21` since `+` is not
 a valid Docker tag character).
 
 Notes:

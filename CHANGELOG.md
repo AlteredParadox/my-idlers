@@ -10,6 +10,25 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.21` — October 2026
+
+_A dependency-only release: the weekly Dependabot round for the framework and the front-end
+build. Nothing in the application's behaviour, schema or deployment defaults changes; an existing
+install only needs to pull the image._
+
+**Dependencies**
+
+* Laravel 13.38 (#139), a bugfix release: `whereBetween` with collection bounds, `clone()` on
+  relations, `ofMany()` aliases inside closures, altering SQLite tables whose foreign key targets a
+  quoted table name, and the scheduler releasing its unique lock when dispatching a job fails.
+  The lockfile otherwise moves only nette/schema 1.4.0 and nette/utils 4.1.6
+* Vite 8.3.5 and sass 1.106.0 (#140), with the rolldown bundler at 1.2.15 underneath. The
+  committed bundle was rebuilt by hand because Dependabot cannot run the build: the CSS output is
+  byte-identical and the JS differs only by the newer minifier's rewrites, verified in headless
+  Chromium against the previous bundle (jQuery, DataTables ordering, Bootstrap, the delete dialog
+  and ApexCharts all behave the same)
+* `composer audit` and `npm audit` are both clean
+
 ## Fork revision `ap.20` — October 2026
 
 _A security rebuild of the Docker image on PHP 8.5.12, the out-of-band release that fixes two
