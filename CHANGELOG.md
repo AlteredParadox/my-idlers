@@ -10,6 +10,39 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.22` — November 2026
+
+_A dependency-only release: the weekly Dependabot round plus the Symfony security batch published
+the same day. Nothing in the application's behaviour, schema or deployment defaults changes; an
+existing install only needs to pull the image._
+
+**Dependencies**
+
+* Symfony 8.1.11 across the board (bumped by hand on top of #144). Symfony published seven
+  advisories on 4 November against http-foundation, http-kernel, routing and yaml, among them
+  CVE-2026-118514 (HEAD requests bypassing method-scoped access rules) and CVE-2026-118516 (host
+  placeholders matching the start of the path in compiled URL matchers). None of the affected
+  code paths are reachable in this app's configuration, but the lockfile now carries the fixed
+  versions rather than waiting a week for the next round
+* Laravel 13.39 (#144), a bugfix release: `once()` no longer returns a cached value for a different
+  object, `withoutMiddleware()` now excludes middleware with parameters, pagination counts for
+  grouped union queries, `latest()`/`oldest()` with a join from a subquery, atomic writes for the
+  config, route and event cache files, and `Filesystem::exists()`/`isFile()` now refuse `phar://`
+  wrappers
+* Guzzle 8.3.1 (#144): cookie-jar fixes for expired and same-value cookies
+* PHPUnit 13.4.5 (#144, dev only), which closes CVE-2026-119193: the shared temporary-directory
+  cache that let another local user run code during a test run
+* axios 1.21.0 and sass 1.106.1 (#143), with the committed bundle rebuilt by hand because
+  Dependabot cannot run the build: the CSS output is byte-identical and only the app chunk changed,
+  verified in headless Chromium against the previous bundle (jQuery, DataTables ordering,
+  Bootstrap, the delete dialog and ApexCharts all behave the same)
+* follow-redirects 1.16.2 (#146), closing the one open npm advisory. A Node-side dependency of
+  axios that never reaches the browser bundle
+* The `php:8.5.12-fpm-alpine` base image digest was refreshed (#142); same PHP, rebuilt Alpine
+  layers. Verified with a local image build and the release workflow's dry run
+* `sonarqube-scan-action` 8.4.0 and `docker/login-action` 4.7.0 in the workflows (#145)
+* `composer audit` and `npm audit` are both clean
+
 ## Fork revision `ap.21` — October 2026
 
 _A dependency-only release: the weekly Dependabot round for the framework and the front-end
