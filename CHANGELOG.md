@@ -10,6 +10,30 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.23` — November 2026
+
+_A dependency-only release: Laravel's security update plus the weekly Dependabot round. Nothing in
+the application's behaviour, schema or deployment defaults changes; an existing install only needs
+to pull the image._
+
+**Dependencies**
+
+* Laravel 13.42 (#152, #155). 13.40 fixes GHSA-63hm-g96r-2m2q / CVE-2026-128083 (low): output
+  printed by a `Concurrency::run()` task could forge the framework's internal result message. This
+  app never calls `Concurrency`, so it was not reachable here, but the lockfile now carries the
+  fix. Beyond that the two releases are bugfixes: `TokenGuard::validate()` hashes the token when
+  hashing is enabled, a commit that fails on a lost connection discards the PDO, `cursor()`
+  respects `preventLazyLoading`, and invalid UTF-8 is substituted when encoding a JSON session
+* Guzzle 8.5 and psr7 3.4 (#152), and Tinker 3.1 (#155)
+* PHPUnit 13.4.7 with php-code-coverage 14.5.2 (#154, dev only), bumped by hand after Dependabot
+  closed its own PR (#150) as superseded. Ignition 2.13, Whoops 2.19, Collision 8.9.6 and Sail
+  1.70 (#155) are dev only as well
+* DataTables 3.1.5, sass 1.107.1 and laravel-vite-plugin 3.2.1 (#151), with the committed bundle
+  rebuilt by hand because Dependabot cannot run the build. The CSS output is byte-identical; the
+  app chunk carries the DataTables 3.1.5 patch-level fixes. Checked in headless Chromium against the previous bundle: jQuery, DataTables ordering,
+  Bootstrap plugins, axios, ApexCharts and the delete dialog all behave the same
+* sonarqube-scan-action 8.4.1 (#149, CI only)
+
 ## Fork revision `ap.22` — November 2026
 
 _A dependency-only release: the weekly Dependabot round plus the Symfony security batch published
