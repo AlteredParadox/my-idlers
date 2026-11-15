@@ -10,6 +10,23 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.24` — November 2026
+
+_A dependency-only release: the weekly Dependabot round. Nothing in the application's behaviour,
+schema or deployment defaults changes; an existing install only needs to pull the image._
+
+**Dependencies**
+
+* PHP base image `php:8.5.12-fpm-alpine` re-pinned to Docker Hub's rebuilt digest (#157). Still PHP
+  8.5.12; the image picks up the refreshed Alpine packages underneath it
+* axios 1.21.1, sass 1.108.2 and Vite 8.3.8 (#159), with the committed bundle rebuilt by hand
+  because Dependabot cannot run the build. The CSS output is byte-identical. The app chunk carries
+  axios 1.21.1, which times request durations with `performance.now()` where available, plus
+  minifier-only rewrites from the newer Rolldown. Checked in headless Chromium against the previous
+  bundle: jQuery, DataTables ordering, Bootstrap plugins, axios, ApexCharts and the delete dialog
+  all behave the same
+* docker/login-action 4.8.0 and action-gh-release 3.0.4 (#158, release workflow only)
+
 ## Fork revision `ap.23` — November 2026
 
 _A dependency-only release: Laravel's security update plus the weekly Dependabot round. Nothing in
