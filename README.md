@@ -109,7 +109,7 @@ behaviour, the schema or a deployment default for someone upgrading — every re
 
 ## Requires
 
-* PHP 8.4
+* PHP 8.5 or newer (8.5 and 8.6 are both tested on every change)
 
 ## Features
 
