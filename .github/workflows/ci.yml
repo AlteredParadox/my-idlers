@@ -19,8 +19,24 @@ permissions:
 
 jobs:
   check:
-    name: check
+    # Two lanes. 8.6 is what the Docker image ships, and it keeps the bare name
+    # `check` because that exact string is the required status check on main --
+    # a plain matrix would rename it to `check (8.6)` and leave the gate waiting
+    # forever on a context nobody reports. 8.5 covers installs that have not
+    # moved yet (composer.json still admits it); it runs both suites but skips
+    # coverage, which sonar needs exactly once.
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.6'
+            name: check
+            primary: true
+          - php: '8.5'
+            name: check (PHP 8.5)
+            primary: false
     services:
       mariadb:
         image: mariadb:11
@@ -39,9 +55,9 @@ jobs:
 
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_sqlite, sqlite3, pdo_mysql, gd, zip
-          coverage: pcov
+          coverage: ${{ matrix.primary && 'pcov' || 'none' }}
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
@@ -51,8 +67,8 @@ jobs:
           echo "APP_KEY=" > .env
           php artisan key:generate --force
 
-      - name: Run tests with coverage (SQLite)
-        run: vendor/bin/phpunit --coverage-clover coverage.xml
+      - name: Run tests (SQLite, with coverage on the primary lane)
+        run: vendor/bin/phpunit ${{ matrix.primary && '--coverage-clover coverage.xml' || '' }}
 
       # Production is MySQL; several bug classes (int columns as strings,
       # changed-vs-matched row counts) are invisible under SQLite.
@@ -65,6 +81,7 @@ jobs:
         run: vendor/bin/phpunit -c phpunit.mysql.xml
 
       - name: Upload coverage report
+        if: matrix.primary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
