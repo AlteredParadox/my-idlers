@@ -9,7 +9,7 @@ a [YABS](https://github.com/masonr/yet-another-bench-script) output you can get 
 GeekBench 5 & 6 scores to do easier comparing and sorting. Of course storing other services e.g. web hosting is possible
 and supported too with My idlers.
 
-[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.24-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.42-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.5-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/version-4.1.0+ap.25-blue.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Laravel-13.43-red.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/PHP-8.6-purple.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/Bootstrap-5.3-pink.svg)](https://shields.io/)
 
 **Release notes:** [CHANGELOG.md](CHANGELOG.md) — every fork revision, newest first. Breaking and behaviour changes are summarised in [Notable and breaking changes](#notable-and-breaking-changes) below.
 
@@ -68,6 +68,10 @@ The full release notes live in [CHANGELOG.md](CHANGELOG.md). This list carries o
 behaviour, the schema or a deployment default for someone upgrading — every release's
 **Upgrading?** callout, newest first. If a release has none, it is not here.
 
+* **[ap.25](CHANGELOG.md#fork-revision-ap25--november-2026)** — The Docker image runs PHP 8.6 (was 8.5), a
+  thread-safe build, carrying PHP's November 2026 security fixes. Pulling the image is enough unless you
+  build on top of it or load your own extensions; rebuild those for 8.6. Running without Docker? Update
+  your own PHP to 8.5.13 or 8.4.28 — this release cannot do that for you
 * **[ap.19](CHANGELOG.md#fork-revision-ap19--october-2026)** — Hotfix: `ap.18`'s boot-time migration failed on
   SQLite installs with "attempt to write a readonly database". Boot-time migrations now run as `www-data`
   instead of root, so the database file and its directory must be writable by uid 82, which the SQLite
@@ -209,7 +213,7 @@ docker run --rm --entrypoint php ghcr.io/alteredparadox/my-idlers:latest artisan
 
 Images are published to GitHub Container Registry on each tagged release:
 `ghcr.io/alteredparadox/my-idlers:latest` (or a pinned revision, e.g.
-`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.24` — note the Docker tag uses `-ap.24` since `+` is not
+`ghcr.io/alteredparadox/my-idlers:4.1.0-ap.25` — note the Docker tag uses `-ap.25` since `+` is not
 a valid Docker tag character).
 
 Notes:

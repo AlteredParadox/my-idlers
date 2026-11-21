@@ -10,6 +10,66 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.25` — November 2026
+
+_A security release: the Docker image moves to PHP 8.6.0, which carries PHP's 19 November 2026
+security fixes, and the lockfile picks up Laravel's and Guzzle's security updates. The
+application's own behaviour and schema do not change._
+
+> **Upgrading?** The Docker image now runs **PHP 8.6** (was 8.5). Pulling the image is all a
+> standard install needs. Two cases need a second look: if you build your own image on top of
+> this one or load extensions of your own, rebuild them for 8.6 — the official 8.6 `fpm-alpine`
+> image is also a thread-safe (ZTS) build where 8.5 was not. And if you run the app **without
+> Docker**, this release does not patch your PHP for you: update it to 8.5.13 or 8.4.28 (or move
+> to 8.6). PHP 8.5 remains supported and is still tested on every change.
+
+**Security**
+
+* **Docker base image moved from `php:8.5.12-fpm-alpine` to `php:8.6.0-fpm-alpine`** (#166). PHP
+  published 17 advisories on 19 November 2026, eight of them rated critical, fixed in 8.6.0 and
+  8.5.13 alike. The ones that bear most directly on this image, which serves the app through
+  nginx and php-fpm, are CVE-2026-129289
+  ([GHSA-qc49-hpvq-g2w6](https://github.com/php/php-src/security/advisories/GHSA-qc49-hpvq-g2w6),
+  PHP-FPM request smuggling through an unread request body, critical), CVE-2026-129291
+  ([GHSA-jm4m-qfqx-967m](https://github.com/php/php-src/security/advisories/GHSA-jm4m-qfqx-967m),
+  PHP-FPM epoll use-after-free, high) and the use-after-free bugs in the timezone cache
+  (CVE-2026-129496), magic-method backtraces (CVE-2026-129474) and session shutdown
+  (CVE-2026-129481), all critical. Every image up to `ap.24` runs the vulnerable 8.5.12.
+  The move is to 8.6 rather than 8.5.13 because Dependabot only ever proposes the newest PHP tag:
+  it offered a release candidate of 8.6 (#164, rejected by the pinned-base-image test) and never
+  offered 8.5.13, so staying on 8.5 would have meant watching for every later patch by hand.
+  The new image was built and booted before release: migrations, nginx, php-fpm, the queue worker,
+  the login page and the container healthcheck all behave as before
+* **Laravel 13.43** (#163), which fixes six advisories published on 18 November 2026. The one
+  that touches a code path this app plainly has is GHSA-cvfq-f547-rv2g (denial of service in
+  email validation via oversized Unicode domains): the login and password-reset forms validate
+  an email address before authentication. The other five are GHSA-hxc4-wvjf-r59p (file
+  validation), GHSA-6pxv-c29g-cc5h (mass-assignment guard), GHSA-9966-43cq-4mpr (Blade dynamic
+  components), GHSA-ch34-gjmh-c4hp (`Rule::exists()` / `Rule::unique()` with `where()`) and the
+  low-rated GHSA-5xc4-gpwg-p8wq (Markdown). Separately from the advisories, 13.43 hardens signed
+  URLs against an `expires` parameter smuggled past the expiry check, which matters here because
+  the YABS ingest URLs are temporary signed URLs
+* **Guzzle 8.5.4** (#163), with `guzzlehttp/psr7` 3.5.1 and `guzzlehttp/promises` 3.2.0. Fixes
+  GHSA-gqx6-m769-3x35 (URI fragments sent in stream-handler request targets, low) and
+  GHSA-q8h8-pjjq-cq2h (a malformed proxy URL could silently bypass the configured proxy, medium;
+  this app configures no proxy), and rejects CR, LF and NUL in request methods and header fields
+
+**Continuous integration**
+
+* The test job now runs on **two PHP versions** (#166): 8.6, the runtime the image ships, and
+  8.5, for installs that have not moved. Both run the SQLite and the MySQL suite; the 8.6 lane
+  remains the required check and the one that feeds coverage to SonarQube
+* SonarSource/sonarqube-scan-action 8.5.0 (#161)
+
+**Dependencies**
+
+* Bootstrap 5.3.9 and jQuery 4.1.0 (#162), with the committed bundle rebuilt by hand because
+  Dependabot cannot run the build. Checked in headless Chromium against the previous bundle:
+  jQuery, DataTables ordering, Bootstrap plugins, axios, ApexCharts and the delete dialog all
+  behave the same
+* Also in #163: Monolog 3.13.0, `ramsey/uuid` 4.10.0, Laravel Tinker 3.2.0, and Laravel Sail 1.71.0
+  (development only)
+
 ## Fork revision `ap.24` — November 2026
 
 _A dependency-only release: the weekly Dependabot round. Nothing in the application's behaviour,
