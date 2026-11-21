@@ -10,6 +10,29 @@ or a deployment default; those callouts are summarised in the README under
 [Notable and breaking changes](README.md#notable-and-breaking-changes). The dated `4.1.0` and
 `4.0.0` sections at the end are upstream's changelog for the baseline this fork builds on.
 
+## Fork revision `ap.26` — November 2026
+
+_A housekeeping release: the minimum PHP version rises from 8.4 to 8.5, so what the project
+claims to support is exactly what its tests run on. Nothing in the application's behaviour or
+schema changes, and the Docker image is the same PHP 8.6.0 runtime as `ap.25`._
+
+> **Upgrading?** **PHP 8.4 is no longer supported.** If you use the Docker image there is nothing
+> to do: it has run PHP 8.5 or newer since `ap.7` and runs 8.6 today. If you run the app **without
+> Docker** on PHP 8.4, upgrade PHP to 8.5 or 8.6 **before** updating the code: from this release
+> `composer install` refuses to run there ("Root composer.json requires php ^8.5 but your php
+> version (8.4.x) does not satisfy that requirement"), so the update cannot be completed on 8.4.
+> Cannot upgrade PHP yet? Stay on `ap.25`, the last release that runs on 8.4, and keep that PHP
+> patched (8.4.28 or later).
+
+**Changed**
+
+* **The minimum PHP version is 8.5** (#168). `composer.json` required `^8.4.1` and the README
+  listed PHP 8.4, but the test suite has only ever run on the Docker image's PHP version, so 8.4
+  was a promise nothing checked: code using an 8.5-only feature would have passed every check and
+  broken 8.4 installs. `ap.25` put the tests on PHP 8.6 and 8.5; this release makes that the
+  supported range. The lockfile changes are the platform constraint and its hash only; no
+  dependency version moves
+
 ## Fork revision `ap.25` — November 2026
 
 _A security release: the Docker image moves to PHP 8.6.0, which carries PHP's 19 November 2026
