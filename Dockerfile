@@ -1,7 +1,7 @@
 # Version tag AND digest: the tag is what Dependabot's docker ecosystem bumps
 # (digest alongside), the digest is what makes two builds of one commit the
 # same image. The only unpinned links in an otherwise SHA-pinned supply chain.
-FROM php:8.6.0-fpm-alpine@sha256:3892978a38794b348f73d6926fb63e352b5338f8b302cdd2cf0ed968f63b50c5
+FROM php:8.6.0-fpm-alpine@sha256:31d659619113bbf45ca69dfb04c7220f095c2b814d58ea373204aaa237eeb2a1
 
 # Build deps for PHP extensions + the production web stack:
 # nginx fronts php-fpm (the base image's actual runtime), supervisor runs both
